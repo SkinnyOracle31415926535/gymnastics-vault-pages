@@ -1,0 +1,1652 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+<title>Spring 2026 Collisions Calendar</title>
+<style>
+  :root {
+    --paper: #06120a;
+    --ink: #fff7b3;
+    --panel: #102414;
+    --line: rgba(246, 231, 84, 0.4);
+    --line-soft: rgba(255, 255, 255, 0.14);
+    --display-font: "Brush Script MT", "Segoe Script", "Apple Chancery", "Snell Roundhand", "Lucida Handwriting", cursive;
+    --text-raise:
+      0 1px 0 #fffbc5,
+      0 2px 0 #dfff55,
+      0 3px 0 #63b52f,
+      0 6px 0 rgba(4, 43, 15, 0.72),
+      0 14px 22px rgba(0, 0, 0, 0.55);
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; touch-action: manipulation; }
+  body {
+    margin: 0;
+    color: var(--ink);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background:
+      radial-gradient(circle at 18% 8%, rgba(218, 255, 48, 0.2), transparent 25%),
+      radial-gradient(circle at 86% 4%, rgba(96, 179, 37, 0.28), transparent 26%),
+      linear-gradient(135deg, #030804 0%, #071407 34%, #10240b 68%, #18280a 100%);
+    overflow-x: hidden;
+  }
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: rgba(3, 12, 5, 0.94);
+    border-bottom: 2px ridge rgba(238, 255, 88, 0.58);
+    backdrop-filter: blur(8px);
+  }
+  .top-inner {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 14px 22px 12px;
+  }
+  h1 {
+    margin: 0 0 12px;
+    font-family: var(--display-font);
+    font-size: 50px;
+    line-height: 0.95;
+    color: #f4ff56;
+    letter-spacing: 0;
+    text-shadow: var(--text-raise);
+  }
+  .schedule-meta {
+    margin: -7px 0 11px;
+    color: #e7efb4;
+    font-size: 13px;
+    font-weight: 700;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .controls a, .controls button {
+    border: 1px solid rgba(244, 255, 86, 0.78);
+    border-radius: 7px;
+    background: linear-gradient(180deg, #fff9ac 0%, #d6f241 34%, #4d8a1b 100%);
+    color: #142307;
+    padding: 7px 10px;
+    text-decoration: none;
+    font-family: var(--display-font);
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+    text-shadow: 0 1px 0 #fff7a4, 0 2px 0 rgba(5, 34, 8, 0.42);
+    box-shadow:
+      0 5px 0 #254c0d,
+      0 11px 18px rgba(0, 0, 0, 0.34),
+      0 1px 0 rgba(255, 255, 255, 0.8) inset;
+  }
+  .nav-break { flex-basis: 100%; height: 0; }
+  .controls a.is-current { outline: 3px solid #ff5de4; outline-offset: 2px; filter: saturate(1.25) brightness(1.12); }
+  .auto-nav-status { margin: 9px 0 0; color: #efffb1; font-size: 13px; font-weight: 800; }
+  main {
+    max-width: 1480px;
+    margin: 0 auto;
+    padding: 18px 22px 44px;
+  }
+  .day-section {
+    scroll-margin-top: 164px;
+    padding: 22px 0 34px;
+    border-bottom: 2px ridge rgba(238, 255, 88, 0.34);
+  }
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 14px;
+    margin-bottom: 12px;
+  }
+  .section-head h2 {
+    margin: 0;
+    font-family: var(--display-font);
+    font-size: 42px;
+    color: #dfff55;
+    text-shadow: var(--text-raise);
+  }
+  .section-head span {
+    color: #fff36a;
+    font-family: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    text-shadow: 0 1px 0 #142307, 0 3px 8px rgba(0, 0, 0, 0.58);
+  }
+  .collision-scroll {
+    overflow-x: hidden;
+    width: 100%;
+    border: 3px ridge rgba(238, 255, 88, 0.62);
+    border-radius: 10px;
+    background:
+      linear-gradient(145deg, rgba(39, 128, 36, 0.22), rgba(197, 255, 64, 0.12) 48%, rgba(255, 230, 74, 0.1));
+    box-shadow:
+      0 7px 0 rgba(13, 58, 18, 0.92),
+      0 22px 34px rgba(0, 0, 0, 0.42),
+      0 3px 0 rgba(255, 255, 255, 0.5) inset;
+    padding: 5px;
+  }
+  .collision-grid {
+    display: grid;
+    grid-template-rows: 38px var(--timeline-height);
+    min-width: 0;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    border-radius: 7px;
+    box-shadow: 0 2px 0 rgba(255, 255, 255, 0.4) inset, 0 -3px 0 rgba(0, 0, 0, 0.3) inset;
+  }
+  .corner, .equip-head {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    padding: 9px 2px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 900;
+    color: #102006;
+    background:
+      linear-gradient(180deg, #fffbd0 0%, #f4ff65 32%, #a7d838 68%, #2f6a18 100%);
+    border-right: 1px solid rgba(238, 255, 88, 0.38);
+    border-bottom: 2px solid rgba(238, 255, 88, 0.46);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.78), 0 2px 3px rgba(21, 55, 9, 0.24);
+    box-shadow: 0 2px 0 rgba(255, 255, 255, 0.76) inset, 0 -3px 0 rgba(13, 57, 16, 0.38) inset;
+  }
+  .corner { left: 0; z-index: 3; }
+  .time-axis {
+    position: relative;
+    height: var(--timeline-height);
+    background: linear-gradient(90deg, rgba(238, 255, 88, 0.18), rgba(10, 35, 14, 0.42), rgba(129, 176, 42, 0.1));
+    border-right: 2px ridge rgba(238, 255, 88, 0.42);
+  }
+  .time-label {
+    position: absolute;
+    left: 0;
+    right: 7px;
+    transform: translateY(-50%);
+    color: #fffbd0;
+    font-family: "Trebuchet MS", "Lucida Grande", Verdana, sans-serif;
+    font-size: 12px;
+    font-weight: 900;
+    text-align: right;
+    text-shadow: 0 1px 0 #172307, 0 3px 6px rgba(0, 0, 0, 0.68);
+  }
+  .equip-track {
+    --track-tint: rgba(218, 255, 48, 0.1);
+    --track-line: rgba(238, 255, 88, 0.22);
+    position: relative;
+    height: var(--timeline-height);
+    border-right: 1px solid rgba(255, 255, 255, 0.16);
+    background:
+      repeating-linear-gradient(to bottom, var(--track-line) 0, var(--track-line) 2px, transparent 2px, transparent 30px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.1), var(--track-tint), rgba(6, 28, 8, 0.2));
+    box-shadow: 2px 0 0 rgba(255, 255, 255, 0.12) inset, -2px 0 0 rgba(0, 0, 0, 0.16) inset;
+  }
+  .equip-track.cat-vault { --track-tint: rgba(105, 196, 47, 0.13); --track-line: rgba(188, 245, 69, 0.28); }
+  .equip-track.cat-pit { --track-tint: rgba(255, 217, 67, 0.13); --track-line: rgba(255, 217, 67, 0.3); }
+  .equip-track.cat-beam { --track-tint: rgba(142, 184, 48, 0.13); --track-line: rgba(194, 222, 66, 0.28); }
+  .equip-track.cat-bars { --track-tint: rgba(42, 166, 62, 0.14); --track-line: rgba(96, 219, 82, 0.28); }
+  .equip-track.cat-floor { --track-tint: rgba(190, 228, 45, 0.12); --track-line: rgba(238, 255, 88, 0.28); }
+  .equip-track.cat-f6 { --track-tint: rgba(222, 198, 51, 0.13); --track-line: rgba(255, 238, 91, 0.3); }
+  .equip-track.cat-boys { --track-tint: rgba(94, 145, 31, 0.15); --track-line: rgba(181, 230, 60, 0.28); }
+  .equip-track.cat-tramp { --track-tint: rgba(255, 232, 79, 0.13); --track-line: rgba(255, 232, 79, 0.31); }
+  .equip-track.cat-ts { --track-tint: rgba(70, 129, 35, 0.15); --track-line: rgba(209, 255, 70, 0.28); }
+  .collision-block {
+    position: absolute;
+    left: calc(2px + (var(--lane) * ((100% - 4px) / var(--lanes))));
+    width: calc(((100% - 4px) / var(--lanes)) - 2px);
+    min-width: 10px;
+    border-radius: 7px;
+    border: 2px solid rgba(255, 255, 255, 0.78);
+    border-right-color: rgba(30, 62, 10, 0.64);
+    border-bottom-color: rgba(18, 50, 9, 0.78);
+    padding: 0 1px;
+    overflow: hidden;
+    color: #102006;
+    font-size: 7px;
+    line-height: 0.95;
+    transform: translateY(-1px);
+    background-image:
+      radial-gradient(ellipse at 24% 12%, rgba(255, 255, 255, 0.94), rgba(255, 255, 255, 0.25) 35%, transparent 62%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(0, 0, 0, 0.18));
+    box-shadow:
+      0 3px 0 rgba(255, 255, 255, 0.68) inset,
+      0 -4px 0 rgba(28, 69, 12, 0.32) inset,
+      0 4px 0 rgba(19, 63, 13, 0.66),
+      0 9px 13px rgba(0, 0, 0, 0.42);
+    text-shadow: 0 1px 0 rgba(255, 255, 194, 0.68), 0 2px 3px rgba(2, 31, 5, 0.28);
+  }
+  .collision-block::before {
+    content: "";
+    position: absolute;
+    top: 2px;
+    left: 4px;
+    right: 4px;
+    height: 34%;
+    border-radius: 5px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.06));
+    pointer-events: none;
+  }
+  .collision-block strong, .collision-block span, .collision-block em {
+    position: relative;
+    z-index: 1;
+    display: block;
+  }
+  .collision-block strong {
+    font-size: 6px;
+    white-space: nowrap;
+  }
+  .collision-block span { font-weight: 900; }
+  .collision-block em {
+    font-style: normal;
+    font-size: 6px;
+    white-space: nowrap;
+    opacity: 0;
+  }
+  .collision-block:hover em {
+    opacity: 1;
+  }
+  .collision-block.is-short {
+    border-radius: 5px;
+    box-shadow:
+      0 2px 0 rgba(255, 255, 255, 0.62) inset,
+      0 -2px 0 rgba(28, 69, 12, 0.24) inset,
+      0 2px 0 rgba(19, 63, 13, 0.52),
+      0 4px 7px rgba(0, 0, 0, 0.34);
+  }
+  .collision-block.is-short strong,
+  .collision-block.is-short em {
+    display: none;
+  }
+  .collision-block.is-short span {
+    font-size: 6px;
+    line-height: 1;
+  }
+  .status-fix { background-color: #fff04f; border-left: 4px solid #f8ffad; }
+  .status-check { background-color: #78d44b; border-left: 4px solid #fff36a; }
+  .status-new { background-color: #b8ee3f; border-left: 4px solid #ffe35c; }
+  .empty {
+    margin: 0 0 10px;
+    color: #ffe88a;
+    font-weight: 900;
+  }
+  @media (max-width: 900px) {
+    .top-inner, main { padding-left: 10px; padding-right: 10px; }
+    .collision-grid { grid-template-rows: 34px var(--timeline-height); }
+    .corner, .equip-head { font-size: 8px; padding-left: 0; padding-right: 0; }
+    .time-label { font-size: 9px; right: 3px; }
+    .collision-block strong { display: none; }
+    .collision-block em { display: none; }
+  }
+  @media (max-width: 560px) {
+    .top-inner, main { padding-left: 6px; padding-right: 6px; }
+    h1 { font-size: 34px; }
+    .section-head h2 { font-size: 24px; }
+    .section-head span { font-size: 12px; }
+    .collision-grid { grid-template-rows: 32px var(--timeline-height); }
+    .corner, .equip-head { font-size: 7px; }
+  }
+  @media print {
+    @page { size: landscape; margin: 0.35in; }
+    body { background: #fff; color: #111; }
+    .topbar { position: static; }
+    .controls button { display: none; }
+    main, .top-inner { max-width: none; padding-left: 0; padding-right: 0; }
+    .day-section { break-before: page; border-bottom: 0; }
+    .day-section:first-child { break-before: auto; }
+    .collision-scroll { box-shadow: none; }
+  }
+</style>
+</head>
+<body id="top">
+<header class="topbar">
+  <div class="top-inner">
+    <div>
+      <h1>Spring 2026 Collisions Calendar</h1>
+      <p class="schedule-meta">Schedule ID: spring_2026 · status: archived</p>
+    </div>
+    <nav class="controls">
+      <a class="view-link" href="Schedule_Calendar.html" data-calendar-view="schedule">Schedule</a>
+<a class="view-link" href="Openings_Calendar.html" data-calendar-view="openings">Openings</a>
+<a class="view-link is-current" href="Collisions_Calendar.html" data-calendar-view="collisions" aria-current="page">Collisions</a>
+<span class="nav-break" aria-hidden="true"></span>
+<a href="#mon-odd" data-sheet="Mon-Odd">Mon-Odd</a>
+<a href="#tues-odd" data-sheet="Tues-Odd">Tues-Odd</a>
+<a href="#wed-odd" data-sheet="Wed-Odd">Wed-Odd</a>
+<a href="#thurs-odd" data-sheet="Thurs-Odd">Thurs-Odd</a>
+<a href="#fri-odd" data-sheet="Fri-Odd">Fri-Odd</a>
+<a href="#sat-odd" data-sheet="Sat-Odd">Sat-Odd</a>
+<span class="nav-break" aria-hidden="true"></span>
+<a href="#mon-even" data-sheet="Mon-Even">Mon-Even</a>
+<a href="#tues-even" data-sheet="Tues-Even">Tues-Even</a>
+<a href="#wed-even" data-sheet="Wed-Even">Wed-Even</a>
+<a href="#thurs-even" data-sheet="Thurs-Even">Thurs-Even</a>
+<a href="#fri-even" data-sheet="Fri-Even">Fri-Even</a>
+<a href="#sat-even" data-sheet="Sat-Even">Sat-Even</a>
+      <button type="button" onclick="window.print()">Print</button>
+    </nav>
+    <p class="auto-nav-status" data-auto-nav-status hidden></p>
+  </div>
+</header>
+<main>
+<section class="day-section" id="mon-even" data-sheet="Mon-Even">
+  <div class="section-head">
+    <h2>Mon-Even</h2>
+    <span>7 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:590px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:590px;">8:25PM</div>
+</div>
+<div class="equip-track cat-vault">
+</div>
+<div class="equip-track cat-pit">
+<div class="collision-block cat-pit status-fix is-short" style="top:410px;height:10px;--lane:0;--lanes:1;" title="Pit collision: 6:55PM-7:00PM (5 min). GOpt/Prep [UB 1+2+Pit] V27 6:15PM-7:00PM vs B8-10 [Pit         PB/HB] Z33 6:55PM-7:15PM. Status: FIX."><strong>6:55PM-7:00PM</strong><span>5m</span><em>GOpt/Prep vs B8-10</em></div>
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+<div class="collision-block cat-f6 status-check" style="top:20px;height:20px;--lane:0;--lanes:1;" title="F6 collision: 3:40PM-3:50PM (10 min). ST [Vault F6] E5 3:40PM-3:55PM vs Neuro [F6] O5 3:40PM-3:50PM. Status: CHECK."><strong>3:40PM-3:50PM</strong><span>10m</span><em>ST vs Neuro</em></div>
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-fix" style="top:270px;height:30px;--lane:0;--lanes:1;" title="PB collision: 5:45PM-6:00PM (15 min). B5/6 [PB/HB] Y17 5:15PM-6:00PM vs B8-10 [PB/HB] Z24 5:45PM-6:30PM. Status: FIX."><strong>5:45PM-6:00PM</strong><span>15m</span><em>B5/6 vs B8-10</em></div>
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-fix" style="top:270px;height:30px;--lane:0;--lanes:1;" title="HB collision: 5:45PM-6:00PM (15 min). B5/6 [PB/HB] Y17 5:15PM-6:00PM vs B8-10 [PB/HB] Z24 5:45PM-6:30PM. Status: FIX."><strong>5:45PM-6:00PM</strong><span>15m</span><em>B5/6 vs B8-10</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:30px;height:40px;--lane:0;--lanes:1;" title="SR collision: 3:45PM-4:05PM (20 min). BTD [SR/PH] W5 3:40PM-4:05PM vs B5/6 [SR/PH] Y5 3:45PM-4:30PM. Status: FIX."><strong>3:45PM-4:05PM</strong><span>20m</span><em>BTD vs B5/6</em></div>
+<div class="collision-block cat-boys status-new is-short" style="top:140px;height:10px;--lane:0;--lanes:1;" title="SR collision: 4:40PM-4:45PM (5 min). Pre Rec [WU SR] F15 4:40PM-4:45PM vs B3 [SR/PH] X15 4:40PM-5:25PM. Status: UNREVIEWED."><strong>4:40PM-4:45PM</strong><span>5m</span><em>Pre Rec vs B3</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:30px;height:40px;--lane:0;--lanes:1;" title="PH collision: 3:45PM-4:05PM (20 min). BTD [SR/PH] W5 3:40PM-4:05PM vs B5/6 [SR/PH] Y5 3:45PM-4:30PM. Status: FIX."><strong>3:45PM-4:05PM</strong><span>20m</span><em>BTD vs B5/6</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="mon-odd" data-sheet="Mon-Odd">
+  <div class="section-head">
+    <h2>Mon-Odd</h2>
+    <span>6 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:590px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:590px;">8:25PM</div>
+</div>
+<div class="equip-track cat-vault">
+</div>
+<div class="equip-track cat-pit">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-fix" style="top:270px;height:20px;--lane:0;--lanes:1;" title="PB collision: 5:45PM-5:55PM (10 min). B5/6 [PB/HB] Y16 5:15PM-6:00PM vs BRF/Int [WU PB/HB] K23 5:45PM-5:55PM. Status: FIX."><strong>5:45PM-5:55PM</strong><span>10m</span><em>B5/6 vs BRF/Int</em></div>
+<div class="collision-block cat-bars status-fix is-short" style="top:290px;height:10px;--lane:0;--lanes:1;" title="PB collision: 5:55PM-6:00PM (5 min). B5/6 [PB/HB] Y16 5:15PM-6:00PM vs Pre Rec [WU PB/HB] F25 5:55PM-6:00PM. Status: FIX."><strong>5:55PM-6:00PM</strong><span>5m</span><em>B5/6 vs Pre Rec</em></div>
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-fix" style="top:270px;height:20px;--lane:0;--lanes:1;" title="HB collision: 5:45PM-5:55PM (10 min). B5/6 [PB/HB] Y16 5:15PM-6:00PM vs BRF/Int [WU PB/HB] K23 5:45PM-5:55PM. Status: FIX."><strong>5:45PM-5:55PM</strong><span>10m</span><em>B5/6 vs BRF/Int</em></div>
+<div class="collision-block cat-bars status-fix is-short" style="top:290px;height:10px;--lane:0;--lanes:1;" title="HB collision: 5:55PM-6:00PM (5 min). B5/6 [PB/HB] Y16 5:15PM-6:00PM vs Pre Rec [WU PB/HB] F25 5:55PM-6:00PM. Status: FIX."><strong>5:55PM-6:00PM</strong><span>5m</span><em>B5/6 vs Pre Rec</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:30px;height:50px;--lane:0;--lanes:1;" title="SR collision: 3:45PM-4:10PM (25 min). BTD [SR/PH] W5 3:40PM-4:10PM vs B5/6 [SR/PH] Y5 3:45PM-4:30PM. Status: FIX."><strong>3:45PM-4:10PM</strong><span>25m</span><em>BTD vs B5/6</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:30px;height:50px;--lane:0;--lanes:1;" title="PH collision: 3:45PM-4:10PM (25 min). BTD [SR/PH] W5 3:40PM-4:10PM vs B5/6 [SR/PH] Y5 3:45PM-4:30PM. Status: FIX."><strong>3:45PM-4:10PM</strong><span>25m</span><em>BTD vs B5/6</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="tues-even" data-sheet="Tues-Even">
+  <div class="section-head">
+    <h2>Tues-Even</h2>
+    <span>6 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:600px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:600px;">8:30PM</div>
+</div>
+<div class="equip-track cat-vault">
+<div class="collision-block cat-vault status-fix is-short" style="top:500px;height:10px;--lane:0;--lanes:1;" title="Vault collision: 7:40PM-7:45PM (5 min). GOpt [Vault] V37 7:00PM-7:45PM vs BRF/Int [Boys         Vault] J44 7:40PM-8:10PM. Status: FIX."><strong>7:40PM-7:45PM</strong><span>5m</span><em>GOpt vs BRF/Int</em></div>
+</div>
+<div class="equip-track cat-pit">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:330px;height:30px;--lane:0;--lanes:1;" title="SR collision: 6:15PM-6:30PM (15 min). B4-6 [PH/SR] X25 5:45PM-6:30PM vs B9-10 [PH/SR] Z28 6:15PM-7:00PM. Status: FIX."><strong>6:15PM-6:30PM</strong><span>15m</span><em>B4-6 vs B9-10</em></div>
+<div class="collision-block cat-boys status-fix is-short" style="top:410px;height:10px;--lane:0;--lanes:1;" title="SR collision: 6:55PM-7:00PM (5 min). B9-10 [PH/SR] Z28 6:15PM-7:00PM vs BRF/Int [SR/PH] J38 6:55PM-7:15PM. Status: FIX."><strong>6:55PM-7:00PM</strong><span>5m</span><em>B9-10 vs BRF/Int</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:330px;height:30px;--lane:0;--lanes:1;" title="PH collision: 6:15PM-6:30PM (15 min). B4-6 [PH/SR] X25 5:45PM-6:30PM vs B9-10 [PH/SR] Z28 6:15PM-7:00PM. Status: FIX."><strong>6:15PM-6:30PM</strong><span>15m</span><em>B4-6 vs B9-10</em></div>
+<div class="collision-block cat-boys status-fix is-short" style="top:410px;height:10px;--lane:0;--lanes:1;" title="PH collision: 6:55PM-7:00PM (5 min). B9-10 [PH/SR] Z28 6:15PM-7:00PM vs BRF/Int [SR/PH] J38 6:55PM-7:15PM. Status: FIX."><strong>6:55PM-7:00PM</strong><span>5m</span><em>B9-10 vs BRF/Int</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+<div class="collision-block cat-tramp status-fix is-short" style="top:350px;height:10px;--lane:0;--lanes:1;" title="TT collision: 6:25PM-6:30PM (5 min). T&amp;T Team (b) [TT] P29 6:10PM-6:30PM vs Gint [TR/TT] H32 6:25PM-6:40PM. Status: FIX."><strong>6:25PM-6:30PM</strong><span>5m</span><em>T&amp;T Team (b) vs Gint</em></div>
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="tues-odd" data-sheet="Tues-Odd">
+  <div class="section-head">
+    <h2>Tues-Odd</h2>
+    <span>5 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:600px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:600px;">8:30PM</div>
+</div>
+<div class="equip-track cat-vault">
+</div>
+<div class="equip-track cat-pit">
+<div class="collision-block cat-pit status-fix is-short" style="top:200px;height:10px;--lane:0;--lanes:1;" title="Pit collision: 5:10PM-5:15PM (5 min). G3 [UB 1+2+Pit] U14 4:30PM-5:15PM vs B7-8 [Pit] Y17 5:10PM-6:15PM. Status: FIX."><strong>5:10PM-5:15PM</strong><span>5m</span><em>G3 vs B7-8</em></div>
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+<div class="collision-block cat-beam status-fix is-short" style="top:440px;height:10px;--lane:0;--lanes:1;" title="Beam 2 collision: 7:10PM-7:15PM (5 min). GRF (a) [Beam 2] F37 6:55PM-7:15PM vs RL [Beam 2] L39 7:10PM-7:30PM. Status: FIX."><strong>7:10PM-7:15PM</strong><span>5m</span><em>GRF (a) vs RL</em></div>
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new is-short" style="top:30px;height:10px;--lane:0;--lanes:1;" title="HB collision: 3:45PM-3:50PM (5 min). BRF/Int [HB] J5 3:40PM-3:50PM vs B4 [Pit         Boys strap] X5 3:45PM-4:30PM. Status: UNREVIEWED."><strong>3:45PM-3:50PM</strong><span>5m</span><em>BRF/Int vs B4</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:330px;height:30px;--lane:0;--lanes:1;" title="SR collision: 6:15PM-6:30PM (15 min). B4 [PH/SR] X25 5:45PM-6:30PM vs B9-10 [PH/SR] Z28 6:15PM-7:00PM. Status: FIX."><strong>6:15PM-6:30PM</strong><span>15m</span><em>B4 vs B9-10</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:330px;height:30px;--lane:0;--lanes:1;" title="PH collision: 6:15PM-6:30PM (15 min). B4 [PH/SR] X25 5:45PM-6:30PM vs B9-10 [PH/SR] Z28 6:15PM-7:00PM. Status: FIX."><strong>6:15PM-6:30PM</strong><span>15m</span><em>B4 vs B9-10</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="wed-even" data-sheet="Wed-Even">
+  <div class="section-head">
+    <h2>Wed-Even</h2>
+    <span>9 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:600px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:600px;">8:30PM</div>
+</div>
+<div class="equip-track cat-vault">
+<div class="collision-block cat-vault status-fix is-short" style="top:200px;height:10px;--lane:0;--lanes:1;" title="Vault collision: 5:10PM-5:15PM (5 min). B5/6 [Vault] U17 4:45PM-5:15PM vs B3 [Vault] T21 5:10PM-5:25PM. Status: FIX."><strong>5:10PM-5:15PM</strong><span>5m</span><em>B5/6 vs B3</em></div>
+</div>
+<div class="equip-track cat-pit">
+</div>
+<div class="equip-track cat-beam">
+<div class="collision-block cat-beam status-fix is-short" style="top:80px;height:10px;--lane:0;--lanes:1;" title="Beam 1 collision: 4:10PM-4:15PM (5 min). GHS/PT (b) [Beam 1] P5 3:40PM-4:15PM vs Plat/Diam [Beam 1] N8 4:10PM-4:45PM. Status: FIX."><strong>4:10PM-4:15PM</strong><span>5m</span><em>GHS/PT (b) vs Plat/Diam</em></div>
+</div>
+<div class="equip-track cat-beam">
+<div class="collision-block cat-beam status-fix" style="top:300px;height:20px;--lane:0;--lanes:1;" title="Beam 2 collision: 6:00PM-6:10PM (10 min). Gint (a) [Beam 2] H27 5:55PM-6:10PM vs Pre Rec [Beam 2] E29 6:00PM-6:15PM. Status: FIX."><strong>6:00PM-6:10PM</strong><span>10m</span><em>Gint (a) vs Pre Rec</em></div>
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new" style="top:0px;height:20px;--lane:0;--lanes:1;" title="PB collision: 3:30PM-3:40PM (10 min). Ninja (b) [PB/HB] L3 3:30PM-3:40PM vs BTD [WU Boys] S3 3:30PM-3:40PM. Status: UNREVIEWED."><strong>3:30PM-3:40PM</strong><span>10m</span><em>Ninja (b) vs BTD</em></div>
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new" style="top:0px;height:20px;--lane:0;--lanes:1;" title="HB collision: 3:30PM-3:40PM (10 min). Ninja (b) [PB/HB] L3 3:30PM-3:40PM vs BTD [WU Boys] S3 3:30PM-3:40PM. Status: UNREVIEWED."><strong>3:30PM-3:40PM</strong><span>10m</span><em>Ninja (b) vs BTD</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:270px;height:20px;--lane:0;--lanes:1;" title="SR collision: 5:45PM-5:55PM (10 min). B5/6 [SR/PH] U22 5:15PM-6:00PM vs Ninja (b) [WU SR/PH] L25 5:45PM-5:55PM. Status: FIX."><strong>5:45PM-5:55PM</strong><span>10m</span><em>B5/6 vs Ninja (b)</em></div>
+<div class="collision-block cat-boys status-fix is-short" style="top:290px;height:10px;--lane:0;--lanes:1;" title="SR collision: 5:55PM-6:00PM (5 min). B5/6 [SR/PH] U22 5:15PM-6:00PM vs Ninja (b) [SR/PH] L27 5:55PM-6:15PM. Status: FIX."><strong>5:55PM-6:00PM</strong><span>5m</span><em>B5/6 vs Ninja (b)</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-fix" style="top:270px;height:20px;--lane:0;--lanes:1;" title="PH collision: 5:45PM-5:55PM (10 min). B5/6 [SR/PH] U22 5:15PM-6:00PM vs Ninja (b) [WU SR/PH] L25 5:45PM-5:55PM. Status: FIX."><strong>5:45PM-5:55PM</strong><span>10m</span><em>B5/6 vs Ninja (b)</em></div>
+<div class="collision-block cat-boys status-fix is-short" style="top:290px;height:10px;--lane:0;--lanes:1;" title="PH collision: 5:55PM-6:00PM (5 min). B5/6 [SR/PH] U22 5:15PM-6:00PM vs Ninja (b) [SR/PH] L27 5:55PM-6:15PM. Status: FIX."><strong>5:55PM-6:00PM</strong><span>5m</span><em>B5/6 vs Ninja (b)</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="wed-odd" data-sheet="Wed-Odd">
+  <div class="section-head">
+    <h2>Wed-Odd</h2>
+    <span>11 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:590px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:590px;">8:25PM</div>
+</div>
+<div class="equip-track cat-vault">
+<div class="collision-block cat-vault status-fix is-short" style="top:200px;height:10px;--lane:0;--lanes:1;" title="Vault collision: 5:10PM-5:15PM (5 min). B5/6 [Vault] T15 4:45PM-5:15PM vs B3 [Vault] S19 5:10PM-5:25PM. Status: FIX."><strong>5:10PM-5:15PM</strong><span>5m</span><em>B5/6 vs B3</em></div>
+</div>
+<div class="equip-track cat-pit">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-fix is-short" style="top:150px;height:10px;--lane:0;--lanes:1;" title="UB 3 collision: 4:45PM-4:50PM (5 min). Pre Rec [WU UB 3] E16 4:40PM-4:50PM vs GHS/PT [Cond UB3] O16 4:45PM-5:00PM. Status: FIX."><strong>4:45PM-4:50PM</strong><span>5m</span><em>Pre Rec vs GHS/PT</em></div>
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new" style="top:270px;height:20px;--lane:0;--lanes:1;" title="PB collision: 5:45PM-5:55PM (10 min). B5/6 [Boys] T20 5:25PM-6:00PM vs Ninja (b) [WU PB/HB] L25 5:45PM-5:55PM. Status: UNREVIEWED."><strong>5:45PM-5:55PM</strong><span>10m</span><em>B5/6 vs Ninja (b)</em></div>
+<div class="collision-block cat-bars status-new is-short" style="top:290px;height:10px;--lane:0;--lanes:1;" title="PB collision: 5:55PM-6:00PM (5 min). B5/6 [Boys] T20 5:25PM-6:00PM vs Ninja (b) [PB/HB] L27 5:55PM-6:15PM. Status: UNREVIEWED."><strong>5:55PM-6:00PM</strong><span>5m</span><em>B5/6 vs Ninja (b)</em></div>
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new" style="top:270px;height:20px;--lane:0;--lanes:1;" title="HB collision: 5:45PM-5:55PM (10 min). B5/6 [Boys] T20 5:25PM-6:00PM vs Ninja (b) [WU PB/HB] L25 5:45PM-5:55PM. Status: UNREVIEWED."><strong>5:45PM-5:55PM</strong><span>10m</span><em>B5/6 vs Ninja (b)</em></div>
+<div class="collision-block cat-bars status-new is-short" style="top:290px;height:10px;--lane:0;--lanes:1;" title="HB collision: 5:55PM-6:00PM (5 min). B5/6 [Boys] T20 5:25PM-6:00PM vs Ninja (b) [PB/HB] L27 5:55PM-6:15PM. Status: UNREVIEWED."><strong>5:55PM-6:00PM</strong><span>5m</span><em>B5/6 vs Ninja (b)</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-new" style="top:0px;height:20px;--lane:0;--lanes:1;" title="SR collision: 3:30PM-3:40PM (10 min). BTD [WU Boys] R3 3:30PM-3:40PM vs Ninja (b) [SR/PH] L3 3:30PM-3:40PM. Status: UNREVIEWED."><strong>3:30PM-3:40PM</strong><span>10m</span><em>BTD vs Ninja (b)</em></div>
+<div class="collision-block cat-boys status-fix is-short" style="top:200px;height:10px;--lane:0;--lanes:1;" title="SR collision: 5:10PM-5:15PM (5 min). BTD [SR/PH] R18 5:00PM-5:15PM vs Pre Rec [SR/PH] E22 5:10PM-5:25PM. Status: FIX."><strong>5:10PM-5:15PM</strong><span>5m</span><em>BTD vs Pre Rec</em></div>
+<div class="collision-block cat-boys status-new" style="top:420px;height:30px;--lane:0;--lanes:1;" title="SR collision: 7:00PM-7:15PM (15 min). B.NGA [SR] M36 6:45PM-7:15PM vs B8-10 [Pit              SR/PH] U37 7:00PM-7:45PM. Status: UNREVIEWED."><strong>7:00PM-7:15PM</strong><span>15m</span><em>B.NGA vs B8-10</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-new" style="top:0px;height:20px;--lane:0;--lanes:1;" title="PH collision: 3:30PM-3:40PM (10 min). BTD [WU Boys] R3 3:30PM-3:40PM vs Ninja (b) [SR/PH] L3 3:30PM-3:40PM. Status: UNREVIEWED."><strong>3:30PM-3:40PM</strong><span>10m</span><em>BTD vs Ninja (b)</em></div>
+<div class="collision-block cat-boys status-fix is-short" style="top:200px;height:10px;--lane:0;--lanes:1;" title="PH collision: 5:10PM-5:15PM (5 min). BTD [SR/PH] R18 5:00PM-5:15PM vs Pre Rec [SR/PH] E22 5:10PM-5:25PM. Status: FIX."><strong>5:10PM-5:15PM</strong><span>5m</span><em>BTD vs Pre Rec</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="thurs-even" data-sheet="Thurs-Even">
+  <div class="section-head">
+    <h2>Thurs-Even</h2>
+    <span>7 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:600px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:600px;">8:30PM</div>
+</div>
+<div class="equip-track cat-vault">
+</div>
+<div class="equip-track cat-pit">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+<div class="collision-block cat-floor status-fix is-short" style="top:440px;height:10px;--lane:0;--lanes:1;" title="F1 collision: 7:10PM-7:15PM (5 min). Gint [Vault F1] G38 6:55PM-7:15PM vs B9-10 [FX       TS       Pit] X40 7:10PM-7:45PM. Status: FIX."><strong>7:10PM-7:15PM</strong><span>5m</span><em>Gint vs B9-10</em></div>
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+<div class="collision-block cat-floor status-fix is-short" style="top:440px;height:10px;--lane:0;--lanes:1;" title="F3 collision: 7:10PM-7:15PM (5 min). Gadv [F3] H35 6:40PM-7:15PM vs B9-10 [FX       TS       Pit] X40 7:10PM-7:45PM. Status: FIX."><strong>7:10PM-7:15PM</strong><span>5m</span><em>Gadv vs B9-10</em></div>
+</div>
+<div class="equip-track cat-floor">
+<div class="collision-block cat-floor status-fix" style="top:0px;height:20px;--lane:0;--lanes:2;" title="F4 collision: 3:30PM-3:40PM (10 min). B4-6 [WU F4] V3 3:30PM-3:45PM vs GSK [WU F4] S3 3:30PM-3:40PM. Status: FIX."><strong>3:30PM-3:40PM</strong><span>10m</span><em>B4-6 vs GSK</em></div>
+<div class="collision-block cat-floor status-fix" style="top:0px;height:20px;--lane:1;--lanes:2;" title="F4 collision: 3:30PM-3:40PM (10 min). B7-8 [WU F4] W3 3:30PM-3:45PM vs GSK [WU F4] S3 3:30PM-3:40PM. Status: FIX."><strong>3:30PM-3:40PM</strong><span>10m</span><em>B7-8 vs GSK</em></div>
+<div class="collision-block cat-floor status-fix is-short" style="top:200px;height:10px;--lane:0;--lanes:2;" title="F4 collision: 5:10PM-5:15PM (5 min). Gint [Vault F4] G18 5:00PM-5:15PM vs B4-6 [F4              TS] V18 5:10PM-5:45PM. Status: FIX."><strong>5:10PM-5:15PM</strong><span>5m</span><em>Gint vs B4-6</em></div>
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new" style="top:240px;height:30px;--lane:0;--lanes:1;" title="PB collision: 5:30PM-5:45PM (15 min). B7-8 [PB] W18 5:10PM-5:55PM vs B9-10 [WU Boys] X20 5:30PM-5:45PM. Status: UNREVIEWED."><strong>5:30PM-5:45PM</strong><span>15m</span><em>B7-8 vs B9-10</em></div>
+<div class="collision-block cat-bars status-new" style="top:270px;height:20px;--lane:0;--lanes:1;" title="PB collision: 5:45PM-5:55PM (10 min). B7-8 [PB] W18 5:10PM-5:55PM vs B9-10 [PB] X25 5:45PM-6:30PM. Status: UNREVIEWED."><strong>5:45PM-5:55PM</strong><span>10m</span><em>B7-8 vs B9-10</em></div>
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-boys">
+</div>
+<div class="equip-track cat-boys">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="thurs-odd" data-sheet="Thurs-Odd">
+  <div class="section-head">
+    <h2>Thurs-Odd</h2>
+    <span>10 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:600px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:600px;">8:30PM</div>
+</div>
+<div class="equip-track cat-vault">
+</div>
+<div class="equip-track cat-pit">
+<div class="collision-block cat-pit status-fix is-short" style="top:440px;height:10px;--lane:0;--lanes:1;" title="Pit collision: 7:10PM-7:15PM (5 min). Gold [UB 1,2, Pit] S37 6:45PM-7:15PM vs B9-10 [FX       TS       Pit] Z40 7:10PM-7:45PM. Status: FIX."><strong>7:10PM-7:15PM</strong><span>5m</span><em>Gold vs B9-10</em></div>
+</div>
+<div class="equip-track cat-beam">
+<div class="collision-block cat-beam status-fix" style="top:300px;height:60px;--lane:0;--lanes:1;" title="Beam 1 collision: 6:00PM-6:30PM (30 min). Prep [Beam 1] W25 5:45PM-6:30PM vs T&amp;T Team (b) [WU Beam 1] P26 6:00PM-6:30PM. Status: FIX."><strong>6:00PM-6:30PM</strong><span>30m</span><em>Prep vs T&amp;T Team (b)</em></div>
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+<div class="collision-block cat-floor status-fix" style="top:60px;height:60px;--lane:0;--lanes:1;" title="F1 collision: 4:00PM-4:30PM (30 min). B4-6 [Strap     F1] X5 3:45PM-4:30PM vs Silver (b) [F1     F2     TS] R7 4:00PM-4:45PM. Status: FIX."><strong>4:00PM-4:30PM</strong><span>30m</span><em>B4-6 vs Silver (b)</em></div>
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+<div class="collision-block cat-floor status-fix is-short" style="top:20px;height:10px;--lane:0;--lanes:2;" title="F4 collision: 3:40PM-3:45PM (5 min). B4-6 [WU F4] X3 3:30PM-3:45PM vs GSK [F4] T5 3:40PM-4:00PM. Status: FIX."><strong>3:40PM-3:45PM</strong><span>5m</span><em>B4-6 vs GSK</em></div>
+<div class="collision-block cat-floor status-fix is-short" style="top:20px;height:10px;--lane:1;--lanes:2;" title="F4 collision: 3:40PM-3:45PM (5 min). B7-8 [WU F4] Y3 3:30PM-3:45PM vs GSK [F4] T5 3:40PM-4:00PM. Status: FIX."><strong>3:40PM-3:45PM</strong><span>5m</span><em>B7-8 vs GSK</em></div>
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new is-short" style="top:430px;height:10px;--lane:0;--lanes:1;" title="PB collision: 7:05PM-7:10PM (5 min). B9-10 [Boys] Z29 6:30PM-7:10PM vs Ninja (a) [PB/HB] J41 7:05PM-7:25PM. Status: UNREVIEWED."><strong>7:05PM-7:10PM</strong><span>5m</span><em>B9-10 vs Ninja (a)</em></div>
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new is-short" style="top:430px;height:10px;--lane:0;--lanes:1;" title="HB collision: 7:05PM-7:10PM (5 min). B9-10 [Boys] Z29 6:30PM-7:10PM vs Ninja (a) [PB/HB] J41 7:05PM-7:25PM. Status: UNREVIEWED."><strong>7:05PM-7:10PM</strong><span>5m</span><em>B9-10 vs Ninja (a)</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-new" style="top:360px;height:20px;--lane:0;--lanes:1;" title="SR collision: 6:30PM-6:40PM (10 min). Pre Rec [Act SR/PH] E33 6:30PM-6:40PM vs B9-10 [Boys] Z29 6:30PM-7:10PM. Status: UNREVIEWED."><strong>6:30PM-6:40PM</strong><span>10m</span><em>Pre Rec vs B9-10</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-new" style="top:270px;height:20px;--lane:0;--lanes:1;" title="PH collision: 5:45PM-5:55PM (10 min). B9-10 [PH] Z25 5:45PM-6:30PM vs B7-8 [PH] Y20 5:45PM-5:55PM. Status: UNREVIEWED."><strong>5:45PM-5:55PM</strong><span>10m</span><em>B9-10 vs B7-8</em></div>
+<div class="collision-block cat-boys status-new" style="top:360px;height:20px;--lane:0;--lanes:1;" title="PH collision: 6:30PM-6:40PM (10 min). Pre Rec [Act SR/PH] E33 6:30PM-6:40PM vs B9-10 [Boys] Z29 6:30PM-7:10PM. Status: UNREVIEWED."><strong>6:30PM-6:40PM</strong><span>10m</span><em>Pre Rec vs B9-10</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="fri-even" data-sheet="Fri-Even">
+  <div class="section-head">
+    <h2>Fri-Even</h2>
+    <span>9 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:600px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:600px;">8:30PM</div>
+</div>
+<div class="equip-track cat-vault">
+<div class="collision-block cat-vault status-fix" style="top:480px;height:20px;--lane:0;--lanes:1;" title="Vault collision: 7:30PM-7:40PM (10 min). Gadv [Vault] H44 7:15PM-7:40PM vs B8-10 [Boys      Vault] V41 7:30PM-8:00PM. Status: FIX."><strong>7:30PM-7:40PM</strong><span>10m</span><em>Gadv vs B8-10</em></div>
+</div>
+<div class="equip-track cat-pit">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+<div class="collision-block cat-floor status-fix is-short" style="top:190px;height:10px;--lane:0;--lanes:1;" title="F2 collision: 5:05PM-5:10PM (5 min). Pre-Team [F2] P16 4:40PM-5:10PM vs B3 [F2] T19 5:05PM-5:30PM. Status: FIX."><strong>5:05PM-5:10PM</strong><span>5m</span><em>Pre-Team vs B3</em></div>
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+<div class="collision-block cat-floor status-fix" style="top:360px;height:50px;--lane:0;--lanes:1;" title="F4 collision: 6:30PM-6:55PM (25 min). B8-10 [FX          TS] V31 6:30PM-7:15PM vs Gadv [F4] H31 6:30PM-6:55PM. Status: FIX."><strong>6:30PM-6:55PM</strong><span>25m</span><em>B8-10 vs Gadv</em></div>
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new" style="top:0px;height:30px;--lane:0;--lanes:1;" title="PB collision: 3:30PM-3:45PM (15 min). B5/6 [WU Boys S] U3 3:30PM-3:45PM vs B3 [WU Boys S] T3 3:30PM-3:45PM. Status: UNREVIEWED."><strong>3:30PM-3:45PM</strong><span>15m</span><em>B5/6 vs B3</em></div>
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new" style="top:0px;height:30px;--lane:0;--lanes:1;" title="HB collision: 3:30PM-3:45PM (15 min). B5/6 [WU Boys S] U3 3:30PM-3:45PM vs B3 [WU Boys S] T3 3:30PM-3:45PM. Status: UNREVIEWED."><strong>3:30PM-3:45PM</strong><span>15m</span><em>B5/6 vs B3</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-new" style="top:0px;height:30px;--lane:0;--lanes:1;" title="SR collision: 3:30PM-3:45PM (15 min). B5/6 [WU Boys S] U3 3:30PM-3:45PM vs B3 [WU Boys S] T3 3:30PM-3:45PM. Status: UNREVIEWED."><strong>3:30PM-3:45PM</strong><span>15m</span><em>B5/6 vs B3</em></div>
+<div class="collision-block cat-boys status-fix is-short" style="top:290px;height:10px;--lane:0;--lanes:1;" title="SR collision: 5:55PM-6:00PM (5 min). Pre Rec [WU SR/PH] D27 5:55PM-6:00PM vs Ninja [SR/PH] I29 5:55PM-6:15PM. Status: FIX."><strong>5:55PM-6:00PM</strong><span>5m</span><em>Pre Rec vs Ninja</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-new" style="top:0px;height:30px;--lane:0;--lanes:1;" title="PH collision: 3:30PM-3:45PM (15 min). B5/6 [WU Boys S] U3 3:30PM-3:45PM vs B3 [WU Boys S] T3 3:30PM-3:45PM. Status: UNREVIEWED."><strong>3:30PM-3:45PM</strong><span>15m</span><em>B5/6 vs B3</em></div>
+<div class="collision-block cat-boys status-fix is-short" style="top:290px;height:10px;--lane:0;--lanes:1;" title="PH collision: 5:55PM-6:00PM (5 min). Pre Rec [WU SR/PH] D27 5:55PM-6:00PM vs Ninja [SR/PH] I29 5:55PM-6:15PM. Status: FIX."><strong>5:55PM-6:00PM</strong><span>5m</span><em>Pre Rec vs Ninja</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="fri-odd" data-sheet="Fri-Odd">
+  <div class="section-head">
+    <h2>Fri-Odd</h2>
+    <span>8 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:600px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">3:30PM</div>
+<div class="time-label" style="top:30px;">3:45PM</div>
+<div class="time-label" style="top:60px;">4:00PM</div>
+<div class="time-label" style="top:90px;">4:15PM</div>
+<div class="time-label" style="top:120px;">4:30PM</div>
+<div class="time-label" style="top:150px;">4:45PM</div>
+<div class="time-label" style="top:180px;">5:00PM</div>
+<div class="time-label" style="top:210px;">5:15PM</div>
+<div class="time-label" style="top:240px;">5:30PM</div>
+<div class="time-label" style="top:270px;">5:45PM</div>
+<div class="time-label" style="top:300px;">6:00PM</div>
+<div class="time-label" style="top:330px;">6:15PM</div>
+<div class="time-label" style="top:360px;">6:30PM</div>
+<div class="time-label" style="top:390px;">6:45PM</div>
+<div class="time-label" style="top:420px;">7:00PM</div>
+<div class="time-label" style="top:450px;">7:15PM</div>
+<div class="time-label" style="top:480px;">7:30PM</div>
+<div class="time-label" style="top:510px;">7:45PM</div>
+<div class="time-label" style="top:540px;">8:00PM</div>
+<div class="time-label" style="top:570px;">8:15PM</div>
+<div class="time-label" style="top:600px;">8:30PM</div>
+</div>
+<div class="equip-track cat-vault">
+</div>
+<div class="equip-track cat-pit">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-check" style="top:210px;height:20px;--lane:0;--lanes:1;" title="UB 1 collision: 5:15PM-5:25PM (10 min). Pre-Team [UB 1+2] P17 5:00PM-5:25PM vs G4 [UB 1+2] S18 5:15PM-5:55PM. Status: CHECK."><strong>5:15PM-5:25PM</strong><span>10m</span><em>Pre-Team vs G4</em></div>
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-check" style="top:210px;height:20px;--lane:0;--lanes:1;" title="UB 2 collision: 5:15PM-5:25PM (10 min). Pre-Team [UB 1+2] P17 5:00PM-5:25PM vs G4 [UB 1+2] S18 5:15PM-5:55PM. Status: CHECK."><strong>5:15PM-5:25PM</strong><span>10m</span><em>Pre-Team vs G4</em></div>
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new" style="top:0px;height:30px;--lane:0;--lanes:1;" title="PB collision: 3:30PM-3:45PM (15 min). B3 [WU Boys S] T3 3:30PM-3:45PM vs B5/6 [WU Boys S] U3 3:30PM-3:45PM. Status: UNREVIEWED."><strong>3:30PM-3:45PM</strong><span>15m</span><em>B3 vs B5/6</em></div>
+</div>
+<div class="equip-track cat-bars">
+<div class="collision-block cat-bars status-new" style="top:0px;height:30px;--lane:0;--lanes:1;" title="HB collision: 3:30PM-3:45PM (15 min). B3 [WU Boys S] T3 3:30PM-3:45PM vs B5/6 [WU Boys S] U3 3:30PM-3:45PM. Status: UNREVIEWED."><strong>3:30PM-3:45PM</strong><span>15m</span><em>B3 vs B5/6</em></div>
+<div class="collision-block cat-bars status-new is-short" style="top:290px;height:10px;--lane:0;--lanes:1;" title="HB collision: 5:55PM-6:00PM (5 min). B.NGA [HB] N25 5:45PM-6:15PM vs Pre Rec [WU PB/HB] D27 5:55PM-6:00PM. Status: UNREVIEWED."><strong>5:55PM-6:00PM</strong><span>5m</span><em>B.NGA vs Pre Rec</em></div>
+<div class="collision-block cat-bars status-new" style="top:300px;height:20px;--lane:0;--lanes:1;" title="HB collision: 6:00PM-6:10PM (10 min). B.NGA [HB] N25 5:45PM-6:15PM vs Pre Rec [Act PB/HB] D29 6:00PM-6:10PM. Status: UNREVIEWED."><strong>6:00PM-6:10PM</strong><span>10m</span><em>B.NGA vs Pre Rec</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-new" style="top:0px;height:30px;--lane:0;--lanes:1;" title="SR collision: 3:30PM-3:45PM (15 min). B3 [WU Boys S] T3 3:30PM-3:45PM vs B5/6 [WU Boys S] U3 3:30PM-3:45PM. Status: UNREVIEWED."><strong>3:30PM-3:45PM</strong><span>15m</span><em>B3 vs B5/6</em></div>
+</div>
+<div class="equip-track cat-boys">
+<div class="collision-block cat-boys status-new" style="top:0px;height:30px;--lane:0;--lanes:1;" title="PH collision: 3:30PM-3:45PM (15 min). B3 [WU Boys S] T3 3:30PM-3:45PM vs B5/6 [WU Boys S] U3 3:30PM-3:45PM. Status: UNREVIEWED."><strong>3:30PM-3:45PM</strong><span>15m</span><em>B3 vs B5/6</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="sat-even" data-sheet="Sat-Even">
+  <div class="section-head">
+    <h2>Sat-Even</h2>
+    <span>4 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:780px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">9:00AM</div>
+<div class="time-label" style="top:30px;">9:15AM</div>
+<div class="time-label" style="top:60px;">9:30AM</div>
+<div class="time-label" style="top:90px;">9:45AM</div>
+<div class="time-label" style="top:120px;">10:00AM</div>
+<div class="time-label" style="top:150px;">10:15AM</div>
+<div class="time-label" style="top:180px;">10:30AM</div>
+<div class="time-label" style="top:210px;">10:45AM</div>
+<div class="time-label" style="top:240px;">11:00AM</div>
+<div class="time-label" style="top:270px;">11:15AM</div>
+<div class="time-label" style="top:300px;">11:30AM</div>
+<div class="time-label" style="top:330px;">11:45AM</div>
+<div class="time-label" style="top:360px;">12:00PM</div>
+<div class="time-label" style="top:390px;">12:15PM</div>
+<div class="time-label" style="top:420px;">12:30PM</div>
+<div class="time-label" style="top:450px;">12:45PM</div>
+<div class="time-label" style="top:480px;">1:00PM</div>
+<div class="time-label" style="top:510px;">1:15PM</div>
+<div class="time-label" style="top:540px;">1:30PM</div>
+<div class="time-label" style="top:570px;">1:45PM</div>
+<div class="time-label" style="top:600px;">2:00PM</div>
+<div class="time-label" style="top:630px;">2:15PM</div>
+<div class="time-label" style="top:660px;">2:30PM</div>
+<div class="time-label" style="top:690px;">2:45PM</div>
+<div class="time-label" style="top:720px;">3:00PM</div>
+<div class="time-label" style="top:750px;">3:15PM</div>
+<div class="time-label" style="top:780px;">3:30PM</div>
+</div>
+<div class="equip-track cat-vault">
+</div>
+<div class="equip-track cat-pit">
+<div class="collision-block cat-pit status-fix" style="top:120px;height:30px;--lane:0;--lanes:1;" title="Pit collision: 10:00AM-10:15AM (15 min). B 4-6 (b) [Pit] W7 9:45AM-10:15AM vs Gadv [UB 1+2+Pit] L14 10:00AM-10:30AM. Status: FIX."><strong>10:00AM-10:15AM</strong><span>15m</span><em>B 4-6 (b) vs Gadv</em></div>
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+<div class="collision-block cat-floor status-fix" style="top:360px;height:20px;--lane:0;--lanes:1;" title="F5 collision: 12:00PM-12:10PM (10 min). PT [WU F5] B36 12:00PM-12:10PM vs Gold [WU F5] P36 12:00PM-12:15PM. Status: FIX."><strong>12:00PM-12:10PM</strong><span>10m</span><em>PT vs Gold</em></div>
+<div class="collision-block cat-floor status-fix" style="top:420px;height:20px;--lane:0;--lanes:1;" title="F5 collision: 12:30PM-12:40PM (10 min). Gint [Vault F5] H40 12:20PM-12:40PM vs T&amp;T Team [WU F5] Q39 12:30PM-1:00PM. Status: FIX."><strong>12:30PM-12:40PM</strong><span>10m</span><em>Gint vs T&amp;T Team</em></div>
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-boys">
+</div>
+<div class="equip-track cat-boys">
+</div>
+<div class="equip-track cat-tramp">
+<div class="collision-block cat-tramp status-fix" style="top:330px;height:20px;--lane:0;--lanes:1;" title="TR collision: 11:45AM-11:55AM (10 min). T&amp;T [TR] M33 11:40AM-11:55AM vs Gint [TT/TR] H33 11:45AM-11:55AM. Status: FIX."><strong>11:45AM-11:55AM</strong><span>10m</span><em>T&amp;T vs Gint</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section><section class="day-section" id="sat-odd" data-sheet="Sat-Odd">
+  <div class="section-head">
+    <h2>Sat-Odd</h2>
+    <span>3 collisions</span>
+  </div>
+  
+  <div class="collision-scroll">
+<div class="collision-grid" style="grid-template-columns:minmax(78px, 90px) repeat(20, minmax(0, 1fr)); --timeline-height:780px;">
+<div class="corner">Time</div>
+<div class="equip-head">Vault</div>
+<div class="equip-head">Pit</div>
+<div class="equip-head">Beam 1</div>
+<div class="equip-head">Beam 2</div>
+<div class="equip-head">UB 1</div>
+<div class="equip-head">UB 2</div>
+<div class="equip-head">UB 3</div>
+<div class="equip-head">F1</div>
+<div class="equip-head">F2</div>
+<div class="equip-head">F3</div>
+<div class="equip-head">F4</div>
+<div class="equip-head">F5</div>
+<div class="equip-head">F6</div>
+<div class="equip-head">PB</div>
+<div class="equip-head">HB</div>
+<div class="equip-head">SR</div>
+<div class="equip-head">PH</div>
+<div class="equip-head">TR</div>
+<div class="equip-head">TT</div>
+<div class="equip-head">TS</div>
+<div class="time-axis">
+<div class="time-label" style="top:0px;">9:00AM</div>
+<div class="time-label" style="top:30px;">9:15AM</div>
+<div class="time-label" style="top:60px;">9:30AM</div>
+<div class="time-label" style="top:90px;">9:45AM</div>
+<div class="time-label" style="top:120px;">10:00AM</div>
+<div class="time-label" style="top:150px;">10:15AM</div>
+<div class="time-label" style="top:180px;">10:30AM</div>
+<div class="time-label" style="top:210px;">10:45AM</div>
+<div class="time-label" style="top:240px;">11:00AM</div>
+<div class="time-label" style="top:270px;">11:15AM</div>
+<div class="time-label" style="top:300px;">11:30AM</div>
+<div class="time-label" style="top:330px;">11:45AM</div>
+<div class="time-label" style="top:360px;">12:00PM</div>
+<div class="time-label" style="top:390px;">12:15PM</div>
+<div class="time-label" style="top:420px;">12:30PM</div>
+<div class="time-label" style="top:450px;">12:45PM</div>
+<div class="time-label" style="top:480px;">1:00PM</div>
+<div class="time-label" style="top:510px;">1:15PM</div>
+<div class="time-label" style="top:540px;">1:30PM</div>
+<div class="time-label" style="top:570px;">1:45PM</div>
+<div class="time-label" style="top:600px;">2:00PM</div>
+<div class="time-label" style="top:630px;">2:15PM</div>
+<div class="time-label" style="top:660px;">2:30PM</div>
+<div class="time-label" style="top:690px;">2:45PM</div>
+<div class="time-label" style="top:720px;">3:00PM</div>
+<div class="time-label" style="top:750px;">3:15PM</div>
+<div class="time-label" style="top:780px;">3:30PM</div>
+</div>
+<div class="equip-track cat-vault">
+</div>
+<div class="equip-track cat-pit">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-beam">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+</div>
+<div class="equip-track cat-floor">
+<div class="collision-block cat-floor status-fix" style="top:360px;height:20px;--lane:0;--lanes:1;" title="F5 collision: 12:00PM-12:10PM (10 min). Gold [WU F5] P34 12:00PM-12:15PM vs PT [WU F5] B34 12:00PM-12:10PM. Status: FIX."><strong>12:00PM-12:10PM</strong><span>10m</span><em>Gold vs PT</em></div>
+<div class="collision-block cat-floor status-fix is-short" style="top:380px;height:10px;--lane:0;--lanes:1;" title="F5 collision: 12:10PM-12:15PM (5 min). Gold [WU F5] P34 12:00PM-12:15PM vs Gint [F5] H36 12:10PM-12:30PM. Status: FIX."><strong>12:10PM-12:15PM</strong><span>5m</span><em>Gold vs Gint</em></div>
+</div>
+<div class="equip-track cat-f6">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-bars">
+</div>
+<div class="equip-track cat-boys">
+</div>
+<div class="equip-track cat-boys">
+</div>
+<div class="equip-track cat-tramp">
+<div class="collision-block cat-tramp status-fix is-short" style="top:410px;height:10px;--lane:0;--lanes:1;" title="TR collision: 12:25PM-12:30PM (5 min). Gadv [TR] L35 12:20PM-12:30PM vs GRF (a) [TR/TT] F38 12:25PM-12:35PM. Status: FIX."><strong>12:25PM-12:30PM</strong><span>5m</span><em>Gadv vs GRF (a)</em></div>
+</div>
+<div class="equip-track cat-tramp">
+</div>
+<div class="equip-track cat-ts">
+</div>
+</div>
+</div>
+</section>
+</main>
+<script>
+(() => {
+  const rule = {"timezone":"America/Los_Angeles","week_start":"monday","odd_week_numbers":[1,3],"even_week_numbers":[2,4],"manual_confirmation_from_week":5,"rule_id":"vault_default","schedule_id":null,"week_end":"sunday","month_week_anchor":"monday_sunday_week_containing_month_day_1","overflow_week_behavior":"manual_confirmation_required","notes":"Vault default: weeks 1 and 3 select Odd; weeks 2 and 4 select Even. Week 5 or later requires manual confirmation; ordinal parity is only a suggestion."};
+  const stopZoom = (event) => event.preventDefault();
+  document.addEventListener('gesturestart', stopZoom, { passive: false });
+  document.addEventListener('gesturechange', stopZoom, { passive: false });
+  document.addEventListener('gestureend', stopZoom, { passive: false });
+  document.addEventListener('dblclick', stopZoom, { passive: false });
+  document.addEventListener('touchmove', (event) => {
+    if (event.touches.length > 1) event.preventDefault();
+  }, { passive: false });
+  document.addEventListener('wheel', (event) => {
+    if (event.ctrlKey || event.metaKey) event.preventDefault();
+  }, { passive: false });
+  document.addEventListener('keydown', (event) => {
+    if ((event.ctrlKey || event.metaKey) && ['+', '-', '=', '0'].includes(event.key)) {
+      event.preventDefault();
+    }
+  });
+  const weekdayIndex = { Sun: 6, Mon: 0, Tue: 1, Wed: 2, Thu: 3, Fri: 4, Sat: 5 };
+  const scheduleDay = { Mon: 'Mon', Tue: 'Tues', Wed: 'Wed', Thu: 'Thurs', Fri: 'Fri', Sat: 'Sat' };
+  const status = document.querySelector('[data-auto-nav-status]');
+  const say = (message) => {
+    if (!status) return;
+    status.hidden = false;
+    status.textContent = message;
+  };
+  // A day button (or other direct link) is an explicit user choice.
+  if (window.location.hash && window.location.hash !== '#top') return;
+  const partsForGymDate = () => {
+    try {
+      return new Intl.DateTimeFormat('en-US', {
+        timeZone: rule.timezone,
+        weekday: 'short',
+        day: 'numeric',
+      }).formatToParts(new Date());
+    } catch (_error) {
+      return new Intl.DateTimeFormat('en-US', { weekday: 'short', day: 'numeric' })
+        .formatToParts(new Date());
+    }
+  };
+  const values = Object.fromEntries(partsForGymDate().map((part) => [part.type, part.value]));
+  const weekday = values.weekday;
+  const dayOfMonth = Number(values.day);
+  const todayIndex = weekdayIndex[weekday];
+  if (!Number.isFinite(dayOfMonth) || todayIndex === undefined) return;
+  if (!scheduleDay[weekday]) {
+    say('Today is Sunday — choose a schedule day above.');
+    return;
+  }
+
+  // Week 1 is the Monday–Sunday calendar window containing the first of the
+  // month.  The first weekday is reconstructed from today's weekday/date.
+  const firstDayIndex = (todayIndex - ((dayOfMonth - 1) % 7) + 7) % 7;
+  const monthWeek = Math.floor((dayOfMonth - 1 + firstDayIndex) / 7) + 1;
+  const manualFrom = Number(rule.manual_confirmation_from_week || 5);
+  if (monthWeek >= manualFrom) {
+    say(`Month week ${monthWeek} is not assigned a rotation yet — choose Odd or Even above.`);
+    return;
+  }
+  const oddWeeks = new Set((rule.odd_week_numbers || [1, 3]).map(Number));
+  const evenWeeks = new Set((rule.even_week_numbers || [2, 4]).map(Number));
+  const rotation = oddWeeks.has(monthWeek) ? 'Odd' : evenWeeks.has(monthWeek) ? 'Even' : null;
+  if (!rotation) {
+    say(`Month week ${monthWeek} has no saved rotation — choose a schedule day above.`);
+    return;
+  }
+  const sheet = `${scheduleDay[weekday]}-${rotation}`;
+  const target = document.getElementById(sheet.toLowerCase());
+  if (!target) {
+    say(`${sheet} is not included in this calendar.`);
+    return;
+  }
+  const currentButton = document.querySelector(`.controls a[data-sheet="${sheet}"]`);
+  if (currentButton) {
+    currentButton.classList.add('is-current');
+    currentButton.setAttribute('aria-current', 'location');
+  }
+  say(`Showing ${sheet} · month week ${monthWeek}`);
+  window.addEventListener('load', () => {
+    const header = document.querySelector('.topbar');
+    const offset = (header ? header.getBoundingClientRect().height : 0) + 12;
+    const destination = window.scrollY + target.getBoundingClientRect().top - offset;
+    window.scrollTo({ top: Math.max(0, destination), behavior: 'auto' });
+  }, { once: true });
+})();
+</script>
+</body>
+</html>

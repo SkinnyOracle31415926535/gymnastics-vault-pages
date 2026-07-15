@@ -1,0 +1,5193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+  <script>
+    (() => {
+      const stopZoom = (event) => event.preventDefault();
+      document.addEventListener('gesturestart', stopZoom, { passive: false });
+      document.addEventListener('gesturechange', stopZoom, { passive: false });
+      document.addEventListener('gestureend', stopZoom, { passive: false });
+      document.addEventListener('dblclick', stopZoom, { passive: false });
+      document.addEventListener('touchmove', (event) => {
+        if (event.touches.length > 1) event.preventDefault();
+      }, { passive: false });
+      document.addEventListener('wheel', (event) => {
+        if (event.ctrlKey || event.metaKey) event.preventDefault();
+      }, { passive: false });
+      document.addEventListener('keydown', (event) => {
+        if ((event.ctrlKey || event.metaKey) && ['+', '-', '=', '0'].includes(event.key)) event.preventDefault();
+      });
+    })();
+  </script>
+  <title>competition scores</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    :root {
+      --ink: #130022;
+      --line: #000000;
+      --teal: #00b050;
+      --aqua: #00ffff;
+      --aqua-light: #ccffff;
+      --deep: #330066;
+      --lime: #99ff00;
+      --lime-light: #ffff99;
+      --yellow: #ffff00;
+      --red: #ff3300;
+      --hot-pink: #ff00cc;
+      --blue: #0033ff;
+      --button: #ffcc00;
+    }
+
+    html,
+    body {
+      min-height: 100%;
+    }
+
+    html {
+      image-rendering: pixelated;
+    }
+
+    body {
+      margin: 0;
+      padding: 8px 8px 30px;
+      color: var(--ink);
+      font-family: "Comic Sans MS", "Trebuchet MS", Arial, sans-serif;
+      background:
+        radial-gradient(circle at 12% 8%, #ffffff 0 0.16rem, transparent 0.18rem),
+        radial-gradient(circle at 70% 18%, var(--yellow) 0 0.22rem, transparent 0.24rem),
+        radial-gradient(circle at 38% 76%, var(--hot-pink) 0 0.18rem, transparent 0.2rem),
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.2) 0 2px, transparent 2px 12px),
+        repeating-linear-gradient(90deg, #0066ff 0 18px, #00cc66 18px 36px, #6600cc 36px 54px, #ff00cc 54px 72px);
+      background-size: 92px 92px, 108px 108px, 76px 76px, 18px 18px, auto;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 0.08) 0,
+        rgba(255, 255, 255, 0.08) 1px,
+        transparent 1px,
+        transparent 5px
+      );
+      opacity: 0.32;
+    }
+
+    button,
+    input,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      min-height: 44px;
+      padding: 9px 12px;
+      color: #000066;
+      background: var(--button);
+      border-top: 4px solid #ffffff;
+      border-left: 4px solid #ffffff;
+      border-right: 4px solid #663300;
+      border-bottom: 4px solid #663300;
+      border-radius: 0;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 14px;
+      font-weight: 700;
+      text-decoration: underline;
+      text-shadow: 1px 1px 0 #ffffff;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    button:active {
+      transform: translate(2px, 2px);
+      border-top-color: #663300;
+      border-left-color: #663300;
+      border-right-color: #ffffff;
+      border-bottom-color: #ffffff;
+    }
+
+    button:disabled {
+      color: #666666;
+      background: #cccccc;
+      cursor: not-allowed;
+      text-shadow: 1px 1px 0 #ffffff;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      min-height: 42px;
+      padding: 8px 10px;
+      color: var(--ink);
+      background: #ffffcc;
+      border-top: 4px solid #330066;
+      border-left: 4px solid #330066;
+      border-right: 4px solid #ffffff;
+      border-bottom: 4px solid #ffffff;
+      border-radius: 0;
+      font-family: "Courier New", Courier, monospace;
+      outline: none;
+    }
+
+    #scoreDate {
+      width: 100%;
+      min-width: 0;
+      max-width: 160px;
+      min-height: 42px;
+      height: 42px;
+      padding: 6px 8px;
+      justify-self: start;
+      font-size: 15px;
+      line-height: 1;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    #scoreDate::-webkit-date-and-time-value {
+      min-height: 1.2em;
+      text-align: left;
+    }
+
+    #scoreDate::-webkit-calendar-picker-indicator {
+      margin: 0;
+      padding: 0;
+    }
+
+    textarea {
+      min-height: 168px;
+      resize: vertical;
+      line-height: 1.35;
+      white-space: pre;
+    }
+
+    label {
+      display: block;
+      margin: 10px 0 5px;
+      color: #000066;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 var(--lime-light);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+    }
+
+    th,
+    td {
+      padding: 7px;
+      border: 3px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 12px, #660099 12px 24px);
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    td {
+      background: #ffffcc;
+    }
+
+    .app {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 8px;
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.24) 0 2px, transparent 2px 18px),
+        repeating-linear-gradient(90deg, rgba(255, 0, 204, 0.18) 0 2px, transparent 2px 18px),
+        #00cc66;
+      border: 5px ridge var(--yellow);
+      box-shadow:
+        0 0 0 4px #000000,
+        10px 10px 0 rgba(0, 0, 0, 0.48);
+    }
+
+    .titlebar {
+      position: relative;
+      display: grid;
+      justify-items: center;
+      gap: 8px;
+      padding: 22px 8px 12px;
+      background:
+        repeating-linear-gradient(90deg, #000080 0 16px, #330066 16px 32px, #990099 32px 48px),
+        var(--deep);
+      border: 4px ridge var(--aqua);
+      text-align: center;
+    }
+
+    .titlebar::before {
+      content: "";
+      position: absolute;
+      inset: 4px 4px auto 4px;
+      height: 12px;
+      background:
+        repeating-linear-gradient(90deg, #ffffff 0 6px, var(--aqua) 6px 12px, var(--hot-pink) 12px 18px, var(--yellow) 18px 24px);
+      border: 1px solid #000000;
+    }
+
+    .title {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: "Comic Sans MS", "Courier New", cursive;
+      font-size: clamp(34px, 7vw, 70px);
+      font-weight: 900;
+      color: var(--yellow);
+      text-transform: uppercase;
+      transform: perspective(380px) rotateX(6deg) skewX(-4deg);
+      text-shadow:
+        1px 1px 0 #ffffff,
+        2px 2px 0 var(--hot-pink),
+        3px 3px 0 var(--blue),
+        4px 4px 0 var(--aqua),
+        5px 5px 0 #00aa00,
+        6px 6px 0 #006600,
+        7px 7px 0 #003300,
+        8px 8px 0 #000000,
+        10px 10px 0 #000000,
+        13px 13px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    .badge {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      color: var(--yellow);
+      background: #000080;
+      border: 3px ridge var(--aqua);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 16px;
+      font-weight: 900;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .status {
+      max-width: 100%;
+      padding: 5px 10px;
+      color: #000000;
+      background: var(--lime-light);
+      border: 3px inset var(--aqua);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      font-weight: 700;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 12px 0 0;
+    }
+
+    .top-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 10px;
+      background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.32) 0 4px, transparent 4px 12px),
+        #66ff99;
+      border: 5px ridge var(--hot-pink);
+    }
+
+    .panel-title {
+      margin: -2px 0 10px;
+      padding: 5px 8px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 12px, #0000cc 12px 24px, #660099 24px 36px);
+      border: 4px outset var(--aqua);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(18px, 4vw, 28px);
+      font-weight: 900;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow:
+        1px 1px 0 var(--hot-pink),
+        2px 2px 0 #000000;
+    }
+
+    .panel-title::before {
+      content: ">> ";
+      color: var(--aqua);
+    }
+
+    .panel-title::after {
+      content: " <<";
+      color: var(--aqua);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      align-items: end;
+    }
+
+    .add-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 112px;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .danger {
+      color: #ffffff;
+      background: var(--red);
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .secondary {
+      color: #000066;
+      background: var(--aqua);
+    }
+
+    .winner-confirm {
+      color: var(--yellow);
+      background: #000080;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .setup-mode-button {
+      min-height: 78px;
+      font-size: clamp(20px, 4vw, 32px);
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .setup-mode-button[aria-pressed="true"] {
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 7px),
+        #000080;
+      box-shadow:
+        inset 0 0 0 4px #000000,
+        6px 6px 0 var(--hot-pink);
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .class-actions-toolbar {
+      margin-bottom: 10px;
+    }
+
+    #beginCompetition {
+      position: relative;
+      overflow: hidden;
+      min-height: 78px;
+      padding: 16px 20px;
+      color: #ffffff;
+      background:
+        repeating-linear-gradient(90deg, var(--hot-pink) 0 12px, var(--yellow) 12px 24px, var(--aqua) 24px 36px, var(--lime) 36px 48px, var(--blue) 48px 60px),
+        var(--hot-pink);
+      background-size: 180px 100%;
+      border-width: 6px;
+      font-family: "Comic Sans MS", "Trebuchet MS", "Courier New", cursive;
+      font-size: 32px;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-decoration: none;
+      text-shadow:
+        -2px -2px 0 #000000,
+        0 -2px 0 #000000,
+        2px -2px 0 #000000,
+        -2px 0 0 #000000,
+        2px 0 0 #000000,
+        -2px 2px 0 #000000,
+        0 2px 0 #000000,
+        2px 2px 0 #000000,
+        4px 4px 0 var(--hot-pink);
+      box-shadow:
+        inset 0 0 0 4px #000000,
+        0 0 0 4px var(--yellow),
+        0 0 18px var(--aqua),
+        8px 8px 0 #000000;
+      transform-origin: center;
+      animation:
+        newGameRainbow 0.9s steps(6) infinite,
+        newGameFlash 1.2s steps(2) infinite,
+        newGameShake 1.65s steps(1) infinite;
+    }
+
+    #beginCompetition:active {
+      animation: none;
+      transform: translate(2px, 2px);
+    }
+
+    #beginCompetition::before,
+    #beginCompetition::after {
+      position: absolute;
+      inset: 6px;
+      pointer-events: none;
+    }
+
+    #beginCompetition::before {
+      content: "";
+      border: 2px dashed #ffffff;
+      animation: newGameDash 0.7s steps(2) infinite;
+    }
+
+    #beginCompetition::after {
+      content: ">>>      <<<";
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: #ffffff;
+      font-size: 16px;
+      text-shadow:
+        1px 1px 0 #000000,
+        2px 2px 0 var(--hot-pink);
+      animation: newGameBlink 0.55s steps(2) infinite;
+      z-index: 1;
+    }
+
+    .new-game-label {
+      position: relative;
+      z-index: 2;
+      display: inline-block;
+      max-width: 100%;
+      padding: 5px 20px 7px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.18) 0 2px, transparent 2px 7px),
+        #000080;
+      border: 4px ridge var(--yellow);
+      font-family: "Comic Sans MS", "Trebuchet MS", "Courier New", cursive;
+      font-style: italic;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow:
+        -2px -2px 0 #000000,
+        0 -2px 0 #000000,
+        2px -2px 0 #000000,
+        -2px 0 0 #000000,
+        2px 0 0 #000000,
+        -2px 2px 0 #000000,
+        0 2px 0 #000000,
+        2px 2px 0 #000000,
+        4px 4px 0 var(--hot-pink);
+      box-shadow:
+        0 0 0 3px #000000,
+        5px 5px 0 var(--hot-pink),
+        -5px -5px 0 var(--aqua);
+      transform: skewX(-7deg) rotate(-1deg);
+      overflow-wrap: anywhere;
+      letter-spacing: 0;
+    }
+
+    .new-game-label::before,
+    .new-game-label::after {
+      color: var(--lime);
+      text-shadow:
+        1px 1px 0 #000000,
+        2px 2px 0 var(--hot-pink);
+    }
+
+    .new-game-label::before {
+      content: "* ";
+    }
+
+    .new-game-label::after {
+      content: " *";
+    }
+
+    #beginCompetition:disabled {
+      animation: none;
+      color: #666666;
+      background: #cccccc;
+      box-shadow:
+        inset 0 0 0 4px #999999,
+        4px 4px 0 rgba(0, 0, 0, 0.35);
+      text-shadow: 1px 1px 0 #ffffff;
+    }
+
+    #beginCompetition:disabled::before,
+    #beginCompetition:disabled::after {
+      display: none;
+    }
+
+    #beginCompetition:disabled .new-game-label {
+      color: #666666;
+      background: #eeeeee;
+      border-color: #ffffff;
+      box-shadow:
+        0 0 0 3px #999999;
+      text-shadow: 1px 1px 0 #ffffff;
+      transform: none;
+    }
+
+    @keyframes newGameRainbow {
+      from {
+        background-position: 0 0;
+      }
+
+      to {
+        background-position: 180px 0;
+      }
+    }
+
+    @keyframes newGameFlash {
+      0%,
+      100% {
+        box-shadow:
+          inset 0 0 0 4px #000000,
+          0 0 0 4px var(--yellow),
+          0 0 18px var(--aqua),
+          8px 8px 0 #000000;
+      }
+
+      50% {
+        box-shadow:
+          inset 0 0 0 4px #ffffff,
+          0 0 0 4px var(--hot-pink),
+          0 0 24px var(--yellow),
+          8px 8px 0 #000000;
+      }
+    }
+
+    @keyframes newGameDash {
+      0%,
+      100% {
+        border-color: #ffffff;
+      }
+
+      50% {
+        border-color: var(--lime);
+      }
+    }
+
+    @keyframes newGameBlink {
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: 0;
+      }
+    }
+
+    @keyframes newGameShake {
+      0%,
+      100% {
+        transform: rotate(0deg);
+      }
+
+      50% {
+        transform: rotate(-1deg);
+      }
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .stat {
+      min-height: 68px;
+      padding: 8px;
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.38) 0 2px, transparent 2px 8px),
+        var(--yellow);
+      border: 4px ridge var(--blue);
+    }
+
+    .stat-label {
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #000080;
+    }
+
+    .stat-value {
+      margin-top: 4px;
+      font-size: clamp(22px, 4vw, 34px);
+      font-weight: 900;
+      color: var(--hot-pink);
+      text-shadow: 1px 1px 0 #ffffff;
+      overflow-wrap: anywhere;
+    }
+
+    .roster-list {
+      display: grid;
+      gap: 7px;
+    }
+
+    .athlete-row {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) 48px 48px 66px;
+      gap: 7px;
+      align-items: center;
+      padding: 7px;
+      background: #ccffff;
+      border: 4px outset var(--aqua);
+    }
+
+    .athlete-row.is-active {
+      background: var(--lime);
+      outline: 3px dashed var(--hot-pink);
+      outline-offset: -7px;
+    }
+
+    .athlete-name {
+      min-width: 0;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .class-profile-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .class-profile-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 64px 64px;
+      gap: 7px;
+      align-items: center;
+      padding: 7px;
+      background: #ccffff;
+      border: 4px outset var(--aqua);
+    }
+
+    .class-profile-row.is-built-in {
+      grid-template-columns: minmax(0, 1fr) 64px;
+      background: #ffffcc;
+    }
+
+    .class-profile-name {
+      min-width: 0;
+      font-weight: 900;
+      overflow-wrap: anywhere;
+    }
+
+    .class-profile-meta {
+      display: block;
+      margin-top: 3px;
+      color: #000080;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+    }
+
+    .order-number {
+      display: grid;
+      place-items: center;
+      min-height: 34px;
+      color: var(--yellow);
+      background: #000080;
+      border: 2px solid #000000;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .small-button {
+      min-height: 38px;
+      padding: 5px 3px;
+      font-size: 12px;
+    }
+
+    .empty {
+      display: grid;
+      place-items: center;
+      min-height: 88px;
+      padding: 18px;
+      color: #000080;
+      background: var(--lime-light);
+      border: 3px dashed var(--hot-pink);
+      text-align: center;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 800;
+    }
+
+    .active-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+      padding: 8px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 16px, #660099 16px 32px);
+      border: 5px ridge var(--aqua);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .active-name {
+      min-width: 0;
+      font-size: clamp(24px, 5vw, 42px);
+      overflow-wrap: anywhere;
+    }
+
+    .active-aa {
+      padding: 5px 8px;
+      color: #000080;
+      background: var(--lime);
+      border: 3px solid #000000;
+      font-size: clamp(20px, 4vw, 34px);
+      text-shadow: 1px 1px 0 #ffffff;
+    }
+
+    .event-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(285px, 1fr));
+      gap: 12px;
+    }
+
+    .score-card {
+      display: grid;
+      gap: 8px;
+      background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.34) 0 4px, transparent 4px 12px),
+        #ffffcc;
+      border: 5px ridge var(--aqua);
+      overflow: hidden;
+    }
+
+    .score-head {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+      padding: 8px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 12px, #660099 12px 24px);
+      border-bottom: 3px solid var(--line);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .event-name {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .event-final {
+      min-width: 74px;
+      padding: 3px 6px;
+      color: #000080;
+      background: var(--lime);
+      border: 2px solid var(--line);
+      text-align: center;
+      text-shadow: 1px 1px 0 #ffffff;
+    }
+
+    .score-body {
+      display: grid;
+      gap: 8px;
+      padding: 8px;
+    }
+
+    .tally {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr) 82px;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    .clicker-button {
+      min-height: 88px;
+      padding: 6px;
+      font-size: 48px;
+      text-decoration: none;
+    }
+
+    .tally-count {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 72px;
+      color: var(--yellow);
+      background: #000080;
+      border: 4px inset var(--hot-pink);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      line-height: 1;
+      text-align: center;
+      text-shadow:
+        1px 1px 0 var(--hot-pink),
+        3px 3px 0 #000000;
+    }
+
+    .tally-number {
+      font-size: clamp(44px, 14vw, 72px);
+    }
+
+    .tally-label {
+      margin-top: -8px;
+      color: var(--aqua);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .score-strip {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .score-box {
+      min-height: 66px;
+      padding: 8px;
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.38) 0 2px, transparent 2px 8px),
+        var(--yellow);
+      border: 4px ridge var(--blue);
+    }
+
+    .score-label {
+      color: #000080;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .score-value {
+      margin-top: 3px;
+      color: var(--hot-pink);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(26px, 7vw, 42px);
+      font-weight: 900;
+      line-height: 1;
+      text-shadow: 1px 1px 0 #ffffff;
+    }
+
+    .reset-event {
+      min-height: 38px;
+      padding: 5px;
+      font-size: 13px;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .team-points-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+    }
+
+    .class-setup-team-points {
+      margin-bottom: 10px;
+    }
+
+    .team-randomizer-row {
+      display: grid;
+      grid-template-columns: minmax(96px, 136px) minmax(0, 1fr) minmax(0, 1fr);
+      gap: 8px;
+      align-items: end;
+      margin-bottom: 10px;
+    }
+
+    .manual-team-builder {
+      display: grid;
+      gap: 10px;
+      margin: 10px 0;
+    }
+
+    .manual-team-pool,
+    .manual-team-drop {
+      min-height: 92px;
+      padding: 8px;
+      background: #ffffcc;
+      border: 4px dashed var(--blue);
+    }
+
+    .manual-team-pool.is-drag-over,
+    .manual-team-drop.is-drag-over {
+      background: var(--lime-light);
+      border-color: var(--hot-pink);
+    }
+
+    .manual-team-title {
+      margin-bottom: 7px;
+      color: #000080;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .manual-athlete-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      min-height: 44px;
+    }
+
+    .manual-athlete-chip {
+      min-height: 38px;
+      padding: 8px 10px;
+      color: #000080;
+      background: var(--aqua);
+      border: 3px outset var(--yellow);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      cursor: grab;
+      touch-action: none;
+      overflow-wrap: anywhere;
+    }
+
+    .manual-athlete-chip.is-selected {
+      color: #ffffff;
+      background: var(--hot-pink);
+      border-color: var(--lime);
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .manual-team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: 10px;
+    }
+
+    .team-points-summary {
+      margin-bottom: 10px;
+      padding: 10px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 12px, #660099 12px 24px);
+      border: 4px ridge var(--lime);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(20px, 5vw, 34px);
+      font-weight: 900;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 2px 2px 0 #000000;
+      overflow-wrap: anywhere;
+    }
+
+    .team-tally-clicker {
+      display: grid;
+      grid-template-columns: 82px minmax(0, 1fr) 82px;
+      gap: 8px;
+      padding: 8px;
+      background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.34) 0 4px, transparent 4px 12px),
+        #ffffcc;
+      border: 5px ridge var(--aqua);
+    }
+
+    .clicker-label {
+      grid-column: 1 / -1;
+      padding: 5px 8px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 12px, #660099 12px 24px);
+      border: 4px outset var(--hot-pink);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .team-tally-clicker .clicker-button {
+      min-height: 72px;
+      padding: 6px;
+      font-size: 38px;
+      text-decoration: none;
+    }
+
+    .clicker-count {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 72px;
+      color: var(--yellow);
+      background: #000080;
+      border: 4px inset var(--hot-pink);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(44px, 14vw, 72px);
+      font-weight: 900;
+      line-height: 1;
+      text-shadow:
+        1px 1px 0 var(--hot-pink),
+        3px 3px 0 #000000;
+      overflow-wrap: anywhere;
+    }
+
+    .clicker-reset {
+      grid-column: 1 / -1;
+      min-height: 38px;
+      padding: 5px;
+      font-size: 13px;
+    }
+
+    .team-competition-detail {
+      margin: -2px 0 10px;
+      padding: 8px;
+      color: #000080;
+      background: #ffffcc;
+      border: 3px solid var(--blue);
+      font-family: "Courier New", Courier, monospace;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.35;
+      text-align: center;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+    }
+
+    .shuffle-points-panel {
+      display: grid;
+      gap: 7px;
+      margin-bottom: 10px;
+      padding: 8px;
+      background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.34) 0 4px, transparent 4px 12px),
+        #ffffcc;
+      border: 4px ridge var(--lime);
+    }
+
+    .shuffle-points-title {
+      color: #000080;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 var(--lime-light);
+    }
+
+    .shuffle-points-list {
+      display: grid;
+      gap: 5px;
+    }
+
+    .shuffle-point-row {
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) 82px;
+      gap: 6px;
+      align-items: center;
+      padding: 6px;
+      background: #ccffff;
+      border: 3px solid #000000;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+    }
+
+    .shuffle-point-name {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .shuffle-point-rounds {
+      grid-column: 2 / -1;
+      color: #000080;
+      font-size: 12px;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+    }
+
+    .shuffle-point-score {
+      display: grid;
+      place-items: center;
+      min-height: 34px;
+      color: var(--yellow);
+      background: #000080;
+      border: 3px inset var(--hot-pink);
+      font-size: 22px;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .team-points-card {
+      display: grid;
+      gap: 10px;
+      padding: 10px;
+      background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.34) 0 4px, transparent 4px 12px),
+        #ffffcc;
+      border: 5px ridge var(--hot-pink);
+    }
+
+    .team-points-name {
+      color: #000080;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      text-transform: uppercase;
+      overflow-wrap: anywhere;
+    }
+
+    .team-athlete-manager {
+      display: grid;
+      gap: 8px;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 4px ridge var(--aqua);
+    }
+
+    .team-athlete-title {
+      color: #000080;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 var(--lime-light);
+    }
+
+    .team-athlete-list {
+      margin-top: 2px;
+    }
+
+    .team-athlete-row {
+      grid-template-columns: 38px minmax(0, 1fr) 76px;
+    }
+
+    .team-points-score {
+      display: grid;
+      place-items: center;
+      min-height: 78px;
+      color: var(--yellow);
+      background: #000080;
+      border: 4px inset var(--hot-pink);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(42px, 11vw, 68px);
+      font-weight: 900;
+      line-height: 1;
+      text-shadow:
+        1px 1px 0 var(--hot-pink),
+        3px 3px 0 #000000;
+    }
+
+    .team-points-members {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 4px;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+    }
+
+    .team-points-members li {
+      padding: 4px 6px;
+      background: #ccffff;
+      border: 2px solid #000000;
+      overflow-wrap: anywhere;
+    }
+
+    .team-points-actions {
+      display: grid;
+      padding: 8px;
+      background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.38) 0 3px, transparent 3px 10px),
+        var(--lime);
+      border-top: 3px solid #000000;
+    }
+
+    .team-points-actions button {
+      min-width: 0;
+    }
+
+    .all-around-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .rankings-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 10px;
+    }
+
+    .team-card,
+    .rank-card,
+    .comparison-card {
+      background: #ccffff;
+      border: 5px ridge var(--yellow);
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 8px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 12px, #660099 12px 24px);
+      border-bottom: 3px solid #000000;
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .card-badge {
+      flex: 0 0 auto;
+      padding: 3px 6px;
+      color: #000080;
+      background: var(--lime);
+      border: 2px solid #000000;
+      text-shadow: 1px 1px 0 #ffffff;
+    }
+
+    .mini-list {
+      margin: 0;
+      padding: 8px;
+      list-style: none;
+      font-weight: 900;
+    }
+
+    .mini-list li {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) auto;
+      gap: 8px;
+      min-height: 32px;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(18, 32, 4, 0.28);
+    }
+
+    .mini-list li.is-current {
+      margin: 0 -4px;
+      padding-inline: 4px;
+      background: var(--lime-light);
+      outline: 3px dashed var(--hot-pink);
+      outline-offset: -3px;
+    }
+
+    .mini-list li:last-child {
+      border-bottom: 0;
+    }
+
+    .rank-number {
+      color: var(--yellow);
+      background: #000080;
+      border: 2px solid #000000;
+      text-align: center;
+    }
+
+    .mini-name {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .mini-score {
+      color: #000080;
+      background: var(--yellow);
+      border: 2px solid #000000;
+      padding: 0 4px;
+      font-family: "Courier New", Courier, monospace;
+      text-align: right;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 4px ridge var(--aqua);
+      background: #ffffcc;
+    }
+
+    .comparison-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .comparison-raw {
+      min-height: 220px;
+    }
+
+    .highlight-row td {
+      background: var(--lime-light);
+    }
+
+    .judging-screen {
+      display: none;
+      padding: 12px 0 0;
+    }
+
+    body.judging .layout {
+      display: none;
+    }
+
+    body.judging .judging-screen {
+      display: grid;
+      gap: 12px;
+    }
+
+    .judging-panel {
+      display: grid;
+      gap: 12px;
+      padding: 10px;
+      background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.32) 0 4px, transparent 4px 12px),
+        #66ff99;
+      border: 5px ridge var(--hot-pink);
+    }
+
+    .game-header {
+      display: grid;
+      gap: 10px;
+      padding: 10px 0 12px;
+      border-top: 4px dotted var(--yellow);
+      border-bottom: 4px dotted var(--hot-pink);
+    }
+
+    body.judging .game-header {
+      display: none;
+    }
+
+    .game-title {
+      padding: 8px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 16px, #660099 16px 32px);
+      border: 5px ridge var(--aqua);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(28px, 8vw, 56px);
+      font-weight: 900;
+      text-align: center;
+      text-transform: capitalize;
+      text-shadow:
+        1px 1px 0 #061000,
+        3px 3px 0 #000000;
+    }
+
+    .judging-header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 10px;
+    }
+
+    .judge-name-card {
+      min-width: 0;
+      padding: 10px;
+      background:
+        repeating-linear-gradient(90deg, #000080 0 16px, #660099 16px 32px);
+      border: 5px ridge var(--aqua);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .judge-label {
+      color: var(--aqua);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+
+    .judge-title {
+      min-width: 0;
+      margin-top: 4px;
+      color: var(--yellow);
+      font-size: clamp(30px, 8vw, 72px);
+      line-height: 1;
+      overflow-wrap: anywhere;
+    }
+
+    .judging-values {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .judge-value-card {
+      min-height: 150px;
+      display: grid;
+      align-content: center;
+      gap: 8px;
+      padding: 10px;
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.38) 0 2px, transparent 2px 8px),
+        var(--yellow);
+      border: 5px ridge var(--blue);
+    }
+
+    .judge-value-label {
+      color: #000080;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 13px;
+      font-weight: 900;
+      text-transform: uppercase;
+      text-shadow: 1px 1px 0 #ffffff;
+    }
+
+    .judge-big-value {
+      color: var(--hot-pink);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(40px, 8vw, 78px);
+      font-weight: 900;
+      line-height: 0.95;
+      text-shadow: 1px 1px 0 #ffffff;
+      overflow-wrap: anywhere;
+    }
+
+    .judge-start-input {
+      min-height: 82px;
+      font-size: clamp(34px, 7vw, 68px);
+      font-weight: 900;
+      line-height: 1;
+      text-align: center;
+    }
+
+    .judge-start-arrows {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .judge-start-arrows button {
+      min-height: 58px;
+      padding: 4px;
+      border-width: 5px;
+      font-size: 34px;
+      line-height: 1;
+      text-decoration: none;
+    }
+
+    .judge-tally {
+      display: grid;
+      grid-template-columns: minmax(112px, 0.8fr) minmax(82px, 0.7fr) minmax(112px, 0.8fr);
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .judge-tally button {
+      min-height: 132px;
+      padding: 6px;
+      border-width: 6px;
+      font-size: clamp(66px, 9vw, 108px);
+      line-height: 1;
+      text-decoration: none;
+    }
+
+    .judge-tally-display {
+      display: grid;
+      place-items: center;
+      min-width: 0;
+      min-height: 132px;
+      color: var(--yellow);
+      background: #000080;
+      border: 4px inset var(--hot-pink);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(32px, 7vw, 62px);
+      font-weight: 900;
+      line-height: 1;
+      overflow: hidden;
+      white-space: nowrap;
+      text-shadow:
+        1px 1px 0 var(--hot-pink),
+        3px 3px 0 #000000;
+    }
+
+    .judge-tally-card {
+      grid-column: 1 / -1;
+    }
+
+    .judge-confirm-start {
+      min-height: 44px;
+      font-size: 14px;
+    }
+
+    .judge-confirm-start.is-confirmed {
+      color: var(--yellow);
+      background: #000080;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .judge-switchers,
+    .judge-event-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(116px, 1fr));
+      gap: 8px;
+    }
+
+    #competitionDone {
+      min-height: 86px;
+      grid-column: 1 / -1;
+      font-size: clamp(24px, 4vw, 40px);
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .judge-event-button.is-selected {
+      color: var(--yellow);
+      background: #000080;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .competition-bar {
+      display: none;
+      gap: 8px;
+      padding: 8px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 16px, #660099 16px 32px);
+      border: 5px ridge var(--aqua);
+      font-family: "Courier New", Courier, monospace;
+      font-weight: 900;
+      text-shadow: 1px 1px 0 #000000;
+    }
+
+    .competition-bar.is-active {
+      display: grid;
+    }
+
+    .competition-line {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .competition-next {
+      color: #000080;
+      background: var(--lime);
+      border: 2px solid #000000;
+      padding: 4px 6px;
+      text-shadow: 1px 1px 0 #ffffff;
+    }
+
+    .event-picker-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      display: grid;
+      place-items: center;
+      padding: 16px;
+      background:
+        repeating-linear-gradient(45deg, rgba(0, 0, 0, 0.38) 0 5px, rgba(0, 0, 0, 0.2) 5px 12px),
+        rgba(0, 0, 0, 0.72);
+    }
+
+    .event-picker-modal[hidden] {
+      display: none;
+    }
+
+    .event-picker-card {
+      width: min(720px, 100%);
+      padding: 12px;
+      background:
+        repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.32) 0 4px, transparent 4px 12px),
+        #66ff99;
+      border: 6px ridge var(--hot-pink);
+      box-shadow:
+        0 0 0 5px #000000,
+        10px 10px 0 rgba(0, 0, 0, 0.5);
+    }
+
+    .event-picker-title {
+      margin-bottom: 12px;
+      padding: 8px;
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(90deg, #000080 0 16px, #660099 16px 32px);
+      border: 5px ridge var(--aqua);
+      font-family: "Courier New", Courier, monospace;
+      font-size: clamp(28px, 7vw, 52px);
+      font-weight: 900;
+      text-align: center;
+      text-transform: uppercase;
+      text-shadow:
+        1px 1px 0 var(--hot-pink),
+        3px 3px 0 #000000;
+    }
+
+    .event-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .mode-picker-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .event-picker-button {
+      min-height: 86px;
+      font-size: clamp(18px, 4vw, 30px);
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+
+    .mode-choice-button {
+      min-height: 116px;
+    }
+
+    .mode-choice-button[aria-pressed="true"] {
+      color: var(--yellow);
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 7px),
+        #000080;
+      box-shadow:
+        inset 0 0 0 4px #000000,
+        6px 6px 0 var(--hot-pink);
+    }
+
+    .event-picker-cancel {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 900px) {
+      .top-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .team-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .rankings-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .judging-values,
+      .judging-header {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 700px) {
+      .meta-grid,
+      .summary-grid,
+      .add-row,
+      .team-grid,
+      .team-points-grid,
+      .rankings-grid,
+      .judging-values,
+      .judging-header {
+        grid-template-columns: 1fr;
+      }
+
+      .team-tally-clicker {
+        grid-template-columns: 72px minmax(0, 1fr) 72px;
+      }
+
+      .team-points-actions {
+        grid-template-columns: 1fr;
+      }
+
+      .team-randomizer-row {
+        grid-template-columns: 1fr;
+      }
+
+      .judge-tally-card {
+        grid-column: auto;
+      }
+
+      .event-picker-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .new-game-label {
+        padding: 4px 14px 6px;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .toolbar,
+      .score-strip {
+        grid-template-columns: 1fr;
+      }
+
+      .title {
+        font-size: clamp(30px, 11vw, 52px);
+      }
+
+      .athlete-row,
+      .class-profile-row,
+      .class-profile-row.is-built-in {
+        grid-template-columns: minmax(0, 1fr);
+      }
+
+      .active-head {
+        grid-template-columns: 1fr;
+      }
+
+      .tally {
+        grid-template-columns: 72px minmax(0, 1fr) 72px;
+      }
+
+      .judge-tally {
+        grid-template-columns: 96px minmax(0, 1fr) 96px;
+      }
+
+      .judge-tally button,
+      .judge-tally-display {
+        min-height: 118px;
+      }
+
+      .event-picker-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .mode-picker-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app" aria-label="Class gymnastics routine scoring">
+    <header class="titlebar">
+      <div class="title">
+        <span class="badge" aria-hidden="true">S</span>
+        <span>competition scores</span>
+      </div>
+      <div id="status" class="status" aria-live="polite">Ready to score.</div>
+    </header>
+
+    <section id="modePickerModal" class="event-picker-modal mode-picker-modal" role="dialog" aria-modal="true" aria-labelledby="modePickerTitle" hidden>
+      <div class="event-picker-card mode-picker-card">
+        <div id="modePickerTitle" class="event-picker-title">score type</div>
+        <div class="mode-picker-grid">
+          <button id="chooseIndividualMode" type="button" class="event-picker-button mode-choice-button" data-scoring-mode="individual">individual</button>
+          <button id="chooseTeamMode" type="button" class="event-picker-button mode-choice-button" data-scoring-mode="team">team</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="eventPickerModal" class="event-picker-modal" role="dialog" aria-modal="true" aria-labelledby="eventPickerTitle" hidden>
+      <div class="event-picker-card">
+        <div id="eventPickerTitle" class="event-picker-title">choose event</div>
+        <div id="eventPickerButtons" class="event-picker-grid"></div>
+        <button id="eventPickerCancel" type="button" class="event-picker-cancel secondary">cancel</button>
+      </div>
+    </section>
+
+    <section id="judgingMode" class="judging-screen" aria-label="Judging mode" hidden>
+      <header class="game-header">
+        <div id="judgingScreenTitle" class="game-title">competition</div>
+        <button id="backToHome" type="button" class="secondary">back</button>
+      </header>
+      <div id="judgingEmpty" class="empty">add an athlete first</div>
+      <div id="judgingPanel" class="judging-panel">
+        <div class="judging-header">
+          <div class="judge-name-card">
+            <div class="judge-label">kid</div>
+            <div id="judgeAthleteName" class="judge-title">Athlete</div>
+          </div>
+          <div class="judge-name-card">
+            <div class="judge-label">event</div>
+            <div id="judgeEventName" class="judge-title">Floor</div>
+          </div>
+        </div>
+
+        <div id="competitionBar" class="competition-bar">
+          <div id="competitionRoundText" class="competition-line">choose an event</div>
+          <div id="competitionNextText" class="competition-next">first up: none</div>
+        </div>
+
+        <div class="judging-values">
+          <section class="judge-value-card">
+            <label class="judge-value-label" for="judgeStartValue">start value</label>
+            <input id="judgeStartValue" class="judge-start-input" type="number" min="0" max="20" step="0.1" inputmode="decimal" placeholder="N/A">
+            <div id="judgeStartValueArrows" class="judge-start-arrows" aria-label="Adjust start value">
+              <button id="judgeStartValueDown" type="button" class="secondary" aria-label="Decrease start value">↓</button>
+              <button id="judgeStartValueUp" type="button" aria-label="Increase start value">↑</button>
+            </div>
+            <button id="judgeConfirmStartValue" type="button" class="judge-confirm-start secondary">confirm SV</button>
+          </section>
+          <section class="judge-value-card">
+            <div class="judge-value-label">off</div>
+            <div id="judgeOff" class="judge-big-value">0.0</div>
+          </section>
+          <section class="judge-value-card">
+            <div class="judge-value-label">final score</div>
+            <div id="judgeFinalScore" class="judge-big-value">10.0</div>
+          </section>
+          <section class="judge-value-card judge-tally-card">
+            <div class="judge-value-label">tenths off</div>
+            <div class="judge-tally">
+              <button id="judgeMinusTenth" type="button" class="secondary" aria-label="Subtract one tenth">-</button>
+              <div id="judgeTenths" class="judge-tally-display" aria-live="polite">0</div>
+              <button id="judgePlusTenth" type="button" aria-label="Add one tenth">+</button>
+            </div>
+          </section>
+        </div>
+
+        <div id="judgeEventButtons" class="judge-event-buttons" aria-label="Judging event buttons"></div>
+        <div class="judge-switchers">
+          <button id="competitionDone" type="button">done / next</button>
+          <button id="competitionLast" type="button" class="secondary">put last</button>
+          <button id="endCompetition" type="button" class="danger">end round</button>
+          <button id="judgePrevAthlete" type="button" class="secondary">prev kid</button>
+          <button id="judgeNextAthlete" type="button" class="secondary">next kid</button>
+          <button id="judgePrevEvent" type="button" class="secondary">prev event</button>
+          <button id="judgeNextEvent" type="button" class="secondary">next event</button>
+          <button id="exitJudgingMode" type="button" class="danger">exit</button>
+        </div>
+      </div>
+    </section>
+
+    <input id="className" type="hidden">
+    <input id="meetName" type="hidden">
+    <input id="scoreDate" type="hidden">
+
+    <div class="layout">
+      <div class="top-grid">
+        <section class="panel">
+          <div class="panel-title">class setup</div>
+          <div id="teamPointsGrid" class="team-points-grid class-setup-team-points" hidden></div>
+          <div id="classSetupSummary" class="summary-grid">
+            <div id="athleteCountStat" class="stat">
+              <div class="stat-label">athletes</div>
+              <div id="athleteCount" class="stat-value">0</div>
+            </div>
+            <div id="teamScoreStat" class="stat">
+              <div class="stat-label">team score</div>
+              <div id="teamScoreTotal" class="stat-value">0.0</div>
+            </div>
+            <div id="topAllAroundStat" class="stat">
+              <div class="stat-label">top AA</div>
+              <div id="topAllAround" class="stat-value">none</div>
+            </div>
+            <div id="bestTeamEventStat" class="stat">
+              <div class="stat-label">best event</div>
+              <div id="bestTeamEvent" class="stat-value">none</div>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <button id="beginCompetition" type="button" class="wide" aria-label="begin competition"><span class="new-game-label">begin competition</span></button>
+            <button id="classSetupIndividualMode" type="button" class="setup-mode-button secondary" data-scoring-mode="individual">individual</button>
+            <button id="classSetupTeamMode" type="button" class="setup-mode-button secondary" data-scoring-mode="team">team</button>
+            <button id="setClassStartValues" type="button" class="secondary">set class SV</button>
+            <button id="resetClass" type="button" class="danger">reset class</button>
+          </div>
+        </section>
+
+        <section id="teamPointsPanel" class="panel">
+          <div class="panel-title">teams</div>
+          <div id="teamCompetitionWinner" class="team-points-summary" aria-live="polite" hidden></div>
+          <div id="teamCompetitionDetail" class="team-competition-detail">build teams first</div>
+          <div id="shufflePointsPanel" class="shuffle-points-panel" hidden>
+            <div class="shuffle-points-title">shuffle points</div>
+            <div id="shufflePointsList" class="shuffle-points-list"></div>
+            <div id="shufflePointsEmpty" class="empty">no shuffle points yet</div>
+          </div>
+          <div class="team-randomizer-row">
+            <div>
+              <label for="teamPointCount">number of teams</label>
+              <input id="teamPointCount" type="number" min="2" max="12" value="2">
+            </div>
+            <div>
+              <label for="teamPointMode">grouping</label>
+              <select id="teamPointMode">
+                <option value="shuffle" selected>shuffle each time</option>
+                <option value="keep">keep same groups</option>
+              </select>
+            </div>
+            <button id="randomizeTeamPoints" type="button">shuffle teams</button>
+          </div>
+          <div id="manualTeamBuilder" class="manual-team-builder" hidden>
+            <div id="manualAthletePool" class="manual-team-pool" data-drop-team-id="__pool">
+              <div class="manual-team-title">unassigned</div>
+              <div id="manualAthletePoolList" class="manual-athlete-list"></div>
+            </div>
+            <div id="manualTeamGrid" class="manual-team-grid"></div>
+          </div>
+          <div id="teamAthleteManager" class="team-athlete-manager" hidden>
+            <div class="team-athlete-title">athletes</div>
+            <div class="add-row">
+              <div>
+                <label for="teamAthleteName">add athlete</label>
+                <input id="teamAthleteName" autocomplete="off" placeholder="Name">
+              </div>
+              <button id="teamAddAthlete" type="button">add</button>
+            </div>
+            <div id="teamAthleteList" class="roster-list team-athlete-list"></div>
+            <div id="teamAthleteEmpty" class="empty">no athletes yet</div>
+          </div>
+        </section>
+
+        <section id="athletePanel" class="panel">
+          <div class="panel-title">athletes</div>
+          <div class="add-row">
+            <div>
+              <label for="athleteName">athlete</label>
+              <input id="athleteName" autocomplete="off" placeholder="Name">
+            </div>
+            <button id="addAthlete" type="button">add</button>
+          </div>
+        </section>
+
+      <section id="rosterPanel" class="panel">
+        <div class="panel-title">competition order</div>
+        <div id="rosterList" class="roster-list"></div>
+        <div id="rosterEmpty" class="empty">no athletes yet</div>
+      </section>
+
+        <section class="panel">
+          <div class="panel-title">classes</div>
+          <div class="toolbar class-actions-toolbar">
+            <button id="saveClassProfile" type="button" class="secondary">save class</button>
+            <button id="newClassProfile" type="button" class="secondary">new class</button>
+          </div>
+          <div id="classProfileList" class="class-profile-list"></div>
+          <div id="classProfileEmpty" class="empty">save a class to keep its roster</div>
+        </section>
+      </div>
+
+      <section id="allAroundPanel" class="panel">
+        <div class="panel-title">all around rankings</div>
+        <div id="allAroundGrid" class="all-around-grid"></div>
+      </section>
+
+      <section id="teamScorePanel" class="panel">
+        <div class="panel-title">team score</div>
+        <div id="teamGrid" class="team-grid"></div>
+      </section>
+
+      <section id="rankingsPanel" class="panel">
+        <div class="panel-title">rankings</div>
+        <div id="rankingsGrid" class="rankings-grid"></div>
+      </section>
+
+      <section id="comparisonPanel" class="panel">
+        <div class="panel-title">previous meet</div>
+        <div class="comparison-form">
+          <div>
+            <label for="comparisonName">meet name</label>
+            <input id="comparisonName" autocomplete="off" placeholder="Previous competition">
+          </div>
+          <div>
+            <label for="comparisonRaw">results</label>
+            <textarea id="comparisonRaw" class="comparison-raw" spellcheck="false" placeholder="Name,Floor,Mushroom,Rings,Vault,P Bars,Highbar"></textarea>
+          </div>
+          <div class="toolbar">
+            <button id="copyComparisonPrompt" type="button" class="wide">copy AI instructions</button>
+            <button id="parseComparison" type="button" class="secondary">compare</button>
+            <button id="clearComparison" type="button" class="danger">clear meet</button>
+          </div>
+        </div>
+        <div id="comparisonGrid" class="comparison-grid"></div>
+        <div id="comparisonEmpty" class="empty">no previous meet loaded</div>
+      </section>
+
+      <section id="markdownPanel" class="panel">
+        <div class="panel-title">markdown</div>
+        <textarea id="markdownOutput" spellcheck="false" readonly></textarea>
+        <div class="toolbar">
+          <button id="copyMarkdown" type="button" class="secondary">copy md</button>
+          <button id="selectMarkdown" type="button" class="secondary">select text</button>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const STORAGE_KEY = "gymnastics-class-routine-scoring-combined-v1";
+    const TEAM_STORAGE_KEY = "gymnastics-class-routine-scoring-team-points-v1";
+    const INDIVIDUAL_STORAGE_KEY = "gymnastics-class-routine-scoring-v2";
+    const LEGACY_STORAGE_KEYS = [
+      TEAM_STORAGE_KEY,
+      INDIVIDUAL_STORAGE_KEY
+    ];
+    const EVENTS = [
+      { id: "floor", label: "Floor", aliases: ["floor", "fx"] },
+      { id: "mushroom", label: "Mushroom", aliases: ["mushroom", "pommel", "pommel horse", "ph"] },
+      { id: "rings", label: "Rings", aliases: ["rings", "sr"] },
+      { id: "vault", label: "Vault", aliases: ["vault", "vt"] },
+      { id: "p-bars", label: "P Bars", aliases: ["p bars", "pbars", "p-bars", "parallel bars", "pb"] },
+      { id: "highbar", label: "Highbar", aliases: ["highbar", "high bar", "hb"] }
+    ];
+    const BUILT_IN_CLASS_PROFILES = [
+      {
+        id: "roll-l3",
+        name: "Boys Level 3",
+        source: "roll",
+        builtIn: true,
+        athletes: [
+          "Fabian Fernandes",
+          "Ethan Grinberg",
+          "Weston Schomaker",
+          "Daniel Shatil",
+          "Ariel Shatil"
+        ]
+      },
+      {
+        id: "roll-l4",
+        name: "Boys Level 4",
+        source: "roll",
+        builtIn: true,
+        athletes: [
+          "Maksim Bychkov",
+          "Jace Jackson",
+          "Aarush Kini",
+          "Owen Lavrich",
+          "Kaleb Jax Muolic",
+          "Uladzislau Samoilenka"
+        ]
+      },
+      {
+        id: "roll-nga",
+        name: "Boys NGA",
+        source: "roll",
+        builtIn: true,
+        athletes: [
+          "Benjamin Bowie Christopher",
+          "Kenneth Chan",
+          "Maxon Edington",
+          "Cody Goodman",
+          "Zayd Lakhani",
+          "Adam Pagsolingan",
+          "Ryan Pagsolingan",
+          "Oliver Rodriguez"
+        ]
+      }
+    ];
+
+    const classNameInput = document.getElementById("className");
+    const meetNameInput = document.getElementById("meetName");
+    const scoreDateInput = document.getElementById("scoreDate");
+    const athleteNameInput = document.getElementById("athleteName");
+    const addAthleteButton = document.getElementById("addAthlete");
+    const resetClassButton = document.getElementById("resetClass");
+    const saveClassProfileButton = document.getElementById("saveClassProfile");
+    const newClassProfileButton = document.getElementById("newClassProfile");
+    const rosterList = document.getElementById("rosterList");
+    const rosterEmpty = document.getElementById("rosterEmpty");
+    const classProfileList = document.getElementById("classProfileList");
+    const classProfileEmpty = document.getElementById("classProfileEmpty");
+    const status = document.getElementById("status");
+    const modePickerModal = document.getElementById("modePickerModal");
+    const chooseIndividualModeButton = document.getElementById("chooseIndividualMode");
+    const chooseTeamModeButton = document.getElementById("chooseTeamMode");
+    const classSetupIndividualModeButton = document.getElementById("classSetupIndividualMode");
+    const classSetupTeamModeButton = document.getElementById("classSetupTeamMode");
+    const classSetupSummary = document.getElementById("classSetupSummary");
+    const athleteCountStat = document.getElementById("athleteCountStat");
+    const athleteCount = document.getElementById("athleteCount");
+    const athletePanel = document.getElementById("athletePanel");
+    const teamScoreStat = document.getElementById("teamScoreStat");
+    const teamScoreTotal = document.getElementById("teamScoreTotal");
+    const topAllAroundStat = document.getElementById("topAllAroundStat");
+    const topAllAround = document.getElementById("topAllAround");
+    const bestTeamEventStat = document.getElementById("bestTeamEventStat");
+    const bestTeamEvent = document.getElementById("bestTeamEvent");
+    const rosterPanel = document.getElementById("rosterPanel");
+    const allAroundPanel = document.getElementById("allAroundPanel");
+    const teamGrid = document.getElementById("teamGrid");
+    const teamScorePanel = document.getElementById("teamScorePanel");
+    const teamPointsPanel = document.getElementById("teamPointsPanel");
+    const teamCompetitionWinner = document.getElementById("teamCompetitionWinner");
+    const teamCompetitionDetail = document.getElementById("teamCompetitionDetail");
+    const shufflePointsPanel = document.getElementById("shufflePointsPanel");
+    const shufflePointsList = document.getElementById("shufflePointsList");
+    const shufflePointsEmpty = document.getElementById("shufflePointsEmpty");
+    const teamPointCountInput = document.getElementById("teamPointCount");
+    const teamPointModeSelect = document.getElementById("teamPointMode");
+    const randomizeTeamPointsButton = document.getElementById("randomizeTeamPoints");
+    const manualTeamBuilder = document.getElementById("manualTeamBuilder");
+    const manualAthletePool = document.getElementById("manualAthletePool");
+    const manualAthletePoolList = document.getElementById("manualAthletePoolList");
+    const manualTeamGrid = document.getElementById("manualTeamGrid");
+    const teamAthleteManager = document.getElementById("teamAthleteManager");
+    const teamAthleteNameInput = document.getElementById("teamAthleteName");
+    const teamAddAthleteButton = document.getElementById("teamAddAthlete");
+    const teamAthleteList = document.getElementById("teamAthleteList");
+    const teamAthleteEmpty = document.getElementById("teamAthleteEmpty");
+    const teamPointsGrid = document.getElementById("teamPointsGrid");
+    const allAroundGrid = document.getElementById("allAroundGrid");
+    const rankingsPanel = document.getElementById("rankingsPanel");
+    const rankingsGrid = document.getElementById("rankingsGrid");
+    const setClassStartValuesButton = document.getElementById("setClassStartValues");
+    const beginCompetitionButton = document.getElementById("beginCompetition");
+    const eventPickerModal = document.getElementById("eventPickerModal");
+    const eventPickerButtons = document.getElementById("eventPickerButtons");
+    const eventPickerCancel = document.getElementById("eventPickerCancel");
+    const copyMarkdownButton = document.getElementById("copyMarkdown");
+    const markdownOutput = document.getElementById("markdownOutput");
+    const markdownPanel = document.getElementById("markdownPanel");
+    const selectMarkdownButton = document.getElementById("selectMarkdown");
+    const comparisonNameInput = document.getElementById("comparisonName");
+    const comparisonRawInput = document.getElementById("comparisonRaw");
+    const copyComparisonPromptButton = document.getElementById("copyComparisonPrompt");
+    const parseComparisonButton = document.getElementById("parseComparison");
+    const clearComparisonButton = document.getElementById("clearComparison");
+    const comparisonPanel = document.getElementById("comparisonPanel");
+    const comparisonGrid = document.getElementById("comparisonGrid");
+    const comparisonEmpty = document.getElementById("comparisonEmpty");
+    const judgingMode = document.getElementById("judgingMode");
+    const judgingScreenTitle = document.getElementById("judgingScreenTitle");
+    const backToHomeButton = document.getElementById("backToHome");
+    const judgingEmpty = document.getElementById("judgingEmpty");
+    const judgingPanel = document.getElementById("judgingPanel");
+    const judgeAthleteName = document.getElementById("judgeAthleteName");
+    const judgeEventName = document.getElementById("judgeEventName");
+    const judgeStartValue = document.getElementById("judgeStartValue");
+    const judgeStartValueArrows = document.getElementById("judgeStartValueArrows");
+    const judgeStartValueDown = document.getElementById("judgeStartValueDown");
+    const judgeStartValueUp = document.getElementById("judgeStartValueUp");
+    const judgeConfirmStartValue = document.getElementById("judgeConfirmStartValue");
+    const judgeMinusTenth = document.getElementById("judgeMinusTenth");
+    const judgeTenths = document.getElementById("judgeTenths");
+    const judgePlusTenth = document.getElementById("judgePlusTenth");
+    const judgeOff = document.getElementById("judgeOff");
+    const judgeFinalScore = document.getElementById("judgeFinalScore");
+    const judgeEventButtons = document.getElementById("judgeEventButtons");
+    const competitionBar = document.getElementById("competitionBar");
+    const competitionRoundText = document.getElementById("competitionRoundText");
+    const competitionNextText = document.getElementById("competitionNextText");
+    const competitionDone = document.getElementById("competitionDone");
+    const competitionLast = document.getElementById("competitionLast");
+    const endCompetitionButton = document.getElementById("endCompetition");
+    const judgePrevAthlete = document.getElementById("judgePrevAthlete");
+    const judgeNextAthlete = document.getElementById("judgeNextAthlete");
+    const judgePrevEvent = document.getElementById("judgePrevEvent");
+    const judgeNextEvent = document.getElementById("judgeNextEvent");
+    const exitJudgingModeButton = document.getElementById("exitJudgingMode");
+
+    let state = createDefaultState();
+    let resetClassArmed = false;
+    let resetClassTimer = null;
+    let removeAthleteArmedId = null;
+    let removeAthleteTimer = null;
+    let draggedManualAthleteName = "";
+    let selectedManualAthleteName = "";
+    let pendingTeamPointWinnerId = null;
+    let pendingTeamPointWinnerTimer = null;
+    let audioContext = null;
+
+    function createDefaultState() {
+      return {
+        className: "",
+        meetName: "",
+        scoringMode: "individual",
+        date: new Date().toISOString().slice(0, 10),
+        activeAthleteId: null,
+        judgingEventId: EVENTS[0].id,
+        athletes: [],
+        completedEventIds: [],
+        competition: {
+          active: false,
+          eventId: EVENTS[0].id,
+          queue: [],
+          completedIds: []
+        },
+        comparison: {
+          name: "",
+          raw: ""
+        },
+        savedClasses: [],
+        teamPoints: {
+          teamCount: 2,
+          mode: "shuffle",
+          teams: defaultTeamPointTeams(),
+          shuffleWins: []
+        }
+      };
+    }
+
+    function defaultTeamPointTeams() {
+      return [
+        { id: "team-points-1", name: "team 1", points: 0, tally: 0, members: [] },
+        { id: "team-points-2", name: "team 2", points: 0, tally: 0, members: [] }
+      ];
+    }
+
+    function defaultScores(startValue = 10, startConfirmed = false) {
+      return EVENTS.reduce((scores, event) => {
+        scores[event.id] = {
+          startValue,
+          startConfirmed,
+          tenths: 0
+        };
+        return scores;
+      }, {});
+    }
+
+    function makeId() {
+      return String(Date.now()) + "-" + Math.random().toString(36).slice(2, 8);
+    }
+
+    function setStatus(message) {
+      status.textContent = message;
+    }
+
+    function getAudioContext() {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContextClass) return null;
+      if (!audioContext) audioContext = new AudioContextClass();
+      if (audioContext.state === "suspended") audioContext.resume();
+      return audioContext;
+    }
+
+    function playTone({ frequency, duration = 0.08, type = "square", gain = 0.035, delay = 0, endFrequency = null }) {
+      const context = getAudioContext();
+      if (!context) return;
+      const start = context.currentTime + delay;
+      const oscillator = context.createOscillator();
+      const volume = context.createGain();
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, start);
+      if (endFrequency !== null) {
+        oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, endFrequency), start + duration);
+      }
+      volume.gain.setValueAtTime(0.0001, start);
+      volume.gain.exponentialRampToValueAtTime(gain, start + 0.008);
+      volume.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+      oscillator.connect(volume);
+      volume.connect(context.destination);
+      oscillator.start(start);
+      oscillator.stop(start + duration + 0.02);
+    }
+
+    function playBadTenthSound() {
+      playTone({ frequency: 172, endFrequency: 118, duration: 0.12, type: "sawtooth", gain: 0.055 });
+      playTone({ frequency: 189, endFrequency: 133, duration: 0.13, type: "square", gain: 0.035, delay: 0.012 });
+    }
+
+    function playButtonSound(button) {
+      if (!button || button.disabled) return;
+      if (button.id === "judgePlusTenth") {
+        playBadTenthSound();
+        return;
+      }
+      if (button.id === "judgeMinusTenth") {
+        playTone({ frequency: 135, duration: 0.045, type: "square", gain: 0.026 });
+        return;
+      }
+      if (button.classList.contains("danger")) {
+        playTone({ frequency: 96, duration: 0.07, type: "sawtooth", gain: 0.035 });
+        return;
+      }
+      if (button.id === "beginCompetition" || button.classList.contains("event-picker-button")) {
+        playTone({ frequency: 310, duration: 0.055, type: "square", gain: 0.028 });
+        playTone({ frequency: 465, duration: 0.06, type: "square", gain: 0.022, delay: 0.055 });
+        return;
+      }
+      if (button.id === "judgeConfirmStartValue" || button.id === "competitionDone") {
+        playTone({ frequency: 260, duration: 0.06, type: "triangle", gain: 0.03 });
+        return;
+      }
+      playTone({ frequency: 220, duration: 0.045, type: "square", gain: 0.022 });
+    }
+
+    function cleanText(value) {
+      return String(value || "").trim().replace(/\s+/g, " ");
+    }
+
+    function normalizeScore(value, fallback = 0) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return fallback;
+      return Math.max(0, Math.round(number * 10) / 10);
+    }
+
+    function normalizeOptionalScore(value) {
+      if (value === null || value === undefined || value === "") return null;
+      const number = Number(value);
+      if (!Number.isFinite(number)) return null;
+      return Math.max(0, Math.round(number * 10) / 10);
+    }
+
+    function normalizeTenths(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return 0;
+      return Math.max(0, Math.round(number));
+    }
+
+    function normalizeTeamPoints(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return 0;
+      return Math.max(0, Math.round(number));
+    }
+
+    function normalizeTeamCount(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return 2;
+      return Math.min(12, Math.max(2, Math.round(number)));
+    }
+
+    function normalizeTeamPointMode(value) {
+      return value === "keep" ? "keep" : "shuffle";
+    }
+
+    function normalizeScoringMode(value) {
+      return value === "team" ? "team" : "individual";
+    }
+
+    function isTeamScoringMode() {
+      state.scoringMode = normalizeScoringMode(state.scoringMode);
+      return state.scoringMode === "team";
+    }
+
+    function formatScore(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return "N/A";
+      return Math.max(0, Math.round(number * 10) / 10).toFixed(1);
+    }
+
+    function formatStartInput(value) {
+      const score = normalizeOptionalScore(value);
+      return score === null ? "" : score.toFixed(1);
+    }
+
+    function normalizeAthlete(rawAthlete) {
+      if (!rawAthlete || typeof rawAthlete !== "object") return null;
+      const name = cleanText(rawAthlete.name);
+      if (!name) return null;
+
+      const scores = defaultScores();
+      EVENTS.forEach((event) => {
+        const rawScore = rawAthlete.scores && rawAthlete.scores[event.id] ? rawAthlete.scores[event.id] : {};
+        const hasModernConfirmation = Object.prototype.hasOwnProperty.call(rawScore, "startConfirmed");
+        const startConfirmed = rawScore.startConfirmed === true;
+        const savedStartValue = normalizeOptionalScore(rawScore.startValue);
+        scores[event.id] = {
+          startValue: savedStartValue === null ? 10 : savedStartValue,
+          startConfirmed,
+          tenths: normalizeTenths(rawScore.tenths)
+        };
+        if (scores[event.id].startValue === null) scores[event.id].startConfirmed = false;
+      });
+
+      return {
+        id: typeof rawAthlete.id === "string" ? rawAthlete.id : makeId(),
+        name,
+        scores
+      };
+    }
+
+    function makeAthleteFromName(name) {
+      return {
+        id: makeId(),
+        name,
+        scores: defaultScores()
+      };
+    }
+
+    function normalizeSavedClass(rawClass) {
+      if (!rawClass || typeof rawClass !== "object") return null;
+      const name = cleanText(rawClass.name);
+      if (!name) return null;
+      const athletes = Array.isArray(rawClass.athletes)
+        ? rawClass.athletes.map((athlete) => cleanText(typeof athlete === "string" ? athlete : athlete && athlete.name)).filter(Boolean)
+        : [];
+      return {
+        id: typeof rawClass.id === "string" ? rawClass.id : makeId(),
+        name,
+        athletes,
+        updatedAt: typeof rawClass.updatedAt === "string" ? rawClass.updatedAt : new Date().toISOString()
+      };
+    }
+
+    function normalizeTeamPointTeam(rawTeam, index) {
+      const fallback = "team " + (index + 1);
+      if (!rawTeam || typeof rawTeam !== "object") {
+        return { id: makeId(), name: fallback, points: 0, tally: 0, members: [] };
+      }
+      const name = cleanText(rawTeam.name) || fallback;
+      const rawPoints = Object.prototype.hasOwnProperty.call(rawTeam, "points") ? rawTeam.points : rawTeam.score;
+      const rawTally = Object.prototype.hasOwnProperty.call(rawTeam, "tally") ? rawTeam.tally : 0;
+      return {
+        id: typeof rawTeam.id === "string" ? rawTeam.id : makeId(),
+        name,
+        points: normalizeTeamPoints(rawPoints),
+        tally: normalizeTeamPoints(rawTally),
+        members: Array.isArray(rawTeam.members)
+          ? rawTeam.members.map((member) => cleanText(typeof member === "string" ? member : member && member.name)).filter(Boolean)
+          : []
+      };
+    }
+
+    function uniqueNames(names) {
+      const seen = new Set();
+      const cleaned = [];
+      names.map(cleanText).filter(Boolean).forEach((name) => {
+        if (seen.has(name)) return;
+        seen.add(name);
+        cleaned.push(name);
+      });
+      return cleaned;
+    }
+
+    function normalizeShuffleTeamSnapshot(rawTeam, index) {
+      const fallback = "team " + (index + 1);
+      const team = rawTeam && typeof rawTeam === "object" ? rawTeam : {};
+      return {
+        id: typeof team.id === "string" ? team.id : makeId(),
+        name: cleanText(team.name) || fallback,
+        total: normalizeScore(team.total, 0),
+        members: Array.isArray(team.members) ? uniqueNames(team.members) : [],
+        counted: Array.isArray(team.counted) ? team.counted.map((item) => ({
+          name: cleanText(item && item.name),
+          score: normalizeScore(item && item.score, 0)
+        })).filter((item) => item.name) : [],
+        dropped: Array.isArray(team.dropped) ? team.dropped.map((item) => ({
+          name: cleanText(item && item.name),
+          score: normalizeScore(item && item.score, 0)
+        })).filter((item) => item.name) : []
+      };
+    }
+
+    function normalizeShuffleWinRecord(rawRecord) {
+      if (!rawRecord || typeof rawRecord !== "object") return null;
+      const event = EVENTS.find((item) => item.id === rawRecord.eventId);
+      if (!event) return null;
+      const teams = Array.isArray(rawRecord.teams)
+        ? rawRecord.teams.map(normalizeShuffleTeamSnapshot).filter((team) => team.members.length)
+        : [];
+      const winners = Array.isArray(rawRecord.winners)
+        ? rawRecord.winners.map(normalizeShuffleTeamSnapshot).filter((team) => team.members.length)
+        : [];
+      const awardedNames = uniqueNames(Array.isArray(rawRecord.awardedNames)
+        ? rawRecord.awardedNames
+        : winners.flatMap((team) => team.members));
+      return {
+        eventId: event.id,
+        eventLabel: event.label,
+        teams,
+        winners,
+        awardedNames
+      };
+    }
+
+    function save() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (error) {
+        setStatus("Local save unavailable.");
+      }
+    }
+
+    function readStoredState(storageKeys = [STORAGE_KEY]) {
+      for (const key of storageKeys) {
+        try {
+          const raw = localStorage.getItem(key);
+          if (!raw) continue;
+          const saved = JSON.parse(raw);
+          if (saved && typeof saved === "object") return saved;
+        } catch (error) {
+          continue;
+        }
+      }
+      return null;
+    }
+
+    function hasStoredState(key) {
+      try {
+        return Boolean(localStorage.getItem(key));
+      } catch (error) {
+        return false;
+      }
+    }
+
+    function applySavedState(saved, fallbackMode = "") {
+      if (!saved || typeof saved !== "object") return;
+
+      state.className = typeof saved.className === "string" ? saved.className : "";
+      state.meetName = typeof saved.meetName === "string" ? saved.meetName : "";
+      state.scoringMode = normalizeScoringMode(saved.scoringMode || fallbackMode || (saved.teamPoints ? "team" : "individual"));
+      state.date = typeof saved.date === "string" && saved.date ? saved.date : state.date;
+      state.athletes = Array.isArray(saved.athletes)
+        ? saved.athletes.map(normalizeAthlete).filter(Boolean)
+        : [];
+      state.activeAthleteId = typeof saved.activeAthleteId === "string" ? saved.activeAthleteId : null;
+      if (!state.athletes.some((athlete) => athlete.id === state.activeAthleteId)) {
+        state.activeAthleteId = state.athletes[0] ? state.athletes[0].id : null;
+      }
+      state.judgingEventId = EVENTS.some((event) => event.id === saved.judgingEventId) ? saved.judgingEventId : EVENTS[0].id;
+      state.completedEventIds = Array.isArray(saved.completedEventIds)
+        ? saved.completedEventIds.filter((id) => EVENTS.some((event) => event.id === id))
+        : [];
+      if (saved.competition && typeof saved.competition === "object") {
+        const validIds = new Set(state.athletes.map((athlete) => athlete.id));
+        const queue = Array.isArray(saved.competition.queue)
+          ? saved.competition.queue.filter((id) => validIds.has(id))
+          : [];
+        const completedIds = Array.isArray(saved.competition.completedIds)
+          ? saved.competition.completedIds.filter((id) => validIds.has(id))
+          : [];
+        state.competition = {
+          active: saved.competition.active === true,
+          eventId: EVENTS.some((event) => event.id === saved.competition.eventId) ? saved.competition.eventId : state.judgingEventId,
+          queue,
+          completedIds
+        };
+        if (state.competition.active && state.competition.queue.length) {
+          state.activeAthleteId = state.competition.queue[0];
+          state.judgingEventId = state.competition.eventId;
+        }
+      }
+      state.comparison = {
+        name: saved.comparison && typeof saved.comparison.name === "string" ? saved.comparison.name : "",
+        raw: saved.comparison && typeof saved.comparison.raw === "string" ? saved.comparison.raw : ""
+      };
+      state.savedClasses = Array.isArray(saved.savedClasses)
+        ? saved.savedClasses.map(normalizeSavedClass).filter(Boolean)
+        : [];
+      state.teamPoints = {
+        teamCount: saved.teamPoints && saved.teamPoints.teamCount ? normalizeTeamCount(saved.teamPoints.teamCount) : 2,
+        mode: saved.teamPoints ? normalizeTeamPointMode(saved.teamPoints.mode) : "shuffle",
+        teams: saved.teamPoints && Array.isArray(saved.teamPoints.teams)
+          ? saved.teamPoints.teams.map(normalizeTeamPointTeam).filter(Boolean)
+          : defaultTeamPointTeams(),
+        shuffleWins: saved.teamPoints && Array.isArray(saved.teamPoints.shuffleWins)
+          ? saved.teamPoints.shuffleWins.map(normalizeShuffleWinRecord).filter(Boolean)
+          : []
+      };
+      if (!state.teamPoints.teams.length) state.teamPoints.teams = defaultTeamPointTeams();
+      if (state.teamPoints.teamCount < 2) state.teamPoints.teamCount = 2;
+    }
+
+    function loadLegacyScoringMode(mode) {
+      if (hasStoredState(STORAGE_KEY)) return;
+      const normalizedMode = normalizeScoringMode(mode);
+      const legacyKeys = normalizedMode === "team"
+        ? [TEAM_STORAGE_KEY, INDIVIDUAL_STORAGE_KEY]
+        : [INDIVIDUAL_STORAGE_KEY, TEAM_STORAGE_KEY];
+      const saved = readStoredState(legacyKeys);
+      applySavedState(saved, normalizedMode);
+    }
+
+    function load() {
+      try {
+        const saved = readStoredState([STORAGE_KEY])
+          || readStoredState([INDIVIDUAL_STORAGE_KEY, TEAM_STORAGE_KEY]);
+        applySavedState(saved);
+      } catch (error) {
+        state = createDefaultState();
+      }
+    }
+
+    function syncInputsFromState() {
+      classNameInput.value = state.className;
+      meetNameInput.value = state.meetName;
+      scoreDateInput.value = state.date;
+      teamPointCountInput.value = String(getTeamPointCount());
+      teamPointModeSelect.value = getTeamPointMode();
+      comparisonNameInput.value = state.comparison.name;
+      comparisonRawInput.value = state.comparison.raw;
+    }
+
+    function renderScoringMode() {
+      const mode = normalizeScoringMode(state.scoringMode);
+      state.scoringMode = mode;
+      document.body.dataset.scoringMode = mode;
+      chooseIndividualModeButton.setAttribute("aria-pressed", mode === "individual" ? "true" : "false");
+      chooseTeamModeButton.setAttribute("aria-pressed", mode === "team" ? "true" : "false");
+      classSetupIndividualModeButton.setAttribute("aria-pressed", mode === "individual" ? "true" : "false");
+      classSetupTeamModeButton.setAttribute("aria-pressed", mode === "team" ? "true" : "false");
+      const isTeamMode = mode === "team";
+      classSetupSummary.hidden = isTeamMode;
+      athleteCountStat.hidden = isTeamMode;
+      athletePanel.hidden = isTeamMode;
+      teamAthleteManager.hidden = !isTeamMode;
+      teamScoreStat.hidden = isTeamMode;
+      topAllAroundStat.hidden = isTeamMode;
+      bestTeamEventStat.hidden = isTeamMode;
+      rosterPanel.hidden = isTeamMode;
+      allAroundPanel.hidden = isTeamMode;
+      teamScorePanel.hidden = isTeamMode;
+      rankingsPanel.hidden = isTeamMode;
+      if (comparisonPanel) comparisonPanel.hidden = mode === "team";
+      if (markdownPanel) markdownPanel.hidden = false;
+    }
+
+    function openModePicker() {
+      modePickerModal.hidden = false;
+    }
+
+    function chooseScoringMode(mode, shouldLoadLegacy = true) {
+      if (shouldLoadLegacy) loadLegacyScoringMode(mode);
+      state.scoringMode = normalizeScoringMode(mode);
+      syncInputsFromState();
+      save();
+      updateAll();
+      modePickerModal.hidden = true;
+      setStatus(state.scoringMode === "team" ? "Team scoring mode." : "Individual scoring mode.");
+    }
+
+    function getActiveAthlete() {
+      return state.athletes.find((athlete) => athlete.id === state.activeAthleteId) || null;
+    }
+
+    function getJudgingEvent() {
+      return EVENTS.find((event) => event.id === state.judgingEventId) || EVENTS[0];
+    }
+
+    function getCompetitionEvent() {
+      return EVENTS.find((event) => event.id === state.competition.eventId) || getJudgingEvent();
+    }
+
+    function getAthleteById(id) {
+      return state.athletes.find((athlete) => athlete.id === id) || null;
+    }
+
+    function cleanCompetitionQueue() {
+      const validIds = new Set(state.athletes.map((athlete) => athlete.id));
+      state.competition.queue = state.competition.queue.filter((id) => validIds.has(id));
+      state.competition.completedIds = state.competition.completedIds.filter((id) => validIds.has(id));
+    }
+
+    function getCompetitionAthlete() {
+      cleanCompetitionQueue();
+      return getAthleteById(state.competition.queue[0]) || null;
+    }
+
+    function isEventComplete(eventId) {
+      return state.completedEventIds.includes(eventId);
+    }
+
+    function isTeamScoreReady() {
+      return EVENTS.every((event) => isEventComplete(event.id));
+    }
+
+    function markEventComplete(eventId) {
+      if (!isEventComplete(eventId)) state.completedEventIds.push(eventId);
+    }
+
+    function removeShuffleWinForEvent(eventId) {
+      if (!state.teamPoints || !Array.isArray(state.teamPoints.shuffleWins)) return;
+      state.teamPoints.shuffleWins = state.teamPoints.shuffleWins.filter((record) => record.eventId !== eventId);
+    }
+
+    function markEventIncomplete(eventId) {
+      state.completedEventIds = state.completedEventIds.filter((id) => id !== eventId);
+      removeShuffleWinForEvent(eventId);
+    }
+
+    function ensureActiveAthlete() {
+      if (!state.athletes.length) {
+        state.activeAthleteId = null;
+        return null;
+      }
+      const active = getActiveAthlete();
+      if (active) return active;
+      state.activeAthleteId = state.athletes[0].id;
+      return state.athletes[0];
+    }
+
+    function getEventScore(athlete, eventId) {
+      if (!athlete.scores[eventId]) {
+        athlete.scores[eventId] = {
+          startValue: 10,
+          startConfirmed: false,
+          tenths: 0
+        };
+      }
+      return athlete.scores[eventId];
+    }
+
+    function isStartConfirmed(athlete, eventId) {
+      const score = getEventScore(athlete, eventId);
+      return score.startConfirmed === true && normalizeOptionalScore(score.startValue) !== null;
+    }
+
+    function getDeduction(athlete, eventId) {
+      return getEventScore(athlete, eventId).tenths / 10;
+    }
+
+    function getFinalScore(athlete, eventId) {
+      const score = getEventScore(athlete, eventId);
+      if (!isStartConfirmed(athlete, eventId)) return NaN;
+      return Math.max(0, normalizeScore(score.startValue, 0) - score.tenths / 10);
+    }
+
+    function getAllAround(athlete) {
+      const scores = EVENTS.map((event) => getFinalScore(athlete, event.id));
+      if (!scores.every(Number.isFinite)) return NaN;
+      return scores.reduce((sum, score) => sum + score, 0);
+    }
+
+    function sortByScore(entries) {
+      return entries.slice().sort((a, b) => {
+        const scoreA = Number.isFinite(a.score) ? a.score : -Infinity;
+        const scoreB = Number.isFinite(b.score) ? b.score : -Infinity;
+        if (scoreB !== scoreA) return scoreB - scoreA;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function getAllAroundRankings() {
+      return sortByScore(state.athletes.map((athlete) => ({
+        id: athlete.id,
+        name: athlete.name,
+        score: getAllAround(athlete)
+      })));
+    }
+
+    function getEventRankings(eventId) {
+      return sortByScore(state.athletes.map((athlete) => ({
+        id: athlete.id,
+        name: athlete.name,
+        score: getFinalScore(athlete, eventId)
+      })));
+    }
+
+    function getTeamEvent(eventId) {
+      const top = getEventRankings(eventId).filter((entry) => Number.isFinite(entry.score)).slice(0, 3);
+      return {
+        top,
+        total: top.reduce((sum, entry) => sum + entry.score, 0)
+      };
+    }
+
+    function getTeamEvents() {
+      return EVENTS.map((event) => ({
+        event,
+        ...getTeamEvent(event.id)
+      }));
+    }
+
+    function getTeamTotal() {
+      return getTeamEvents().reduce((sum, entry) => sum + entry.total, 0);
+    }
+
+    function getTeamPointTeams() {
+      if (!state.teamPoints || typeof state.teamPoints !== "object") {
+        state.teamPoints = { teamCount: 2, mode: "shuffle", teams: defaultTeamPointTeams(), shuffleWins: [] };
+      }
+      state.teamPoints.teamCount = normalizeTeamCount(state.teamPoints.teamCount);
+      state.teamPoints.mode = normalizeTeamPointMode(state.teamPoints.mode);
+      if (!Array.isArray(state.teamPoints.teams) || !state.teamPoints.teams.length) {
+        state.teamPoints.teams = defaultTeamPointTeams();
+      }
+      if (!Array.isArray(state.teamPoints.shuffleWins)) state.teamPoints.shuffleWins = [];
+      return state.teamPoints.teams;
+    }
+
+    function getTeamPointCount() {
+      if (!state.teamPoints || typeof state.teamPoints !== "object") {
+        state.teamPoints = { teamCount: 2, mode: "shuffle", teams: defaultTeamPointTeams(), shuffleWins: [] };
+      }
+      state.teamPoints.teamCount = normalizeTeamCount(state.teamPoints.teamCount);
+      return state.teamPoints.teamCount;
+    }
+
+    function getTeamPointMode() {
+      if (!state.teamPoints || typeof state.teamPoints !== "object") {
+        state.teamPoints = { teamCount: 2, mode: "shuffle", teams: defaultTeamPointTeams(), shuffleWins: [] };
+      }
+      state.teamPoints.mode = normalizeTeamPointMode(state.teamPoints.mode);
+      return state.teamPoints.mode;
+    }
+
+    function getShuffleWins() {
+      getTeamPointTeams();
+      state.teamPoints.shuffleWins = Array.isArray(state.teamPoints.shuffleWins)
+        ? state.teamPoints.shuffleWins.map(normalizeShuffleWinRecord).filter(Boolean)
+        : [];
+      return state.teamPoints.shuffleWins;
+    }
+
+    function shuffleItems(items) {
+      const mixed = items.slice();
+      for (let index = mixed.length - 1; index > 0; index -= 1) {
+        const swapIndex = Math.floor(Math.random() * (index + 1));
+        [mixed[index], mixed[swapIndex]] = [mixed[swapIndex], mixed[index]];
+      }
+      return mixed;
+    }
+
+    function getSortedNames(names) {
+      return names.map(cleanText).filter(Boolean).sort((a, b) => a.localeCompare(b));
+    }
+
+    function getRosterNameSet() {
+      return new Set(state.athletes.map((athlete) => athlete.name));
+    }
+
+    function getTeamPointTeamCount(teamCount = getTeamPointCount()) {
+      return normalizeTeamCount(teamCount);
+    }
+
+    function normalizeManualTeamMembers() {
+      const rosterNames = getRosterNameSet();
+      const used = new Set();
+      getTeamPointTeams().forEach((team) => {
+        team.members = (Array.isArray(team.members) ? team.members : [])
+          .map(cleanText)
+          .filter((name) => {
+            if (!name || !rosterNames.has(name) || used.has(name)) return false;
+            used.add(name);
+            return true;
+          });
+      });
+    }
+
+    function ensureManualTeamPointGroups(teamCount = getTeamPointCount()) {
+      const count = getTeamPointTeamCount(teamCount);
+      const existingTeams = getTeamPointTeams();
+      state.teamPoints.teamCount = count;
+      state.teamPoints.teams = Array.from({ length: count }, (_, index) => {
+        const existing = existingTeams[index] || {};
+        return {
+          id: typeof existing.id === "string" ? existing.id : makeId(),
+          name: "team " + (index + 1),
+          points: normalizeTeamPoints(existing.points),
+          tally: normalizeTeamPoints(existing.tally),
+          members: Array.isArray(existing.members) ? existing.members.slice() : []
+        };
+      });
+      normalizeManualTeamMembers();
+    }
+
+    function getUnassignedAthleteNames() {
+      normalizeManualTeamMembers();
+      const assigned = new Set(getTeamPointTeams().flatMap((team) => team.members));
+      return state.athletes.map((athlete) => athlete.name).filter((name) => !assigned.has(name));
+    }
+
+    function clearManualTeamInteractionState() {
+      selectedManualAthleteName = "";
+      draggedManualAthleteName = "";
+      if (manualTeamBuilder) {
+        manualTeamBuilder.querySelectorAll(".is-drag-over").forEach((item) => item.classList.remove("is-drag-over"));
+      }
+    }
+
+    function syncTeamsForRosterChange() {
+      if (!isTeamScoringMode()) return;
+      const teamCount = getTeamPointCount();
+      if (getTeamPointMode() === "shuffle" && state.athletes.length >= 2) {
+        assignRandomTeamPointGroups(teamCount);
+      } else {
+        ensureManualTeamPointGroups(teamCount);
+      }
+      clearManualTeamInteractionState();
+    }
+
+    function moveManualAthleteToTeam(name, teamId) {
+      const athleteName = cleanText(name);
+      if (!athleteName || !getRosterNameSet().has(athleteName)) return;
+      ensureManualTeamPointGroups();
+      const currentTeam = getTeamPointTeams().find((item) => Array.isArray(item.members) && item.members.includes(athleteName));
+      getTeamPointTeams().forEach((team) => {
+        team.members = team.members.filter((member) => member !== athleteName);
+      });
+      if (teamId !== "__pool") {
+        const team = getTeamPointTeams().find((item) => item.id === teamId);
+        if (team) {
+          team.members.push(athleteName);
+        }
+      }
+      selectedManualAthleteName = "";
+      draggedManualAthleteName = "";
+      save();
+      updateAll();
+      setStatus(teamId === "__pool" ? athleteName + " unassigned." : athleteName + " moved.");
+    }
+
+    function canKeepTeamPointGroups(teamCount) {
+      const teams = getTeamPointTeams();
+      const expectedTeamCount = getTeamPointTeamCount(teamCount);
+      if (teams.length !== expectedTeamCount) return false;
+      const rosterNames = getSortedNames(state.athletes.map((athlete) => athlete.name));
+      const memberNames = getSortedNames(teams.flatMap((team) => Array.isArray(team.members) ? team.members : []));
+      if (rosterNames.length !== memberNames.length) return false;
+      if (teams.some((team) => !Array.isArray(team.members) || !team.members.length)) return false;
+      return rosterNames.every((name, index) => name === memberNames[index]);
+    }
+
+    function assignRandomTeamPointGroups(teamCount) {
+      const shuffled = shuffleItems(state.athletes);
+      const existingTeams = getTeamPointTeams();
+      const count = getTeamPointTeamCount(teamCount);
+      clearManualTeamInteractionState();
+      state.teamPoints.teamCount = count;
+      const groups = Array.from({ length: count }, (_, index) => ({
+        id: typeof existingTeams[index] === "object" && typeof existingTeams[index].id === "string" ? existingTeams[index].id : makeId(),
+        name: "team " + (index + 1),
+        points: normalizeTeamPoints(existingTeams[index] && existingTeams[index].points),
+        tally: 0,
+        members: []
+      }));
+      shuffled.forEach((athlete, index) => {
+        groups[index % groups.length].members.push(athlete.name);
+      });
+      state.teamPoints.teams = groups;
+    }
+
+    function startTeamPointRound() {
+      if (state.athletes.length < 2) {
+        setStatus("Add at least two athletes before building teams.");
+        return;
+      }
+      const teamCount = normalizeTeamCount(teamPointCountInput.value);
+      const mode = normalizeTeamPointMode(teamPointModeSelect.value);
+      if (teamCount > state.athletes.length) {
+        state.teamPoints.teamCount = teamCount;
+        teamPointCountInput.value = String(teamCount);
+        save();
+        updateAll();
+        setStatus("Use no more teams than athletes.");
+        return;
+      }
+      state.teamPoints.teamCount = teamCount;
+      state.teamPoints.mode = mode;
+      clearManualTeamInteractionState();
+      if (mode === "shuffle") {
+        assignRandomTeamPointGroups(teamCount);
+      } else {
+        ensureManualTeamPointGroups(teamCount);
+        if (!canKeepTeamPointGroups(teamCount)) {
+          save();
+          updateAll();
+          setStatus("Assign every athlete to a team and keep every team non-empty.");
+          return;
+        }
+        getTeamPointTeams().forEach((team) => {
+          team.tally = 0;
+        });
+      }
+      teamPointCountInput.value = String(teamCount);
+      teamPointModeSelect.value = mode;
+      save();
+      updateAll();
+      setStatus(mode === "keep" ? "Same teams kept." : "Teams shuffled.");
+    }
+
+    function getTeamPointsTotal() {
+      return getTeamPointTeams().reduce((sum, team) => sum + normalizeTeamPoints(team.points), 0);
+    }
+
+    function getTeamPointsLeaderText() {
+      const teams = getTeamPointTeams();
+      const highScore = Math.max(...teams.map((team) => normalizeTeamPoints(team.points)));
+      if (highScore <= 0) return "no team points yet";
+      const leaders = teams.filter((team) => normalizeTeamPoints(team.points) === highScore);
+      if (leaders.length > 1) return "tie: " + leaders.map((team) => team.name).join(", ") + " - " + highScore;
+      return leaders[0].name + " - " + highScore;
+    }
+
+    function getTeamTallyTotal() {
+      return getTeamPointTeams().reduce((sum, team) => sum + normalizeTeamPoints(team.tally), 0);
+    }
+
+    function getTeamTallyLeaderText() {
+      const teams = getTeamPointTeams();
+      const highScore = Math.max(...teams.map((team) => normalizeTeamPoints(team.tally)));
+      if (highScore <= 0) return "no team score yet";
+      const leaders = teams.filter((team) => normalizeTeamPoints(team.tally) === highScore);
+      if (leaders.length > 1) return "score tie: " + leaders.map((team) => team.name).join(", ") + " - " + highScore;
+      return "score leader: " + leaders[0].name + " - " + highScore;
+    }
+
+    function setTeamTally(id, value) {
+      const team = getTeamPointTeams().find((item) => item.id === id);
+      if (!team) return;
+      clearTeamPointWinnerConfirm(false);
+      team.tally = normalizeTeamPoints(value);
+      save();
+      updateAll();
+      setStatus(team.name + " score " + team.tally + ".");
+    }
+
+    function getTeamCurrentTotal(team) {
+      const members = Array.isArray(team.members) ? team.members : [];
+      return members.reduce((teamSum, member) => {
+        const athlete = state.athletes.find((item) => item.name === member);
+        if (!athlete) return teamSum;
+        const athleteTotal = EVENTS.reduce((sum, event) => {
+          const score = getFinalScore(athlete, event.id);
+          return Number.isFinite(score) ? sum + score : sum;
+        }, 0);
+        return teamSum + athleteTotal;
+      }, 0);
+    }
+
+    function getMiddleDropIndex(length) {
+      return Math.floor((length - 1) / 2);
+    }
+
+    function getTeamEventRoundResult(eventId) {
+      const event = EVENTS.find((item) => item.id === eventId);
+      if (!event) {
+        return {
+          ready: false,
+          eventId,
+          eventLabel: "Event",
+          detailText: "choose an event",
+          teams: [],
+          winners: [],
+          awardedNames: []
+        };
+      }
+
+      normalizeManualTeamMembers();
+      const teamEntries = getTeamPointTeams().map((team) => ({
+        id: team.id,
+        name: team.name,
+        members: Array.isArray(team.members) ? team.members.filter(Boolean) : [],
+        athletes: (Array.isArray(team.members) ? team.members : [])
+          .map((member) => {
+            const athlete = state.athletes.find((item) => item.name === member);
+            if (!athlete) return null;
+            return {
+              id: athlete.id,
+              name: athlete.name,
+              score: getFinalScore(athlete, event.id)
+            };
+          })
+          .filter(Boolean)
+      }));
+
+      if (teamEntries.length < 2 || teamEntries.every((entry) => !entry.athletes.length)) {
+        return {
+          ready: false,
+          eventId: event.id,
+          eventLabel: event.label,
+          detailText: "assign athletes to at least two teams",
+          teams: [],
+          winners: [],
+          awardedNames: []
+        };
+      }
+
+      if (teamEntries.some((entry) => !entry.athletes.length)) {
+        return {
+          ready: false,
+          eventId: event.id,
+          eventLabel: event.label,
+          detailText: "assign at least one athlete to every team",
+          teams: teamEntries,
+          winners: [],
+          awardedNames: []
+        };
+      }
+
+      const incompleteNames = teamEntries
+        .flatMap((entry) => entry.athletes)
+        .filter((athlete) => !Number.isFinite(athlete.score))
+        .map((athlete) => athlete.name);
+      if (incompleteNames.length) {
+        return {
+          ready: false,
+          eventId: event.id,
+          eventLabel: event.label,
+          detailText: "finish " + event.label + " scores for: " + incompleteNames.join(", "),
+          teams: teamEntries,
+          winners: [],
+          awardedNames: []
+        };
+      }
+
+      const targetCount = Math.min(...teamEntries.map((entry) => entry.athletes.length));
+      const adjustedTeams = teamEntries.map((entry) => {
+        const counted = entry.athletes
+          .slice()
+          .sort((a, b) => a.score - b.score || a.name.localeCompare(b.name));
+        const dropped = [];
+
+        while (counted.length > targetCount) {
+          const dropIndex = getMiddleDropIndex(counted.length);
+          dropped.push(counted.splice(dropIndex, 1)[0]);
+        }
+
+        return {
+          id: entry.id,
+          name: entry.name,
+          members: entry.members.slice(),
+          counted,
+          dropped,
+          total: counted.reduce((sum, athlete) => sum + athlete.score, 0)
+        };
+      });
+
+      const highScore = Math.max(...adjustedTeams.map((team) => team.total));
+      const winners = adjustedTeams.filter((team) => team.total === highScore);
+      const awardedNames = uniqueNames(winners.flatMap((team) => team.members));
+      const dropped = adjustedTeams.flatMap((team) => team.dropped.map((athlete) => team.name + " dropped " + athlete.name + " " + formatScore(athlete.score)));
+      const detailText = event.label + " winner" + (winners.length === 1 ? "" : "s") + ": "
+        + winners.map((team) => team.name + " " + formatScore(team.total)).join(", ")
+        + " | +1 for " + awardedNames.join(", ")
+        + (dropped.length ? " | dropped middle/lower-middle scores: " + dropped.join("; ") : "");
+
+      return {
+        ready: true,
+        eventId: event.id,
+        eventLabel: event.label,
+        detailText,
+        teams: adjustedTeams,
+        winners,
+        awardedNames
+      };
+    }
+
+    function snapshotShuffleTeam(team) {
+      return {
+        id: team.id,
+        name: team.name,
+        total: normalizeScore(team.total, 0),
+        members: Array.isArray(team.members) ? uniqueNames(team.members) : [],
+        counted: Array.isArray(team.counted) ? team.counted.map((athlete) => ({
+          name: athlete.name,
+          score: normalizeScore(athlete.score, 0)
+        })) : [],
+        dropped: Array.isArray(team.dropped) ? team.dropped.map((athlete) => ({
+          name: athlete.name,
+          score: normalizeScore(athlete.score, 0)
+        })) : []
+      };
+    }
+
+    function recordShuffleRoundWin(eventId) {
+      const result = getTeamEventRoundResult(eventId);
+      if (!result.ready) return result;
+      const record = {
+        eventId: result.eventId,
+        eventLabel: result.eventLabel,
+        teams: result.teams.map(snapshotShuffleTeam),
+        winners: result.winners.map(snapshotShuffleTeam),
+        awardedNames: result.awardedNames.slice()
+      };
+      state.teamPoints.shuffleWins = getShuffleWins().filter((item) => item.eventId !== result.eventId);
+      state.teamPoints.shuffleWins.push(record);
+      return result;
+    }
+
+    function getLatestShuffleWin() {
+      const wins = getShuffleWins();
+      return wins.length ? wins[wins.length - 1] : null;
+    }
+
+    function getTeamSnapshotSignature(teams) {
+      return teams.map((team) => uniqueNames(team.members || []).sort((a, b) => a.localeCompare(b)).join("|")).sort().join(" / ");
+    }
+
+    function getLatestShuffleWinForCurrentTeams() {
+      const latest = getLatestShuffleWin();
+      if (!latest) return null;
+      return getTeamSnapshotSignature(latest.teams) === getTeamSnapshotSignature(getTeamPointTeams()) ? latest : null;
+    }
+
+    function getShufflePointRows() {
+      const rows = state.athletes.map((athlete) => ({
+        id: athlete.id,
+        name: athlete.name,
+        points: 0,
+        rounds: []
+      }));
+      const byName = new Map(rows.map((row) => [row.name, row]));
+      getShuffleWins().forEach((record) => {
+        record.awardedNames.forEach((name) => {
+          const row = byName.get(name);
+          if (!row) return;
+          row.points += 1;
+          row.rounds.push(record.eventLabel);
+        });
+      });
+      return rows.sort((a, b) => {
+        if (b.points !== a.points) return b.points - a.points;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    function getShufflePointLeaderText() {
+      const rows = getShufflePointRows();
+      const highScore = Math.max(0, ...rows.map((row) => row.points));
+      if (highScore <= 0) return "";
+      const leaders = rows.filter((row) => row.points === highScore);
+      return leaders.length > 1
+        ? "shuffle points tie: " + leaders.map((row) => row.name).join(", ") + " - " + highScore
+        : "shuffle points leader: " + leaders[0].name + " - " + highScore;
+    }
+
+    function getTeamCompetitionResult() {
+      normalizeManualTeamMembers();
+      const teamEntries = getTeamPointTeams().map((team) => ({
+        team,
+        athletes: (Array.isArray(team.members) ? team.members : [])
+          .map((member) => {
+            const athlete = state.athletes.find((item) => item.name === member);
+            if (!athlete) return null;
+            return {
+              id: athlete.id,
+              name: athlete.name,
+              score: getAllAround(athlete)
+            };
+          })
+          .filter(Boolean)
+      }));
+
+      if (teamEntries.length < 2 || teamEntries.every((entry) => !entry.athletes.length)) {
+        return {
+          ready: false,
+          winnerText: "",
+          detailText: "assign athletes to at least two teams",
+          teams: []
+        };
+      }
+
+      if (teamEntries.some((entry) => !entry.athletes.length)) {
+        return {
+          ready: false,
+          winnerText: "",
+          detailText: "assign at least one athlete to every team",
+          teams: teamEntries
+        };
+      }
+
+      const incompleteNames = teamEntries
+        .flatMap((entry) => entry.athletes)
+        .filter((athlete) => !Number.isFinite(athlete.score))
+        .map((athlete) => athlete.name);
+      if (incompleteNames.length) {
+        return {
+          ready: false,
+          winnerText: "",
+          detailText: "finish scores for: " + incompleteNames.join(", "),
+          teams: teamEntries
+        };
+      }
+
+      const targetCount = Math.min(...teamEntries.map((entry) => entry.athletes.length));
+      const adjustedTeams = teamEntries.map((entry) => {
+        const counted = entry.athletes
+          .slice()
+          .sort((a, b) => a.score - b.score || a.name.localeCompare(b.name));
+        const dropped = [];
+
+        while (counted.length > targetCount) {
+          const dropIndex = getMiddleDropIndex(counted.length);
+          dropped.push(counted.splice(dropIndex, 1)[0]);
+        }
+
+        return {
+          id: entry.team.id,
+          name: entry.team.name,
+          counted,
+          dropped,
+          total: counted.reduce((sum, athlete) => sum + athlete.score, 0)
+        };
+      });
+
+      const highScore = Math.max(...adjustedTeams.map((team) => team.total));
+      const leaders = adjustedTeams.filter((team) => team.total === highScore);
+      const winnerText = leaders.length > 1
+        ? "auto winner tie: " + leaders.map((team) => team.name).join(", ") + " - " + formatScore(highScore)
+        : "auto winner: " + leaders[0].name + " - " + formatScore(highScore);
+      const dropped = adjustedTeams.flatMap((team) => team.dropped.map((athlete) => team.name + " dropped " + athlete.name + " " + formatScore(athlete.score)));
+      const detailText = "counting " + targetCount + " athlete" + (targetCount === 1 ? "" : "s") + " per team"
+        + (dropped.length ? " | uneven teams ok - dropped middle/lower-middle scores: " + dropped.join("; ") : " | no dropped scores");
+
+      return {
+        ready: true,
+        winnerText,
+        detailText,
+        teams: adjustedTeams
+      };
+    }
+
+    function renderRoster() {
+      rosterList.innerHTML = "";
+      rosterEmpty.style.display = state.athletes.length ? "none" : "grid";
+
+      state.athletes.forEach((athlete, index) => {
+        const row = document.createElement("div");
+        row.className = "athlete-row";
+        if (athlete.id === state.activeAthleteId) row.classList.add("is-active");
+
+        const orderNumber = document.createElement("div");
+        orderNumber.className = "order-number";
+        orderNumber.textContent = String(index + 1);
+
+        const name = document.createElement("div");
+        name.className = "athlete-name";
+        name.textContent = athlete.name;
+
+        const moveUpButton = document.createElement("button");
+        moveUpButton.type = "button";
+        moveUpButton.className = "small-button secondary";
+        moveUpButton.textContent = "up";
+        moveUpButton.disabled = index === 0;
+        moveUpButton.dataset.action = "move-up";
+        moveUpButton.dataset.id = athlete.id;
+
+        const moveDownButton = document.createElement("button");
+        moveDownButton.type = "button";
+        moveDownButton.className = "small-button secondary";
+        moveDownButton.textContent = "down";
+        moveDownButton.disabled = index === state.athletes.length - 1;
+        moveDownButton.dataset.action = "move-down";
+        moveDownButton.dataset.id = athlete.id;
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "small-button danger";
+        removeButton.textContent = athlete.id === removeAthleteArmedId ? "sure?" : "remove";
+        removeButton.dataset.action = "remove";
+        removeButton.dataset.id = athlete.id;
+
+        row.append(orderNumber, name, moveUpButton, moveDownButton, removeButton);
+        rosterList.appendChild(row);
+      });
+    }
+
+    function renderTeamAthleteManager() {
+      teamAthleteManager.hidden = !isTeamScoringMode();
+      teamAthleteList.innerHTML = "";
+      teamAthleteEmpty.style.display = state.athletes.length ? "none" : "grid";
+
+      state.athletes.forEach((athlete, index) => {
+        const row = document.createElement("div");
+        row.className = "athlete-row team-athlete-row";
+        if (athlete.id === state.activeAthleteId) row.classList.add("is-active");
+
+        const orderNumber = document.createElement("div");
+        orderNumber.className = "order-number";
+        orderNumber.textContent = String(index + 1);
+
+        const name = document.createElement("div");
+        name.className = "athlete-name";
+        name.textContent = athlete.name;
+
+        const removeButton = document.createElement("button");
+        removeButton.type = "button";
+        removeButton.className = "small-button danger";
+        removeButton.textContent = athlete.id === removeAthleteArmedId ? "sure?" : "remove";
+        removeButton.dataset.teamAthleteAction = "remove";
+        removeButton.dataset.id = athlete.id;
+
+        row.append(orderNumber, name, removeButton);
+        teamAthleteList.appendChild(row);
+      });
+    }
+
+    function getSavedClasses() {
+      if (!Array.isArray(state.savedClasses)) state.savedClasses = [];
+      return state.savedClasses;
+    }
+
+    function getAllClassProfiles() {
+      return BUILT_IN_CLASS_PROFILES.concat(getSavedClasses());
+    }
+
+    function getClassProfileById(id) {
+      return getAllClassProfiles().find((profile) => profile.id === id);
+    }
+
+    function renderClassProfiles() {
+      const classProfiles = getAllClassProfiles();
+      classProfileList.innerHTML = "";
+      classProfileEmpty.style.display = classProfiles.length ? "none" : "grid";
+
+      classProfiles.forEach((profile) => {
+        const row = document.createElement("div");
+        row.className = "class-profile-row" + (profile.builtIn ? " is-built-in" : "");
+
+        const name = document.createElement("div");
+        name.className = "class-profile-name";
+        name.textContent = profile.name;
+
+        const meta = document.createElement("span");
+        meta.className = "class-profile-meta";
+        const count = Array.isArray(profile.athletes) ? profile.athletes.length : 0;
+        const sourceLabel = profile.builtIn ? "roll" : "saved";
+        meta.textContent = count + " athlete" + (count === 1 ? "" : "s") + " - " + sourceLabel;
+        name.appendChild(meta);
+
+        const loadButton = document.createElement("button");
+        loadButton.type = "button";
+        loadButton.className = "small-button secondary";
+        loadButton.textContent = "load";
+        loadButton.dataset.classAction = "load";
+        loadButton.dataset.id = profile.id;
+
+        if (profile.builtIn) {
+          row.append(name, loadButton);
+          classProfileList.appendChild(row);
+          return;
+        }
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.className = "small-button danger";
+        deleteButton.textContent = "delete";
+        deleteButton.dataset.classAction = "delete";
+        deleteButton.dataset.id = profile.id;
+
+        row.append(name, loadButton, deleteButton);
+        classProfileList.appendChild(row);
+      });
+    }
+
+    function renderJudgingEventButtons() {
+      judgeEventButtons.innerHTML = "";
+      EVENTS.forEach((event) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "judge-event-button secondary";
+        if (event.id === state.judgingEventId) button.classList.add("is-selected");
+        button.textContent = event.label;
+        button.dataset.event = event.id;
+        button.setAttribute("aria-pressed", event.id === state.judgingEventId ? "true" : "false");
+        judgeEventButtons.appendChild(button);
+      });
+    }
+
+    function renderEventPickerButtons() {
+      eventPickerButtons.innerHTML = "";
+      EVENTS.forEach((event) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "event-picker-button";
+        button.textContent = event.label;
+        button.dataset.event = event.id;
+        eventPickerButtons.appendChild(button);
+      });
+    }
+
+    function renderJudgingMode() {
+      const isCompetition = state.competition.active;
+      let athlete = null;
+      let event = getJudgingEvent();
+      if (isCompetition) {
+        cleanCompetitionQueue();
+        event = getCompetitionEvent();
+        state.judgingEventId = event.id;
+        athlete = getCompetitionAthlete();
+        if (athlete) state.activeAthleteId = athlete.id;
+      } else {
+        athlete = ensureActiveAthlete();
+      }
+
+      competitionBar.classList.toggle("is-active", isCompetition);
+      competitionDone.hidden = !isCompetition;
+      competitionLast.hidden = !isCompetition;
+      endCompetitionButton.hidden = !isCompetition;
+      judgePrevAthlete.hidden = isCompetition;
+      judgeNextAthlete.hidden = isCompetition;
+      judgePrevEvent.hidden = isCompetition;
+      judgeNextEvent.hidden = isCompetition;
+      exitJudgingModeButton.hidden = isCompetition;
+      backToHomeButton.hidden = isCompetition;
+      judgeEventButtons.hidden = isCompetition;
+
+      if (isCompetition) {
+        const remaining = state.competition.queue.length;
+        const completed = state.competition.completedIds.length;
+        const total = remaining + completed;
+        const nextNames = state.competition.queue.slice(1, 4).map((id) => {
+          const nextAthlete = getAthleteById(id);
+          return nextAthlete ? nextAthlete.name : "";
+        }).filter(Boolean);
+        competitionRoundText.textContent = event.label + " round - " + completed + " done, " + remaining + " left";
+        competitionNextText.textContent = athlete
+          ? "first up: " + athlete.name + (nextNames.length ? " | next: " + nextNames.join(", ") : "") + " | " + (completed + 1) + "/" + total
+          : event.label + " round complete";
+      }
+      judgingScreenTitle.textContent = isCompetition ? event.label + " competition" : "competition";
+
+      judgingEmpty.style.display = athlete ? "none" : "grid";
+      judgingEmpty.textContent = isCompetition ? event.label + " round complete" : "add an athlete first";
+      judgingPanel.style.display = athlete ? "grid" : "none";
+      if (isCompetition) {
+        judgeEventButtons.innerHTML = "";
+      } else {
+        renderJudgingEventButtons();
+      }
+      if (!athlete) return;
+
+      const score = getEventScore(athlete, event.id);
+      judgeAthleteName.textContent = athlete.name;
+      judgeEventName.textContent = event.label;
+      if (document.activeElement !== judgeStartValue) {
+        judgeStartValue.value = formatStartInput(score.startValue);
+      }
+      judgeTenths.textContent = String(score.tenths);
+      judgeOff.textContent = formatScore(getDeduction(athlete, event.id));
+      judgeFinalScore.textContent = formatScore(getFinalScore(athlete, event.id));
+      judgeConfirmStartValue.textContent = "confirm SV";
+      const startConfirmed = isStartConfirmed(athlete, event.id);
+      judgeStartValueArrows.hidden = startConfirmed;
+      judgeConfirmStartValue.hidden = startConfirmed;
+      judgeConfirmStartValue.classList.toggle("is-confirmed", startConfirmed);
+      judgeMinusTenth.disabled = score.tenths <= 0;
+      competitionDone.disabled = isCompetition && !isStartConfirmed(athlete, event.id);
+      judgePrevAthlete.disabled = state.athletes.length < 2;
+      judgeNextAthlete.disabled = state.athletes.length < 2;
+    }
+
+    function exitJudgingMode() {
+      document.body.classList.remove("judging");
+      judgingMode.hidden = true;
+      setStatus("Class scoring mode.");
+    }
+
+    function setJudgingEvent(eventId) {
+      if (!EVENTS.some((event) => event.id === eventId)) return;
+      if (state.competition.active) {
+        startCompetitionRound(eventId);
+        return;
+      }
+      state.judgingEventId = eventId;
+      save();
+      updateAll();
+      setStatus(getJudgingEvent().label + " selected.");
+    }
+
+    function stepJudgingEvent(direction) {
+      const currentIndex = Math.max(0, EVENTS.findIndex((event) => event.id === state.judgingEventId));
+      const nextIndex = (currentIndex + direction + EVENTS.length) % EVENTS.length;
+      setJudgingEvent(EVENTS[nextIndex].id);
+    }
+
+    function stepJudgingAthlete(direction) {
+      if (!state.athletes.length) return;
+      const currentIndex = Math.max(0, state.athletes.findIndex((athlete) => athlete.id === state.activeAthleteId));
+      const nextIndex = (currentIndex + direction + state.athletes.length) % state.athletes.length;
+      state.activeAthleteId = state.athletes[nextIndex].id;
+      save();
+      updateAll();
+      setStatus(state.athletes[nextIndex].name + " selected.");
+    }
+
+    function startCompetitionRound(eventId) {
+      if (!state.athletes.length) {
+        setStatus("Add athletes before starting.");
+        return;
+      }
+      const event = EVENTS.find((item) => item.id === eventId) || getJudgingEvent();
+      markEventIncomplete(event.id);
+      state.competition = {
+        active: true,
+        eventId: event.id,
+        queue: state.athletes.map((athlete) => athlete.id),
+        completedIds: []
+      };
+      state.judgingEventId = event.id;
+      state.activeAthleteId = state.competition.queue[0];
+      save();
+      updateAll();
+      setStatus(event.label + " started. First up: " + state.athletes[0].name);
+    }
+
+    function openEventPicker() {
+      if (!state.athletes.length) {
+        setStatus("Add athletes before starting.");
+        return;
+      }
+      renderEventPickerButtons();
+      eventPickerModal.hidden = false;
+      const firstButton = eventPickerButtons.querySelector("button");
+      if (firstButton) firstButton.focus();
+      setStatus("Pick the event for this round.");
+    }
+
+    function closeEventPicker() {
+      eventPickerModal.hidden = true;
+      beginCompetitionButton.focus();
+    }
+
+    function beginCompetitionForEvent(eventId) {
+      if (!EVENTS.some((event) => event.id === eventId)) return;
+      eventPickerModal.hidden = true;
+      judgingMode.hidden = false;
+      document.body.classList.add("judging");
+      startCompetitionRound(eventId);
+    }
+
+    function beginCompetition() {
+      openEventPicker();
+    }
+
+    function completeCompetitionRoutine() {
+      if (!state.competition.active) return;
+      cleanCompetitionQueue();
+      const currentAthlete = getCompetitionAthlete();
+      if (currentAthlete && !isStartConfirmed(currentAthlete, state.competition.eventId)) {
+        setStatus("Confirm " + currentAthlete.name + "'s start value first.");
+        return;
+      }
+      const currentId = state.competition.queue.shift();
+      if (currentId) state.competition.completedIds.push(currentId);
+      const eventName = getCompetitionEvent().label;
+      if (!state.competition.queue.length) {
+        const completedEventId = state.competition.eventId;
+        state.competition.active = false;
+        markEventComplete(completedEventId);
+        const shuffleRoundResult = isTeamScoringMode() && getTeamPointMode() === "shuffle"
+          ? recordShuffleRoundWin(completedEventId)
+          : null;
+        state.competition.completedIds = [];
+        state.activeAthleteId = currentId || state.activeAthleteId;
+        save();
+        updateAll();
+        exitJudgingMode();
+        if (shuffleRoundResult) {
+          setStatus(shuffleRoundResult.ready ? shuffleRoundResult.detailText : eventName + " round complete. " + shuffleRoundResult.detailText);
+        } else if (isTeamScoringMode() && isTeamScoreReady()) {
+          const result = getTeamCompetitionResult();
+          setStatus(result.ready ? result.winnerText : eventName + " round complete. " + result.detailText);
+        } else {
+          setStatus(eventName + " round complete.");
+        }
+        return;
+      }
+      state.activeAthleteId = state.competition.queue[0] || currentId || state.activeAthleteId;
+      save();
+      updateAll();
+      const athlete = getCompetitionAthlete();
+      setStatus(athlete ? "Next up: " + athlete.name : eventName + " round complete.");
+    }
+
+    function moveCompetitionCurrentLast() {
+      if (!state.competition.active) return;
+      cleanCompetitionQueue();
+      if (state.competition.queue.length < 2) {
+        setStatus("No one else is waiting.");
+        return;
+      }
+      const current = state.competition.queue.shift();
+      state.competition.queue.push(current);
+      state.activeAthleteId = state.competition.queue[0];
+      save();
+      updateAll();
+      const athlete = getCompetitionAthlete();
+      setStatus(athlete ? "Moved to last. Now up: " + athlete.name : "Moved to last.");
+    }
+
+    function endCompetitionRound() {
+      state.competition.active = false;
+      state.competition.queue = [];
+      state.competition.completedIds = [];
+      save();
+      updateAll();
+      exitJudgingMode();
+      setStatus("Competition round ended.");
+    }
+
+    function renderSummary() {
+      athleteCount.textContent = String(state.athletes.length);
+      teamScoreStat.style.display = "";
+      teamScoreTotal.textContent = formatScore(getTeamTotal());
+
+      const aaRankings = getAllAroundRankings();
+      const topAa = aaRankings.find((entry) => Number.isFinite(entry.score));
+      topAllAround.textContent = topAa ? topAa.name + " " + formatScore(topAa.score) : "none";
+
+      const teamEvents = getTeamEvents();
+      const best = teamEvents.reduce((bestEntry, entry) => (
+        entry.total > bestEntry.total ? entry : bestEntry
+      ), teamEvents[0] || { event: { label: "none" }, total: 0 });
+      bestTeamEvent.textContent = state.athletes.length && best.top.length ? best.event.label + " " + formatScore(best.total) : "none";
+    }
+
+    function renderTeamScore() {
+      teamGrid.innerHTML = "";
+      teamScorePanel.style.display = "";
+      getTeamEvents().forEach((entry) => {
+        const card = document.createElement("section");
+        card.className = "team-card";
+
+        const head = document.createElement("div");
+        head.className = "card-head";
+        head.innerHTML = `<span>${entry.event.label}</span><span class="card-badge">${formatScore(entry.total)}</span>`;
+
+        const list = document.createElement("ol");
+        list.className = "mini-list";
+        entry.top.forEach((athlete, index) => {
+          const item = document.createElement("li");
+          item.innerHTML = `
+            <span class="rank-number">${index + 1}</span>
+            <span class="mini-name">${escapeHtml(athlete.name)}</span>
+            <span class="mini-score">${formatScore(athlete.score)}</span>
+          `;
+          list.appendChild(item);
+        });
+
+        if (!entry.top.length) {
+          const empty = document.createElement("div");
+          empty.className = "empty";
+          empty.textContent = "no scores";
+          card.append(head, empty);
+        } else {
+          card.append(head, list);
+        }
+        teamGrid.appendChild(card);
+      });
+    }
+
+    function createManualAthleteChip(name) {
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "manual-athlete-chip";
+      if (name === selectedManualAthleteName) chip.classList.add("is-selected");
+      chip.textContent = name;
+      chip.draggable = true;
+      chip.dataset.member = name;
+      chip.setAttribute("aria-label", "Move " + name);
+      return chip;
+    }
+
+    function renderManualTeamBuilder() {
+      const isKeepMode = getTeamPointMode() === "keep";
+      manualTeamBuilder.hidden = !isKeepMode;
+      if (!isKeepMode) return;
+
+      ensureManualTeamPointGroups(getTeamPointCount());
+      manualAthletePoolList.innerHTML = "";
+      getUnassignedAthleteNames().forEach((name) => {
+        manualAthletePoolList.appendChild(createManualAthleteChip(name));
+      });
+
+      manualTeamGrid.innerHTML = "";
+      getTeamPointTeams().forEach((team) => {
+        const drop = document.createElement("section");
+        drop.className = "manual-team-drop";
+        drop.dataset.dropTeamId = team.id;
+
+        const title = document.createElement("div");
+        title.className = "manual-team-title";
+        title.textContent = team.name;
+
+        const list = document.createElement("div");
+        list.className = "manual-athlete-list";
+        (Array.isArray(team.members) ? team.members : []).forEach((member) => {
+          list.appendChild(createManualAthleteChip(member));
+        });
+
+        drop.append(title, list);
+        manualTeamGrid.appendChild(drop);
+      });
+    }
+
+    function renderShufflePoints() {
+      const isShuffleMode = isTeamScoringMode() && getTeamPointMode() === "shuffle";
+      shufflePointsPanel.hidden = !isShuffleMode;
+      shufflePointsList.innerHTML = "";
+      if (!isShuffleMode) return;
+
+      const rows = getShufflePointRows();
+      const hasPoints = rows.some((row) => row.points > 0);
+      shufflePointsEmpty.style.display = hasPoints ? "none" : "grid";
+      rows.forEach((row, index) => {
+        const item = document.createElement("div");
+        item.className = "shuffle-point-row";
+
+        const rank = document.createElement("div");
+        rank.className = "order-number";
+        rank.textContent = String(index + 1);
+
+        const name = document.createElement("div");
+        name.className = "shuffle-point-name";
+        name.textContent = row.name;
+
+        const points = document.createElement("div");
+        points.className = "shuffle-point-score";
+        points.textContent = String(row.points);
+
+        const rounds = document.createElement("div");
+        rounds.className = "shuffle-point-rounds";
+        rounds.textContent = row.rounds.length ? "won: " + row.rounds.join(", ") : "no wins yet";
+
+        item.append(rank, name, points, rounds);
+        shufflePointsList.appendChild(item);
+      });
+    }
+
+    function renderTeamPoints() {
+      if (!isTeamScoringMode()) {
+        teamPointsPanel.hidden = true;
+        teamPointsGrid.hidden = true;
+        teamPointsGrid.innerHTML = "";
+        shufflePointsPanel.hidden = true;
+        shufflePointsList.innerHTML = "";
+        return;
+      }
+      teamPointsPanel.hidden = false;
+      teamPointsGrid.hidden = false;
+      const teams = getTeamPointTeams();
+      teamPointCountInput.value = String(getTeamPointCount());
+      teamPointModeSelect.value = getTeamPointMode();
+      randomizeTeamPointsButton.textContent = getTeamPointMode() === "keep" ? "use same teams" : "shuffle teams";
+      randomizeTeamPointsButton.disabled = state.athletes.length < 2;
+      renderManualTeamBuilder();
+      renderShufflePoints();
+      const isShuffleMode = getTeamPointMode() === "shuffle";
+      const competitionResult = isShuffleMode ? null : getTeamCompetitionResult();
+      const latestShuffleWin = isShuffleMode ? getLatestShuffleWinForCurrentTeams() : null;
+      const shuffleLeaderText = isShuffleMode ? getShufflePointLeaderText() : "";
+      teamCompetitionWinner.hidden = isShuffleMode ? !shuffleLeaderText : !competitionResult.ready;
+      teamCompetitionWinner.textContent = isShuffleMode ? shuffleLeaderText : competitionResult.ready ? competitionResult.winnerText : "";
+      teamCompetitionDetail.textContent = isShuffleMode
+        ? latestShuffleWin
+          ? latestShuffleWin.eventLabel + " points awarded: " + latestShuffleWin.awardedNames.join(", ")
+          : "shuffle mode: every kid on the winning team gets 1 point for that event"
+        : competitionResult.detailText;
+      teamPointsGrid.innerHTML = "";
+      const readyTotals = new Map((competitionResult && competitionResult.ready ? competitionResult.teams : []).map((team) => [team.id, team.total]));
+      const latestShuffleTotals = new Map((latestShuffleWin ? latestShuffleWin.teams : []).map((team) => [team.id, team.total]));
+
+      teams.forEach((team) => {
+        const card = document.createElement("section");
+        card.className = "team-points-card";
+
+        const name = document.createElement("div");
+        name.className = "team-points-name";
+        name.textContent = team.name;
+
+        const score = document.createElement("div");
+        score.className = "team-points-score";
+        score.setAttribute("aria-live", "polite");
+        const readyTotal = readyTotals.get(team.id);
+        const latestShuffleTotal = latestShuffleTotals.get(team.id);
+        const currentTotal = getTeamCurrentTotal(team);
+        score.textContent = isShuffleMode
+          ? Number.isFinite(latestShuffleTotal) ? formatScore(latestShuffleTotal) : "N/A"
+          : Number.isFinite(readyTotal)
+          ? formatScore(readyTotal)
+          : currentTotal > 0 ? formatScore(currentTotal) : "N/A";
+
+        const members = document.createElement("ol");
+        members.className = "team-points-members";
+        const memberNames = Array.isArray(team.members) ? team.members.filter(Boolean) : [];
+        memberNames.forEach((member) => {
+          const item = document.createElement("li");
+          item.textContent = member;
+          members.appendChild(item);
+        });
+        if (!memberNames.length) {
+          const item = document.createElement("li");
+          item.textContent = "build teams to add athletes";
+          members.appendChild(item);
+        }
+
+        card.append(name, score, members);
+        teamPointsGrid.appendChild(card);
+      });
+    }
+
+    function renderRankCard(title, entries) {
+      const card = document.createElement("section");
+      card.className = "rank-card";
+
+      const head = document.createElement("div");
+      head.className = "card-head";
+      head.innerHTML = `<span>${title}</span><span class="card-badge">${entries.length}</span>`;
+
+      const list = document.createElement("ol");
+      list.className = "mini-list";
+      entries.forEach((entry, index) => {
+        const item = document.createElement("li");
+        item.innerHTML = `
+          <span class="rank-number">${index + 1}</span>
+          <span class="mini-name">${escapeHtml(entry.name)}</span>
+          <span class="mini-score">${formatScore(entry.score)}</span>
+        `;
+        list.appendChild(item);
+      });
+
+      if (!entries.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "no rankings";
+        card.append(head, empty);
+      } else {
+        card.append(head, list);
+      }
+
+      return card;
+    }
+
+    function renderAllAroundRankings() {
+      allAroundGrid.innerHTML = "";
+      allAroundGrid.appendChild(renderRankCard("All Around", getAllAroundRankings()));
+    }
+
+    function renderRankings() {
+      rankingsGrid.innerHTML = "";
+      EVENTS.forEach((event) => {
+        rankingsGrid.appendChild(renderRankCard(event.label, getEventRankings(event.id)));
+      });
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function renderComparison() {
+      if (isTeamScoringMode()) {
+        comparisonPanel.hidden = true;
+        comparisonGrid.innerHTML = "";
+        comparisonEmpty.textContent = "previous meet is for individual scoring";
+        comparisonEmpty.style.display = "grid";
+        return;
+      }
+      comparisonPanel.hidden = false;
+      const previousEntries = parsePreviousMeet(state.comparison.raw);
+      comparisonGrid.innerHTML = "";
+      comparisonEmpty.textContent = previousEntries.length ? "no usable score columns" : "no previous meet loaded";
+      comparisonEmpty.style.display = "grid";
+      if (!previousEntries.length) return;
+
+      const currentEntries = getCurrentComparisonEntries();
+
+      let renderedCards = 0;
+      if (hasPreviousMetric(previousEntries, "allAround")) {
+        comparisonGrid.appendChild(renderComparisonCard("AA", getComparisonRows(previousEntries, currentEntries, "allAround")));
+        renderedCards += 1;
+      }
+      EVENTS.forEach((event) => {
+        if (!hasPreviousMetric(previousEntries, event.id)) return;
+        comparisonGrid.appendChild(renderComparisonCard(event.label, getComparisonRows(previousEntries, currentEntries, event.id)));
+        renderedCards += 1;
+      });
+      const teamRows = getComparisonTeamRows(previousEntries);
+      if (teamRows.length) {
+        comparisonGrid.appendChild(renderComparisonCard("Team Results", teamRows));
+        renderedCards += 1;
+      }
+      comparisonEmpty.style.display = renderedCards ? "none" : "grid";
+    }
+
+    function renderComparisonCard(title, rows) {
+      const card = document.createElement("section");
+      card.className = "comparison-card";
+      const displayRows = getComparisonDisplayRows(rows);
+
+      const head = document.createElement("div");
+      head.className = "card-head";
+      head.innerHTML = `<span>${title}</span><span class="card-badge">${rows.length}</span>`;
+
+      const list = document.createElement("ol");
+      list.className = "mini-list";
+      displayRows.forEach((row) => {
+        const item = document.createElement("li");
+        if (row.source === "current") item.classList.add("is-current");
+        item.innerHTML = `
+          <span class="rank-number">${row.rank}</span>
+          <span class="mini-name">${escapeHtml(row.name)}${row.source === "current" ? " *" : ""}</span>
+          <span class="mini-score">${formatScore(row.score)}</span>
+        `;
+        list.appendChild(item);
+      });
+
+      if (!displayRows.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "no scores";
+        card.append(head, empty);
+      } else {
+        card.append(head, list);
+      }
+
+      return card;
+    }
+
+    function getComparisonDisplayRows(rows) {
+      const indexes = new Set();
+      rows.slice(0, 10).forEach((row, index) => {
+        indexes.add(index);
+      });
+      rows.forEach((row, index) => {
+        if (row.source !== "current") return;
+        for (let offset = -2; offset <= 2; offset += 1) {
+          const nearbyIndex = index + offset;
+          if (nearbyIndex >= 0 && nearbyIndex < rows.length) indexes.add(nearbyIndex);
+        }
+      });
+      return Array.from(indexes).sort((a, b) => a - b).map((index) => rows[index]);
+    }
+
+    function getCurrentComparisonEntries() {
+      return state.athletes.map((athlete) => ({
+        id: athlete.id,
+        name: athlete.name,
+        source: "current",
+        scores: EVENTS.reduce((scores, event) => {
+          scores[event.id] = getFinalScore(athlete, event.id);
+          return scores;
+        }, {}),
+        allAround: getAllAround(athlete)
+      }));
+    }
+
+    function getComparisonTeamRows(previousEntries) {
+      const currentTeamScore = getTeamTotal();
+      const rows = getPreviousTeamRows(previousEntries).map((row) => ({
+        name: row.name,
+        source: row.source,
+        score: row.score
+      }));
+      if (currentTeamScore > 0) {
+        rows.push({
+          name: cleanText(state.className) || "Current Team",
+          source: "current",
+          score: currentTeamScore
+        });
+      }
+      return sortByScore(rows).map((row, index) => ({
+        ...row,
+        rank: index + 1
+      }));
+    }
+
+    function getComparisonRows(previousEntries, currentEntries, metric) {
+      const rows = previousEntries.concat(currentEntries).map((entry) => {
+        const score = metric === "allAround" ? entry.allAround : entry.scores[metric];
+        return {
+          name: entry.name,
+          source: entry.source,
+          score: normalizeScore(score, NaN)
+        };
+      }).filter((entry) => Number.isFinite(entry.score));
+
+      return sortByScore(rows).map((row, index) => ({
+        ...row,
+        rank: index + 1
+      }));
+    }
+
+    function hasPreviousMetric(previousEntries, metric) {
+      return previousEntries.some((entry) => {
+        const score = metric === "allAround" ? entry.allAround : entry.scores[metric];
+        return Number.isFinite(score);
+      });
+    }
+
+    function getPreviousTeamRows(previousEntries) {
+      const teams = new Map();
+      previousEntries.forEach((entry) => {
+        const team = cleanText(entry.team);
+        if (!team) return;
+        if (!teams.has(team)) teams.set(team, []);
+        teams.get(team).push(entry);
+      });
+
+      const rows = Array.from(teams.entries()).map(([team, athletes]) => {
+        const score = EVENTS.reduce((sum, event) => {
+          const top = athletes
+            .map((athlete) => athlete.scores[event.id])
+            .filter(Number.isFinite)
+            .sort((a, b) => b - a)
+            .slice(0, 3);
+          return sum + top.reduce((eventSum, value) => eventSum + value, 0);
+        }, 0);
+        return {
+          name: team,
+          source: "previous",
+          score
+        };
+      }).filter((row) => row.score > 0);
+
+      return sortByScore(rows).map((row, index) => ({
+        ...row,
+        rank: index + 1
+      }));
+    }
+
+    function normalizeHeader(value) {
+      return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+    }
+
+    function fieldTypeFromHeader(header) {
+      const normalized = normalizeHeader(header);
+      if (["name", "athlete", "gymnast", "gymnastname", "athletename", "fullname", "competitor", "student", "child"].includes(normalized)) return "name";
+      if (["team", "club", "gym", "clubteam", "gymname", "organization"].includes(normalized)) return "team";
+      if (["aa", "allaround", "total", "allaroundtotal", "allaroundscore", "aatotal"].includes(normalized)) return "allAround";
+
+      const event = EVENTS.find((item) => item.aliases.some((alias) => normalizeHeader(alias) === normalized));
+      return event ? event.id : null;
+    }
+
+    function parsePreviousMeet(raw) {
+      const rows = parseRows(raw);
+      if (rows.length < 2) return [];
+
+      const headerIndex = findHeaderRowIndex(rows);
+      if (headerIndex < 0) return [];
+      const headers = rows[headerIndex].map(fieldTypeFromHeader);
+      const nameIndex = headers.indexOf("name");
+      if (nameIndex < 0) return [];
+
+      return rows.slice(headerIndex + 1).map((row) => {
+        const name = cleanText(row[nameIndex]);
+        if (!name) return null;
+
+        const entry = {
+          name,
+          team: "",
+          source: "previous",
+          scores: {},
+          allAround: NaN
+        };
+
+        headers.forEach((field, index) => {
+          if (!field) return;
+          if (field === "team") {
+            entry.team = cleanText(row[index]);
+            return;
+          }
+          const value = parseScore(row[index]);
+          if (field === "allAround") entry.allAround = value;
+          if (EVENTS.some((event) => event.id === field)) entry.scores[field] = value;
+        });
+
+        if (!Number.isFinite(entry.allAround)) {
+          const eventScores = EVENTS.map((event) => entry.scores[event.id]).filter(Number.isFinite);
+          entry.allAround = eventScores.length ? eventScores.reduce((sum, score) => sum + score, 0) : NaN;
+        }
+
+        return entry;
+      }).filter(Boolean);
+    }
+
+    function findHeaderRowIndex(rows) {
+      return rows.findIndex((row) => {
+        const fields = row.map(fieldTypeFromHeader);
+        const hasName = fields.includes("name");
+        const hasScoreColumn = fields.includes("allAround") || EVENTS.some((event) => fields.includes(event.id));
+        return hasName && hasScoreColumn;
+      });
+    }
+
+    function parseRows(raw) {
+      const lines = String(raw || "")
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("```"))
+        .filter(Boolean);
+      if (!lines.length) return [];
+
+      const markdownLines = lines.filter((line) => line.includes("|"));
+      if (markdownLines.length >= 2) {
+        return markdownLines
+          .filter((line) => !/^\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)+\|?$/.test(line))
+          .map((line) => line.split("|").map((cell) => cell.trim()).filter((cell, index, cells) => cell || (index > 0 && index < cells.length - 1)))
+          .filter((row) => row.length);
+      }
+
+      const delimiter = lines[0].includes("\t") ? "\t" : lines[0].includes(";") && !lines[0].includes(",") ? ";" : ",";
+      return lines.map((line) => parseDelimitedLine(line, delimiter)).filter((row) => row.length);
+    }
+
+    function parseDelimitedLine(line, delimiter) {
+      const cells = [];
+      let current = "";
+      let inQuotes = false;
+
+      for (let index = 0; index < line.length; index += 1) {
+        const char = line[index];
+        const next = line[index + 1];
+        if (char === '"' && inQuotes && next === '"') {
+          current += '"';
+          index += 1;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === delimiter && !inQuotes) {
+          cells.push(current.trim());
+          current = "";
+        } else {
+          current += char;
+        }
+      }
+      cells.push(current.trim());
+      return cells;
+    }
+
+    function parseScore(value) {
+      const cleaned = String(value || "").replace(/[^0-9.-]/g, "");
+      if (!cleaned || cleaned === "." || cleaned === "-" || cleaned === "-.") return NaN;
+      const number = Number(cleaned);
+      return Number.isFinite(number) ? normalizeScore(number, NaN) : NaN;
+    }
+
+    function renderMarkdownPreview() {
+      markdownOutput.value = buildMarkdown();
+    }
+
+    function updateAll() {
+      ensureActiveAthlete();
+      renderScoringMode();
+      renderRoster();
+      renderTeamAthleteManager();
+      renderClassProfiles();
+      renderJudgingMode();
+      renderSummary();
+      renderTeamScore();
+      renderTeamPoints();
+      renderAllAroundRankings();
+      renderRankings();
+      renderComparison();
+      renderMarkdownPreview();
+    }
+
+    function addAthleteFromInput(input) {
+      const sourceInput = input && typeof input.value === "string" ? input : athleteNameInput;
+      const name = cleanText(sourceInput.value);
+      if (!name) {
+        setStatus("Name needed.");
+        return;
+      }
+
+      const existing = state.athletes.find((athlete) => athlete.name.toLowerCase() === name.toLowerCase());
+      if (existing) {
+        state.activeAthleteId = existing.id;
+        sourceInput.value = "";
+        save();
+        updateAll();
+        setStatus(existing.name + " selected.");
+        return;
+      }
+
+      const athlete = {
+        id: makeId(),
+        name,
+        scores: defaultScores()
+      };
+      state.athletes.push(athlete);
+      state.completedEventIds = [];
+      state.activeAthleteId = athlete.id;
+      sourceInput.value = "";
+      syncTeamsForRosterChange();
+      save();
+      updateAll();
+      setStatus(name + " added.");
+    }
+
+    function addAthlete() {
+      addAthleteFromInput(athleteNameInput);
+    }
+
+    function removeAthlete(id) {
+      const athlete = state.athletes.find((item) => item.id === id);
+      if (!athlete) return;
+
+      if (removeAthleteArmedId !== id) {
+        removeAthleteArmedId = id;
+        window.clearTimeout(removeAthleteTimer);
+        removeAthleteTimer = window.setTimeout(() => {
+          if (removeAthleteArmedId === id) {
+            removeAthleteArmedId = null;
+            updateAll();
+          }
+        }, 2400);
+        updateAll();
+        setStatus("Press sure? to remove " + athlete.name + ".");
+        return;
+      }
+
+      removeAthleteArmedId = null;
+      window.clearTimeout(removeAthleteTimer);
+      state.athletes = state.athletes.filter((item) => item.id !== id);
+      state.completedEventIds = [];
+      cleanCompetitionQueue();
+      if (state.activeAthleteId === id) {
+        state.activeAthleteId = state.competition.active && state.competition.queue.length
+          ? state.competition.queue[0]
+          : state.athletes[0] ? state.athletes[0].id : null;
+      }
+      syncTeamsForRosterChange();
+      save();
+      updateAll();
+      setStatus(athlete ? athlete.name + " removed." : "Athlete removed.");
+    }
+
+    function moveAthlete(id, direction) {
+      const index = state.athletes.findIndex((athlete) => athlete.id === id);
+      const nextIndex = index + direction;
+      if (index < 0 || nextIndex < 0 || nextIndex >= state.athletes.length) return;
+      [state.athletes[index], state.athletes[nextIndex]] = [state.athletes[nextIndex], state.athletes[index]];
+      save();
+      updateAll();
+      setStatus("Competition order updated.");
+    }
+
+    function setTenths(eventId, value) {
+      const athlete = getActiveAthlete();
+      if (!athlete) return;
+      const score = getEventScore(athlete, eventId);
+      score.tenths = normalizeTenths(value);
+      markEventIncomplete(eventId);
+      save();
+      updateAll();
+      setStatus(athlete.name + " " + eventLabel(eventId) + ": " + score.tenths + " tenths off.");
+    }
+
+    function setStartValue(eventId, value) {
+      const athlete = getActiveAthlete();
+      if (!athlete) return;
+      const score = getEventScore(athlete, eventId);
+      score.startValue = normalizeOptionalScore(value);
+      score.startConfirmed = false;
+      markEventIncomplete(eventId);
+      save();
+      updateAll();
+      setStatus(athlete.name + " " + eventLabel(eventId) + " SV pending.");
+    }
+
+    function adjustStartValue(eventId, direction) {
+      const athlete = getActiveAthlete();
+      if (!athlete) return;
+      const score = getEventScore(athlete, eventId);
+      const current = normalizeOptionalScore(judgeStartValue.value)
+        ?? normalizeOptionalScore(score.startValue)
+        ?? 10;
+      const nextValue = Math.min(20, Math.max(0, Math.round((current + direction * 0.1) * 10) / 10));
+      judgeStartValue.value = formatStartInput(nextValue);
+      setStartValue(eventId, nextValue);
+    }
+
+    function confirmStartValue(eventId) {
+      const athlete = getActiveAthlete();
+      if (!athlete) return false;
+      const score = getEventScore(athlete, eventId);
+      const value = normalizeOptionalScore(judgeStartValue.value);
+      if (value === null) {
+        score.startValue = null;
+        score.startConfirmed = false;
+        save();
+        updateAll();
+        setStatus("Enter a start value first.");
+        return false;
+      }
+      score.startValue = value;
+      score.startConfirmed = true;
+      save();
+      updateAll();
+      setStatus(athlete.name + " " + eventLabel(eventId) + " SV confirmed: " + formatScore(value));
+      return true;
+    }
+
+    function eventLabel(eventId) {
+      const event = EVENTS.find((item) => item.id === eventId);
+      return event ? event.label : "Event";
+    }
+
+    function setClassStartValues() {
+      const answer = window.prompt("Start value for the class", "10.0");
+      if (answer === null) return;
+      const value = normalizeScore(answer, 10);
+      state.athletes.forEach((athlete) => {
+        EVENTS.forEach((event) => {
+          const score = getEventScore(athlete, event.id);
+          score.startValue = value;
+          score.startConfirmed = false;
+        });
+      });
+      state.completedEventIds = [];
+      save();
+      updateAll();
+      setStatus("Class start values set as pending " + formatScore(value));
+    }
+
+    function resetClass() {
+      if (!resetClassArmed) {
+        resetClassArmed = true;
+        resetClassButton.textContent = "sure?";
+        setStatus("Press again to reset the class.");
+        window.clearTimeout(resetClassTimer);
+        resetClassTimer = window.setTimeout(() => {
+          resetClassArmed = false;
+          resetClassButton.textContent = "reset class";
+        }, 2400);
+        return;
+      }
+
+      resetClassArmed = false;
+      resetClassButton.textContent = "reset class";
+      window.clearTimeout(resetClassTimer);
+      const savedClasses = getSavedClasses();
+      state = createDefaultState();
+      state.savedClasses = savedClasses;
+      syncInputsFromState();
+      save();
+      updateAll();
+      setStatus("Class reset.");
+    }
+
+    function resetCurrentClassRoster() {
+      state.className = "";
+      state.activeAthleteId = null;
+      state.athletes = [];
+      state.completedEventIds = [];
+      state.competition = {
+        active: false,
+        eventId: EVENTS[0].id,
+        queue: [],
+        completedIds: []
+      };
+      state.teamPoints = {
+        teamCount: getTeamPointCount(),
+        mode: getTeamPointMode(),
+        teams: defaultTeamPointTeams(),
+        shuffleWins: []
+      };
+      syncInputsFromState();
+      save();
+      updateAll();
+      setStatus("Ready for a new class.");
+    }
+
+    function saveClassProfile() {
+      let name = cleanText(classNameInput.value || state.className);
+      if (!name) {
+        const answer = window.prompt("Class name", "New class");
+        if (answer === null) {
+          setStatus("Class not saved.");
+          return;
+        }
+        name = cleanText(answer);
+        if (!name) {
+          setStatus("Class name needed before saving.");
+          return;
+        }
+      }
+      state.className = name;
+      classNameInput.value = name;
+      const athleteNames = state.athletes.map((athlete) => athlete.name).filter(Boolean);
+      const savedClasses = getSavedClasses();
+      const existing = savedClasses.find((profile) => profile.name.toLowerCase() === name.toLowerCase());
+      const profile = {
+        id: existing ? existing.id : makeId(),
+        name,
+        athletes: athleteNames,
+        updatedAt: new Date().toISOString()
+      };
+      if (existing) {
+        Object.assign(existing, profile);
+      } else {
+        savedClasses.push(profile);
+      }
+      save();
+      updateAll();
+      setStatus(name + " saved with " + athleteNames.length + " athlete" + (athleteNames.length === 1 ? "" : "s") + ".");
+    }
+
+    function loadClassProfile(id) {
+      const profile = getClassProfileById(id);
+      if (!profile) return;
+      state.className = profile.name;
+      state.athletes = profile.athletes.map(makeAthleteFromName).filter((athlete) => athlete.name);
+      state.activeAthleteId = state.athletes[0] ? state.athletes[0].id : null;
+      state.completedEventIds = [];
+      state.competition = {
+        active: false,
+        eventId: EVENTS[0].id,
+        queue: [],
+        completedIds: []
+      };
+      state.teamPoints = {
+        teamCount: getTeamPointCount(),
+        mode: getTeamPointMode(),
+        teams: defaultTeamPointTeams(),
+        shuffleWins: []
+      };
+      syncInputsFromState();
+      save();
+      updateAll();
+      setStatus(profile.name + " loaded.");
+    }
+
+    function deleteClassProfile(id) {
+      const profile = getSavedClasses().find((item) => item.id === id);
+      if (!profile && getClassProfileById(id)) {
+        setStatus("Roll classes stay preloaded.");
+        return;
+      }
+      state.savedClasses = getSavedClasses().filter((item) => item.id !== id);
+      save();
+      updateAll();
+      setStatus(profile ? profile.name + " deleted." : "Class deleted.");
+    }
+
+    function syncMetaFromInputs() {
+      state.className = classNameInput.value;
+      state.meetName = meetNameInput.value;
+      state.date = scoreDateInput.value;
+      save();
+      renderMarkdownPreview();
+    }
+
+    function syncComparisonFromInputs() {
+      state.comparison.name = comparisonNameInput.value;
+      state.comparison.raw = comparisonRawInput.value;
+      save();
+      updateAll();
+    }
+
+    function clearTeamPointWinnerConfirm(shouldRender = true) {
+      pendingTeamPointWinnerId = null;
+      if (pendingTeamPointWinnerTimer) {
+        window.clearTimeout(pendingTeamPointWinnerTimer);
+        pendingTeamPointWinnerTimer = null;
+      }
+      if (shouldRender) updateAll();
+    }
+
+    function armTeamPointWinnerConfirm(id) {
+      const team = getTeamPointTeams().find((item) => item.id === id);
+      if (!team) return;
+      pendingTeamPointWinnerId = id;
+      if (pendingTeamPointWinnerTimer) window.clearTimeout(pendingTeamPointWinnerTimer);
+      updateAll();
+      setStatus("Tap confirm win for " + team.name + ".");
+      pendingTeamPointWinnerTimer = window.setTimeout(() => {
+        pendingTeamPointWinnerTimer = null;
+        pendingTeamPointWinnerId = null;
+        updateAll();
+        setStatus("Winner not recorded.");
+      }, 5000);
+    }
+
+    function recordTeamPointWinner(id) {
+      const team = getTeamPointTeams().find((item) => item.id === id);
+      if (!team) return false;
+      clearTeamPointWinnerConfirm(false);
+      team.points = normalizeTeamPoints(team.points) + 1;
+      save();
+      updateAll();
+      setStatus(team.name + " win recorded.");
+      return true;
+    }
+
+    function confirmTeamPointWinner(id) {
+      const team = getTeamPointTeams().find((item) => item.id === id);
+      if (!team) return false;
+      if (pendingTeamPointWinnerId !== id) {
+        armTeamPointWinnerConfirm(id);
+        return false;
+      }
+      return recordTeamPointWinner(id);
+    }
+
+    function resetTeamPoints() {
+      clearTeamPointWinnerConfirm(false);
+      getTeamPointTeams().forEach((team) => {
+        team.points = 0;
+        team.tally = 0;
+      });
+      state.teamPoints.shuffleWins = [];
+      save();
+      updateAll();
+      setStatus("Team points and scores reset.");
+    }
+
+    function clearComparison() {
+      state.comparison = {
+        name: "",
+        raw: ""
+      };
+      syncInputsFromState();
+      save();
+      updateAll();
+      setStatus("Previous meet cleared.");
+    }
+
+    function buildComparisonPrompt() {
+      return [
+        "I need you to format real gymnastics meet results so I can paste them into my scoring tool.",
+        "",
+        "Return ONLY plain CSV. Do not include explanation, markdown, bullets, code fences, or extra text.",
+        "",
+        "Use this exact header:",
+        "Name,Team,Floor,Mushroom,Rings,Vault,P Bars,Highbar,AA",
+        "",
+        "Rules:",
+        "- Include every gymnast/athlete from the meet results, even if there are 100+ kids.",
+        "- Use one row per gymnast.",
+        "- Put the gymnast name in Name.",
+        "- Put club/team/gym in Team if available. This is used to calculate the Team Results card, so keep team names consistent.",
+        "- Put each event score as a decimal number only, like 9.700 or 10.0.",
+        "- Use the Mushroom column for mushroom, pommel, or pommel horse scores.",
+        "- Use P Bars for parallel bars.",
+        "- Put the all-around total in AA if available.",
+        "- If a score is missing, scratched, absent, DNF, or not listed, leave that cell blank.",
+        "- Do not create a separate team-standings table. The tool will calculate team results from each gymnast row and the Team column.",
+        "- Do not include ranks, places, medals, age groups, divisions, notes, symbols, or labels inside score cells.",
+        "- If a name or team contains a comma, wrap that cell in double quotes.",
+        "- Keep the original score precision from the source when possible.",
+        "",
+        "Example output format:",
+        "Name,Team,Floor,Mushroom,Rings,Vault,P Bars,Highbar,AA",
+        "Avery Smith,CSC,9.700,9.500,9.300,9.800,9.400,9.600,57.300",
+        "Jordan Lee,CSC,9.200,,9.100,9.600,9.000,9.300,46.200",
+        "",
+        "Now convert the meet results I give you into that exact CSV format."
+      ].join("\n");
+    }
+
+    function buildComparisonInsights(previousEntries, currentEntries) {
+      const insights = [];
+      const classLabel = cleanText(state.className) || "Current class";
+
+      const aaRows = hasPreviousMetric(previousEntries, "allAround")
+        ? getComparisonRows(previousEntries, currentEntries, "allAround")
+        : [];
+      const currentAaRows = aaRows.filter((row) => row.source === "current");
+      if (currentAaRows.length) {
+        const bestAa = currentAaRows[0];
+        insights.push("- Best AA comparison: " + bestAa.name + " would rank " + bestAa.rank + "/" + aaRows.length + " with " + formatScore(bestAa.score) + ".");
+
+        const topAaRows = currentAaRows.filter((row) => row.rank <= 10).slice(0, 5);
+        if (topAaRows.length > 1) {
+          insights.push("- AA top-10 matches: " + topAaRows.map((row) => row.name + " " + formatScore(row.score) + " (" + row.rank + "/" + aaRows.length + ")").join("; ") + ".");
+        }
+      }
+
+      const eventMatches = [];
+      EVENTS.forEach((event) => {
+        if (!hasPreviousMetric(previousEntries, event.id)) return;
+        const rows = getComparisonRows(previousEntries, currentEntries, event.id);
+        rows.filter((row) => row.source === "current").forEach((row) => {
+          eventMatches.push({
+            ...row,
+            eventLabel: event.label,
+            total: rows.length
+          });
+        });
+      });
+
+      eventMatches.sort((a, b) => {
+        if (a.rank !== b.rank) return a.rank - b.rank;
+        if (b.score !== a.score) return b.score - a.score;
+        if (a.eventLabel !== b.eventLabel) return a.eventLabel.localeCompare(b.eventLabel);
+        return a.name.localeCompare(b.name);
+      });
+
+      if (eventMatches.length) {
+        const bestEvent = eventMatches[0];
+        insights.push("- Best event comparison: " + bestEvent.name + " would rank " + bestEvent.rank + "/" + bestEvent.total + " on " + bestEvent.eventLabel + " with " + formatScore(bestEvent.score) + ".");
+
+        const topThreeMatches = eventMatches.filter((row) => row.rank <= 3).slice(0, 6);
+        if (topThreeMatches.length) {
+          insights.push("- Top-3 event matches: " + topThreeMatches.map((row) => row.name + " " + row.eventLabel + " " + formatScore(row.score) + " (" + row.rank + "/" + row.total + ")").join("; ") + ".");
+        } else {
+          const topTenMatches = eventMatches.filter((row) => row.rank <= 10).slice(0, 5);
+          if (topTenMatches.length) {
+            insights.push("- Top-10 event matches: " + topTenMatches.map((row) => row.name + " " + row.eventLabel + " " + formatScore(row.score) + " (" + row.rank + "/" + row.total + ")").join("; ") + ".");
+          }
+        }
+      }
+
+      const previousTeamRows = getPreviousTeamRows(previousEntries);
+      const currentTeamScore = getTeamTotal();
+      if (previousTeamRows.length && currentTeamScore > 0) {
+        const teamRows = sortByScore(previousTeamRows.concat([{
+          name: classLabel,
+          source: "current",
+          score: currentTeamScore
+        }])).map((row, index) => ({
+          ...row,
+          rank: index + 1
+        }));
+        const currentTeamRow = teamRows.find((row) => row.source === "current");
+        if (currentTeamRow) {
+          const teamsBehind = teamRows.length - currentTeamRow.rank;
+          insights.push("- Team score comparison: " + currentTeamRow.name + " would rank " + currentTeamRow.rank + "/" + teamRows.length + " with " + formatScore(currentTeamRow.score) + " from confirmed scores.");
+          if (teamsBehind > 0) {
+            insights.push("- Team would finish ahead of " + teamsBehind + " previous-meet " + (teamsBehind === 1 ? "team" : "teams") + ".");
+          }
+        }
+      }
+
+      if (!insights.length) {
+        insights.push("- No confirmed competition scores yet to compare against the loaded meet.");
+      }
+
+      return insights;
+    }
+
+    async function copyComparisonPrompt() {
+      const text = buildComparisonPrompt();
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          const helper = document.createElement("textarea");
+          helper.value = text;
+          helper.setAttribute("readonly", "");
+          helper.style.position = "fixed";
+          helper.style.left = "-9999px";
+          document.body.appendChild(helper);
+          helper.focus();
+          helper.select();
+          document.execCommand("copy");
+          helper.remove();
+        }
+        setStatus("AI instructions copied.");
+      } catch (error) {
+        comparisonRawInput.value = text;
+        comparisonRawInput.focus();
+        comparisonRawInput.select();
+        setStatus("Copy unavailable. Instructions selected.");
+      }
+    }
+
+    function buildMarkdown() {
+      const lines = [];
+      const className = cleanText(state.className);
+      const meetName = cleanText(state.meetName);
+      const date = cleanText(state.date);
+      const isTeamMode = isTeamScoringMode();
+      const teamEvents = getTeamEvents();
+      const previousEntries = isTeamMode ? [] : parsePreviousMeet(state.comparison.raw);
+
+      lines.push("# Competition Scores");
+      lines.push("");
+      if (className) lines.push("- Class: " + className);
+      if (meetName) lines.push("- Meet: " + meetName);
+      if (date) lines.push("- Date: " + date);
+      lines.push("- Athletes: " + state.athletes.length);
+      if (!isTeamMode) lines.push("- Team Score: " + formatScore(getTeamTotal()));
+      lines.push("");
+
+      if (!isTeamMode) {
+        lines.push("## Team Score");
+        lines.push("");
+        lines.push("| Event | Top 3 Scores | Event Total |");
+        lines.push("| --- | --- | ---: |");
+        teamEvents.forEach((entry) => {
+          const top = entry.top.map((athlete) => athlete.name + " " + formatScore(athlete.score)).join(", ");
+          lines.push("| " + entry.event.label + " | " + (top || "-") + " | " + formatScore(entry.total) + " |");
+        });
+        lines.push("| **Total** |  | **" + formatScore(getTeamTotal()) + "** |");
+        lines.push("");
+      }
+
+      if (isTeamMode) {
+        const isShuffleMode = getTeamPointMode() === "shuffle";
+        const competitionResult = isShuffleMode ? null : getTeamCompetitionResult();
+        const readyTotals = new Map((competitionResult && competitionResult.ready ? competitionResult.teams : []).map((team) => [team.id, team.total]));
+        const latestShuffleWin = isShuffleMode ? getLatestShuffleWinForCurrentTeams() : null;
+        const latestShuffleTotals = new Map((latestShuffleWin ? latestShuffleWin.teams : []).map((team) => [team.id, team.total]));
+        lines.push("## Teams");
+        lines.push("");
+        lines.push("- Number of Teams: " + getTeamPointCount());
+        lines.push("- Grouping: " + (getTeamPointMode() === "keep" ? "same teams" : "shuffle teams"));
+        lines.push("");
+        lines.push("| Team | Members | Team Score |");
+        lines.push("| --- | --- | ---: |");
+        getTeamPointTeams().forEach((team) => {
+          const members = Array.isArray(team.members) && team.members.length ? team.members.join(", ") : "-";
+          const readyTotal = readyTotals.get(team.id);
+          const latestShuffleTotal = latestShuffleTotals.get(team.id);
+          const currentTotal = getTeamCurrentTotal(team);
+          const displayScore = isShuffleMode
+            ? Number.isFinite(latestShuffleTotal) ? formatScore(latestShuffleTotal) : "N/A"
+            : Number.isFinite(readyTotal)
+            ? formatScore(readyTotal)
+            : currentTotal > 0 ? formatScore(currentTotal) : "N/A";
+          lines.push("| " + team.name + " | " + members + " | " + displayScore + " |");
+        });
+        lines.push("");
+        if (isShuffleMode) {
+          const shuffleRows = getShufflePointRows();
+          lines.push("## Shuffle Points");
+          lines.push("");
+          lines.push("| Rank | Athlete | Points | Winning Rounds |");
+          lines.push("| ---: | --- | ---: | --- |");
+          shuffleRows.forEach((row, index) => {
+            lines.push("| " + (index + 1) + " | " + row.name + " | " + row.points + " | " + (row.rounds.length ? row.rounds.join(", ") : "-") + " |");
+          });
+          const wins = getShuffleWins();
+          if (wins.length) {
+            lines.push("");
+            lines.push("| Event | Winning Team | Kids Awarded +1 |");
+            lines.push("| --- | --- | --- |");
+            wins.forEach((record) => {
+              lines.push("| " + record.eventLabel + " | " + record.winners.map((team) => team.name + " " + formatScore(team.total)).join(", ") + " | " + record.awardedNames.join(", ") + " |");
+            });
+          }
+        } else {
+          if (competitionResult.ready) lines.push("- " + competitionResult.winnerText);
+          lines.push("- " + competitionResult.detailText);
+        }
+        if (!isShuffleMode && competitionResult.ready) {
+          lines.push("");
+          lines.push("| Team | Counted Total | Counted Athletes | Dropped Athletes |");
+          lines.push("| --- | ---: | --- | --- |");
+          competitionResult.teams.forEach((team) => {
+            const counted = team.counted.map((athlete) => athlete.name + " " + formatScore(athlete.score)).join(", ");
+            const dropped = team.dropped.length
+              ? team.dropped.map((athlete) => athlete.name + " " + formatScore(athlete.score)).join(", ")
+              : "-";
+            lines.push("| " + team.name + " | " + formatScore(team.total) + " | " + counted + " | " + dropped + " |");
+          });
+        }
+        lines.push("");
+      }
+
+      if (!isTeamMode) {
+        lines.push("## All Around Rankings");
+        lines.push("");
+        lines.push("| Rank | Athlete | AA |");
+        lines.push("| ---: | --- | ---: |");
+        getAllAroundRankings().forEach((athlete, index) => {
+          lines.push("| " + (index + 1) + " | " + athlete.name + " | " + formatScore(athlete.score) + " |");
+        });
+        lines.push("");
+
+        lines.push("## Event Rankings");
+        EVENTS.forEach((event) => {
+          lines.push("");
+          lines.push("### " + event.label);
+          lines.push("");
+          lines.push("| Rank | Athlete | Score |");
+          lines.push("| ---: | --- | ---: |");
+          getEventRankings(event.id).forEach((athlete, index) => {
+            lines.push("| " + (index + 1) + " | " + athlete.name + " | " + formatScore(athlete.score) + " |");
+          });
+        });
+      }
+
+      lines.push("");
+      lines.push("## Athlete Scores");
+      state.athletes.forEach((athlete) => {
+        lines.push("");
+        lines.push("### " + athlete.name + (isTeamMode ? "" : " - AA " + formatScore(getAllAround(athlete))));
+        lines.push("");
+        lines.push("| Event | Start Value | Tenths Off | Deduction | Final Score |");
+        lines.push("| --- | ---: | ---: | ---: | ---: |");
+        EVENTS.forEach((event) => {
+          const score = getEventScore(athlete, event.id);
+          const startValue = isStartConfirmed(athlete, event.id) ? formatScore(score.startValue) : "N/A";
+          lines.push("| " + event.label + " | " + startValue + " | " + score.tenths + " | " + formatScore(getDeduction(athlete, event.id)) + " | " + formatScore(getFinalScore(athlete, event.id)) + " |");
+        });
+      });
+
+      if (!isTeamScoringMode() && previousEntries.length) {
+        const insights = buildComparisonInsights(previousEntries, getCurrentComparisonEntries());
+        lines.push("");
+        lines.push("## Previous Meet Comparison Notes");
+        if (cleanText(state.comparison.name)) lines.push("");
+        if (cleanText(state.comparison.name)) lines.push("Meet: " + cleanText(state.comparison.name));
+        lines.push("");
+        lines.push(...insights);
+      }
+
+      return lines.join("\n");
+    }
+
+    async function copyMarkdown() {
+      const text = buildMarkdown();
+      markdownOutput.value = text;
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+        } else {
+          markdownOutput.focus();
+          markdownOutput.select();
+          document.execCommand("copy");
+        }
+        setStatus("Markdown copied.");
+      } catch (error) {
+        markdownOutput.focus();
+        markdownOutput.select();
+        setStatus("Copy unavailable. Text selected.");
+      }
+    }
+
+    function selectMarkdown() {
+      markdownOutput.focus();
+      markdownOutput.select();
+      setStatus("Markdown selected.");
+    }
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("button");
+      if (!button) return;
+      playButtonSound(button);
+    }, true);
+
+    rosterList.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-action]");
+      if (!button) return;
+      if (button.dataset.action === "remove") removeAthlete(button.dataset.id);
+      if (button.dataset.action === "move-up") moveAthlete(button.dataset.id, -1);
+      if (button.dataset.action === "move-down") moveAthlete(button.dataset.id, 1);
+    });
+
+    teamAthleteList.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-team-athlete-action]");
+      if (!button) return;
+      if (button.dataset.teamAthleteAction === "remove") removeAthlete(button.dataset.id);
+    });
+
+    classProfileList.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-class-action]");
+      if (!button) return;
+      if (button.dataset.classAction === "load") loadClassProfile(button.dataset.id);
+      if (button.dataset.classAction === "delete") deleteClassProfile(button.dataset.id);
+    });
+
+    teamPointsGrid.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-team-action]");
+      if (!button) return;
+    });
+
+    manualTeamBuilder.addEventListener("dragstart", (event) => {
+      const chip = event.target.closest("[data-member]");
+      if (!chip) return;
+      draggedManualAthleteName = chip.dataset.member;
+      if (event.dataTransfer) {
+        event.dataTransfer.setData("text/plain", draggedManualAthleteName);
+        event.dataTransfer.effectAllowed = "move";
+      }
+    });
+
+    manualTeamBuilder.addEventListener("dragend", () => {
+      draggedManualAthleteName = "";
+      manualTeamBuilder.querySelectorAll(".is-drag-over").forEach((item) => item.classList.remove("is-drag-over"));
+    });
+
+    manualTeamBuilder.addEventListener("dragover", (event) => {
+      const drop = event.target.closest("[data-drop-team-id]");
+      if (!drop) return;
+      event.preventDefault();
+      manualTeamBuilder.querySelectorAll(".is-drag-over").forEach((item) => {
+        if (item !== drop) item.classList.remove("is-drag-over");
+      });
+      drop.classList.add("is-drag-over");
+      if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+    });
+
+    manualTeamBuilder.addEventListener("dragleave", (event) => {
+      const drop = event.target.closest("[data-drop-team-id]");
+      if (drop && (!event.relatedTarget || !drop.contains(event.relatedTarget))) {
+        drop.classList.remove("is-drag-over");
+      }
+    });
+
+    manualTeamBuilder.addEventListener("drop", (event) => {
+      const drop = event.target.closest("[data-drop-team-id]");
+      if (!drop) return;
+      event.preventDefault();
+      manualTeamBuilder.querySelectorAll(".is-drag-over").forEach((item) => item.classList.remove("is-drag-over"));
+      const name = event.dataTransfer ? event.dataTransfer.getData("text/plain") : draggedManualAthleteName;
+      moveManualAthleteToTeam(name || draggedManualAthleteName, drop.dataset.dropTeamId);
+    });
+
+    manualTeamBuilder.addEventListener("click", (event) => {
+      const chip = event.target.closest("[data-member]");
+      const drop = event.target.closest("[data-drop-team-id]");
+      if (drop && selectedManualAthleteName && (!chip || (drop.dataset.dropTeamId !== "__pool" && chip.dataset.member !== selectedManualAthleteName))) {
+        moveManualAthleteToTeam(selectedManualAthleteName, drop.dataset.dropTeamId);
+        return;
+      }
+      if (chip) {
+        selectedManualAthleteName = selectedManualAthleteName === chip.dataset.member ? "" : chip.dataset.member;
+        updateAll();
+        return;
+      }
+      if (drop && selectedManualAthleteName) {
+        moveManualAthleteToTeam(selectedManualAthleteName, drop.dataset.dropTeamId);
+      }
+    });
+
+    judgeEventButtons.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-event]");
+      if (!button) return;
+      setJudgingEvent(button.dataset.event);
+    });
+
+    judgeStartValue.addEventListener("input", () => {
+      setStartValue(getJudgingEvent().id, judgeStartValue.value);
+    });
+
+    judgeStartValue.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") confirmStartValue(getJudgingEvent().id);
+    });
+
+    judgeStartValueDown.addEventListener("click", () => {
+      adjustStartValue(getJudgingEvent().id, -1);
+    });
+
+    judgeStartValueUp.addEventListener("click", () => {
+      adjustStartValue(getJudgingEvent().id, 1);
+    });
+
+    judgeConfirmStartValue.addEventListener("click", () => {
+      confirmStartValue(getJudgingEvent().id);
+    });
+
+    judgeMinusTenth.addEventListener("click", () => {
+      const athlete = getActiveAthlete();
+      if (!athlete) return;
+      const score = getEventScore(athlete, getJudgingEvent().id);
+      setTenths(getJudgingEvent().id, score.tenths - 1);
+    });
+
+    judgePlusTenth.addEventListener("click", () => {
+      const athlete = getActiveAthlete();
+      if (!athlete) return;
+      const score = getEventScore(athlete, getJudgingEvent().id);
+      setTenths(getJudgingEvent().id, score.tenths + 1);
+    });
+
+    eventPickerButtons.addEventListener("click", (event) => {
+      const button = event.target.closest("button[data-event]");
+      if (!button) return;
+      beginCompetitionForEvent(button.dataset.event);
+    });
+
+    eventPickerCancel.addEventListener("click", closeEventPicker);
+
+    eventPickerModal.addEventListener("click", (event) => {
+      if (event.target === eventPickerModal) closeEventPicker();
+    });
+
+    chooseIndividualModeButton.addEventListener("click", () => {
+      chooseScoringMode("individual");
+    });
+
+    chooseTeamModeButton.addEventListener("click", () => {
+      chooseScoringMode("team");
+    });
+
+    classSetupIndividualModeButton.addEventListener("click", () => {
+      chooseScoringMode("individual", false);
+    });
+
+    classSetupTeamModeButton.addEventListener("click", () => {
+      chooseScoringMode("team", false);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !eventPickerModal.hidden) closeEventPicker();
+    });
+
+    beginCompetitionButton.addEventListener("click", beginCompetition);
+    competitionDone.addEventListener("click", completeCompetitionRoutine);
+    competitionLast.addEventListener("click", moveCompetitionCurrentLast);
+    endCompetitionButton.addEventListener("click", endCompetitionRound);
+    backToHomeButton.addEventListener("click", exitJudgingMode);
+    exitJudgingModeButton.addEventListener("click", exitJudgingMode);
+    judgePrevAthlete.addEventListener("click", () => stepJudgingAthlete(-1));
+    judgeNextAthlete.addEventListener("click", () => stepJudgingAthlete(1));
+    judgePrevEvent.addEventListener("click", () => stepJudgingEvent(-1));
+    judgeNextEvent.addEventListener("click", () => stepJudgingEvent(1));
+
+    addAthleteButton.addEventListener("click", addAthlete);
+    athleteNameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") addAthlete();
+    });
+    teamAddAthleteButton.addEventListener("click", () => addAthleteFromInput(teamAthleteNameInput));
+    teamAthleteNameInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") addAthleteFromInput(teamAthleteNameInput);
+    });
+    saveClassProfileButton.addEventListener("click", saveClassProfile);
+    newClassProfileButton.addEventListener("click", resetCurrentClassRoster);
+    teamPointCountInput.addEventListener("change", () => {
+      state.teamPoints.teamCount = normalizeTeamCount(teamPointCountInput.value);
+      teamPointCountInput.value = String(state.teamPoints.teamCount);
+      if (getTeamPointMode() === "shuffle" && state.athletes.length >= 2) {
+        assignRandomTeamPointGroups(state.teamPoints.teamCount);
+      } else {
+        ensureManualTeamPointGroups(state.teamPoints.teamCount);
+      }
+      save();
+      updateAll();
+    });
+    teamPointModeSelect.addEventListener("change", () => {
+      state.teamPoints.mode = normalizeTeamPointMode(teamPointModeSelect.value);
+      teamPointModeSelect.value = state.teamPoints.mode;
+      if (state.teamPoints.mode === "shuffle" && state.athletes.length >= 2) {
+        assignRandomTeamPointGroups(getTeamPointCount());
+      } else {
+        ensureManualTeamPointGroups(getTeamPointCount());
+      }
+      save();
+      updateAll();
+    });
+    randomizeTeamPointsButton.addEventListener("click", startTeamPointRound);
+    resetClassButton.addEventListener("click", resetClass);
+    setClassStartValuesButton.addEventListener("click", setClassStartValues);
+    classNameInput.addEventListener("input", syncMetaFromInputs);
+    meetNameInput.addEventListener("input", syncMetaFromInputs);
+    scoreDateInput.addEventListener("input", syncMetaFromInputs);
+    comparisonNameInput.addEventListener("input", () => {
+      state.comparison.name = comparisonNameInput.value;
+      save();
+      renderMarkdownPreview();
+    });
+    comparisonRawInput.addEventListener("input", () => {
+      state.comparison.raw = comparisonRawInput.value;
+      save();
+      renderComparison();
+      renderMarkdownPreview();
+    });
+    copyComparisonPromptButton.addEventListener("click", copyComparisonPrompt);
+    parseComparisonButton.addEventListener("click", () => {
+      syncComparisonFromInputs();
+      const previousEntries = parsePreviousMeet(state.comparison.raw);
+      const metricCount = ["allAround", ...EVENTS.map((event) => event.id)]
+        .filter((metric) => hasPreviousMetric(previousEntries, metric)).length;
+      if (!previousEntries.length) {
+        setStatus("No previous meet rows found. Check the header row.");
+      } else if (!metricCount) {
+        setStatus(previousEntries.length + " athletes loaded, but no score columns found.");
+      } else {
+        setStatus(previousEntries.length + " athletes loaded from previous meet.");
+      }
+    });
+    clearComparisonButton.addEventListener("click", clearComparison);
+    copyMarkdownButton.addEventListener("click", copyMarkdown);
+    selectMarkdownButton.addEventListener("click", selectMarkdown);
+
+    load();
+    syncInputsFromState();
+    updateAll();
+  </script>
+</body>
+</html>
