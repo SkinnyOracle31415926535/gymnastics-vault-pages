@@ -347,7 +347,7 @@
       z-index: 60;
       width: min(320px, calc(100vw - 24px));
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
       padding: 8px;
       background: rgba(5, 0, 5, 0.88);
@@ -1681,6 +1681,7 @@
     <section id="focusControls" class="focus-controls" aria-label="Locked focus controls" hidden>
       <button id="focusUndoButton" type="button" disabled>Undo</button>
       <button id="focusRedoButton" type="button" disabled>Redo</button>
+      <button id="focusAddModeButton" type="button" aria-pressed="false">Add: Off</button>
       <button id="focusUnlockButton" class="unlock-focus" type="button">Admin</button>
     </section>
 
@@ -2095,6 +2096,7 @@
     const focusControls = document.querySelector("#focusControls");
     const focusUndoButton = document.querySelector("#focusUndoButton");
     const focusRedoButton = document.querySelector("#focusRedoButton");
+    const focusAddModeButton = document.querySelector("#focusAddModeButton");
     const focusUnlockButton = document.querySelector("#focusUnlockButton");
     const focusModePanel = document.querySelector("#focusModePanel");
     const focusModeButtons = document.querySelectorAll("[data-focus-mode]");
@@ -2230,6 +2232,7 @@
     redoButton.addEventListener("click", redoLastChange);
     focusUndoButton.addEventListener("click", undoLastChange);
     focusRedoButton.addEventListener("click", redoLastChange);
+    focusAddModeButton.addEventListener("click", cycleFocusAddMode);
     focusUnlockButton.addEventListener("click", toggleSettingsLock);
     focusModeButtons.forEach((button) => {
       button.addEventListener("click", () => enterFocusView(button.dataset.focusMode));
@@ -4692,6 +4695,13 @@
       setAddMode(false);
     }
 
+    function cycleFocusAddMode() {
+      cycleAddMode();
+      focusViewMode = addMode || "type";
+      appState.focusViewMode = focusViewMode;
+      saveState(false);
+    }
+
     function addModeButtonText(mode) {
       if (mode === quickAddMode) {
         return "Add Mode: +1";
@@ -4712,6 +4722,9 @@
       addModeButton.classList.toggle("is-active", isOn);
       addModeButton.setAttribute("aria-pressed", String(isOn));
       addModeButton.textContent = addModeButtonText(addMode);
+      focusAddModeButton.classList.toggle("is-active", isOn);
+      focusAddModeButton.setAttribute("aria-pressed", String(isOn));
+      focusAddModeButton.textContent = `Add: ${addMode === quickAddMode ? "+1" : addMode === customAddMode ? "Custom" : "Off"}`;
       if (addMode !== customAddMode) {
         closeAddPanel();
       }
