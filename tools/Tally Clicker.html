@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-  <link rel="apple-touch-icon" href="icons/tally-clicker-icon.png">
-  <link rel="icon" type="image/png" href="icons/tally-clicker-icon.png">
+  <link rel="apple-touch-icon" href="icons/tally-clicker-icon-green.png">
+  <link rel="icon" type="image/png" href="icons/tally-clicker-icon-green.png">
   <script>
     (() => {
       const stopZoom = (event) => event.preventDefault();
@@ -36,9 +36,15 @@
 
     :root {
       --brat-font: Arial, "Helvetica Neue", Helvetica, sans-serif;
-      --green: #8ace00;
-      --black: #050505;
-      --white: #ffffff;
+      --green: #d9f2cb;
+      --black: #06381f;
+      --white: #efffea;
+      --deep: #031d12;
+      --emerald: #128a4c;
+      --lime: #70e37d;
+      --panel: #b7d3ad;
+      --edge-light: #f8fff3;
+      --edge-dark: #31563a;
     }
 
     body {
@@ -47,8 +53,8 @@
       color: var(--black);
       font-family: var(--brat-font);
       font-weight: 400;
-      background: var(--green);
-      text-shadow: 0 0 0.6px rgba(5, 5, 5, 0.4);
+      background: radial-gradient(circle at 50% 0%, #0b5d3c 0%, var(--deep) 60%);
+      text-shadow: none;
       -webkit-text-size-adjust: 100%;
     }
 
@@ -73,35 +79,34 @@
     button {
       min-height: 56px;
       color: var(--black);
-      background: var(--green);
-      border: 4px solid var(--black);
-      border-radius: 0;
-      box-shadow: none;
+      background: var(--panel);
+      border: 2px solid var(--edge-dark);
+      border-top-color: var(--edge-light);
+      border-left-color: var(--edge-light);
+      border-radius: 4px;
+      box-shadow: 2px 2px 0 var(--deep);
       font-size: clamp(24px, 7vw, 42px);
       font-weight: 500;
       font-stretch: normal;
       letter-spacing: 0;
-      filter: blur(0.2px);
-      text-shadow: 0 0 1.5px rgba(5, 5, 5, 0.42);
+      filter: none;
+      text-shadow: none;
       cursor: pointer;
       touch-action: manipulation;
       user-select: none;
     }
 
     button:active {
-      color: var(--green);
-      background: var(--black);
-      transform: translate(2px, 2px) scale(0.98);
-    }
-
-    button.button-press-feedback,
-    .streak-button.button-press-feedback {
-      animation: button-press-feedback 160ms steps(2, end);
+      color: var(--white);
+      background: var(--emerald);
+      border-color: var(--deep);
+      box-shadow: none;
+      transform: translate(2px, 2px);
     }
 
     button:disabled {
-      color: #476600;
-      background: #a6cf4d;
+      color: #627568;
+      background: #98ad92;
       cursor: not-allowed;
     }
 
@@ -110,9 +115,9 @@
       min-height: 52px;
       padding: 8px 10px;
       color: var(--black);
-      background: var(--green);
-      border: 4px solid var(--black);
-      border-radius: 0;
+      background: var(--white);
+      border: 2px solid var(--edge-dark);
+      border-radius: 4px;
       font-size: 28px;
       font-weight: 500;
       outline: none;
@@ -125,22 +130,23 @@
       display: grid;
       grid-template-rows: auto auto 1fr auto;
       background: var(--green);
-      border: 4px solid var(--black);
+      border: 3px solid var(--deep);
+      box-shadow: 0 0 0 2px var(--lime), 7px 7px 0 rgba(1, 11, 7, 0.65);
     }
 
     .titlebar {
       min-height: 52px;
       padding: 0;
-      color: var(--black);
-      background: var(--green);
-      border-bottom: 4px solid var(--black);
+      color: var(--white);
+      background: linear-gradient(90deg, var(--deep), var(--emerald), #0b5d3c);
+      border-bottom: 3px solid var(--deep);
       font-size: 34px;
       font-weight: 500;
       font-stretch: normal;
       letter-spacing: 0;
       text-transform: lowercase;
-      filter: blur(0.34px);
-      text-shadow: 0 0 1.8px rgba(5, 5, 5, 0.48);
+      filter: none;
+      text-shadow: 1px 1px 0 var(--deep);
     }
 
     .menu-toggle {
@@ -206,7 +212,6 @@
     .streak-button:active {
       color: var(--green);
       background: var(--black);
-      transform: translate(2px, 2px) scale(0.98);
     }
 
     .mode-button.active {
@@ -679,8 +684,6 @@
       color: var(--black);
       background: var(--green);
       border: 4px solid var(--black);
-      filter: blur(0.24px);
-      text-shadow: 0 0 1.2px currentColor;
     }
 
     .hidden-skills-heading {
@@ -740,7 +743,7 @@
     }
 
     .skill-flash.active {
-      animation: skill-screen-flash 920ms steps(1, end) both;
+      animation: skill-screen-flash 460ms steps(1, end) both;
     }
 
     .skill-flash-copy {
@@ -863,17 +866,10 @@
       50%, 100% { background: var(--black); }
     }
 
-    @keyframes button-press-feedback {
-      0%, 100% { transform: translate(0, 0) scale(1); }
-      35%, 65% { transform: translate(2px, 2px) scale(0.96); }
-    }
-
     @media (prefers-reduced-motion: reduce) {
       .celebration,
       .celebration-card,
-      .skill-flash.active,
-      button.button-press-feedback,
-      .streak-button.button-press-feedback {
+      .skill-flash.active {
         animation: none;
       }
 
@@ -987,6 +983,107 @@
       text-transform: lowercase;
       filter: blur(0.22px);
       text-shadow: 0 0 1.4px rgba(5, 5, 5, 0.38);
+    }
+
+    /* Student Shuffle visual language */
+    .mode-menu {
+      background: #c8ddb5;
+      border-bottom: 3px solid var(--deep);
+    }
+
+    .mode-button,
+    .streak-button,
+    .todo-table-actions .todo-reset,
+    .list-toolbar button,
+    .remove-option,
+    .hidden-skill-row button,
+    .show-all-skills {
+      background: var(--panel);
+    }
+
+    .mode-button.active,
+    .clear,
+    .hidden-skills-toggle,
+    .list-toolbar .delete-list,
+    .remove-action,
+    .remove-confirm,
+    .counter-score,
+    .success-message,
+    .list-table th,
+    .remove-option[aria-pressed="true"] {
+      color: var(--white);
+      background: linear-gradient(135deg, var(--deep), var(--emerald));
+      border-color: var(--deep);
+      text-shadow: 1px 1px 0 var(--deep);
+    }
+
+    .display,
+    .current-skill,
+    .counter-card,
+    .run-summary,
+    .run-current-skill,
+    .hidden-skills-panel,
+    .counter-dialog,
+    .empty {
+      background: var(--white);
+      border: 2px solid var(--edge-dark);
+      border-top-color: var(--edge-light);
+      border-left-color: var(--edge-light);
+      box-shadow: 3px 3px 0 rgba(3, 29, 18, 0.3);
+      filter: none;
+      text-shadow: none;
+    }
+
+    .display,
+    .current-skill {
+      color: var(--deep);
+      background: radial-gradient(circle at 50% 35%, #efffea 0%, var(--green) 58%, #b7d3ad 100%);
+    }
+
+    .display.plus-flash,
+    .display.minus-flash,
+    .counter-card.plus-flash,
+    .counter-card.minus-flash {
+      color: var(--white);
+      background: var(--emerald);
+    }
+
+    .progress-track {
+      background: var(--white);
+      border: 2px solid var(--edge-dark);
+    }
+
+    .progress-fill {
+      background: linear-gradient(90deg, var(--emerald), var(--lime));
+    }
+
+    .list-table,
+    .list-select,
+    .statusbar {
+      background: var(--white);
+      filter: none;
+      text-shadow: none;
+    }
+
+    .list-table th,
+    .list-table td,
+    .list-table-wrap,
+    .statusbar {
+      border-color: var(--edge-dark);
+    }
+
+    .list-table .is-current td,
+    .list-table .is-complete td {
+      background: #c8ddb5;
+    }
+
+    .skill-flash,
+    .celebration {
+      background: var(--deep);
+    }
+
+    .counter-dialog::backdrop {
+      background: rgba(3, 29, 18, 0.72);
     }
 
     @media (max-width: 560px) {
@@ -1520,7 +1617,8 @@
     }
 
     function playIncrementDing(context, now, score) {
-      const step = Math.min(Math.max(score, 1), 10) - 1;
+      const step = ((Math.max(score, 1) - 1) % 10);
+      const startsNewTen = score > 1 && step === 0;
       const baseFrequency = 520;
       const frequency = baseFrequency * Math.pow(2, step / 12);
       const overtoneFrequency = frequency * 2.01;
@@ -1551,6 +1649,51 @@
       shine.start(now);
       bell.stop(now + 0.44);
       shine.stop(now + 0.24);
+
+      if (startsNewTen) {
+        // The regular click supplies the root; this short major arpeggio is
+        // a clear little level-up fanfare instead of a reset sound.
+        const cheerOne = context.createOscillator();
+        const cheerTwo = context.createOscillator();
+        const cheerThree = context.createOscillator();
+        const cheerOneGain = context.createGain();
+        const cheerTwoGain = context.createGain();
+        const cheerThreeGain = context.createGain();
+        const cueStart = now + 0.012;
+        const secondNoteStart = cueStart + 0.06;
+        const thirdNoteStart = cueStart + 0.12;
+
+        cheerOne.type = "triangle";
+        cheerTwo.type = "sine";
+        cheerThree.type = "sine";
+        cheerOne.frequency.setValueAtTime(659.25, cueStart);
+        cheerTwo.frequency.setValueAtTime(783.99, secondNoteStart);
+        cheerThree.frequency.setValueAtTime(1046.5, thirdNoteStart);
+
+        cheerOneGain.gain.setValueAtTime(0.0001, cueStart);
+        cheerOneGain.gain.exponentialRampToValueAtTime(0.115, cueStart + 0.004);
+        cheerOneGain.gain.exponentialRampToValueAtTime(0.0001, cueStart + 0.105);
+        cheerTwoGain.gain.setValueAtTime(0.0001, secondNoteStart);
+        cheerTwoGain.gain.exponentialRampToValueAtTime(0.1, secondNoteStart + 0.004);
+        cheerTwoGain.gain.exponentialRampToValueAtTime(0.0001, secondNoteStart + 0.13);
+        cheerThreeGain.gain.setValueAtTime(0.0001, thirdNoteStart);
+        cheerThreeGain.gain.exponentialRampToValueAtTime(0.09, thirdNoteStart + 0.004);
+        cheerThreeGain.gain.exponentialRampToValueAtTime(0.0001, thirdNoteStart + 0.18);
+
+        cheerOne.connect(cheerOneGain);
+        cheerTwo.connect(cheerTwoGain);
+        cheerThree.connect(cheerThreeGain);
+        cheerOneGain.connect(context.destination);
+        cheerTwoGain.connect(context.destination);
+        cheerThreeGain.connect(context.destination);
+
+        cheerOne.start(cueStart);
+        cheerTwo.start(secondNoteStart);
+        cheerThree.start(thirdNoteStart);
+        cheerOne.stop(cueStart + 0.115);
+        cheerTwo.stop(secondNoteStart + 0.14);
+        cheerThree.stop(thirdNoteStart + 0.19);
+      }
     }
 
     function playMinusSound(context, now) {
@@ -1601,26 +1744,6 @@
       click.stop(now + 0.06);
     }
 
-    function playUiTapSound() {
-      const context = getAudioContext();
-      if (context.state === "suspended") context.resume();
-      const now = context.currentTime;
-      const oscillator = context.createOscillator();
-      const gain = context.createGain();
-
-      oscillator.type = "triangle";
-      oscillator.frequency.setValueAtTime(340, now);
-      oscillator.frequency.exponentialRampToValueAtTime(480, now + 0.055);
-      gain.gain.setValueAtTime(0.0001, now);
-      gain.gain.exponentialRampToValueAtTime(0.11, now + 0.004);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
-
-      oscillator.connect(gain);
-      gain.connect(context.destination);
-      oscillator.start(now);
-      oscillator.stop(now + 0.09);
-    }
-
     function playSound(kind, score) {
       const context = getAudioContext();
       if (context.state === "suspended") context.resume();
@@ -1641,7 +1764,7 @@
       skillFlash.classList.remove("active");
       void skillFlash.offsetWidth;
       skillFlash.classList.add("active");
-      skillFlashTimer = window.setTimeout(() => skillFlash.classList.remove("active"), 940);
+      skillFlashTimer = window.setTimeout(() => skillFlash.classList.remove("active"), 470);
     }
 
     function showTodoCelebration() {
@@ -1793,14 +1916,12 @@
 
         const plus = document.createElement("button");
         plus.type = "button";
-        plus.dataset.actionSound = "true";
         plus.textContent = "+";
         plus.setAttribute("aria-label", "Add point to " + item.name);
         plus.addEventListener("click", () => changeMultipleScore(item.id, 1, card));
 
         const minus = document.createElement("button");
         minus.type = "button";
-        minus.dataset.actionSound = "true";
         minus.textContent = "-";
         minus.setAttribute("aria-label", "Subtract point from " + item.name);
         minus.addEventListener("click", () => changeMultipleScore(item.id, -1, card));
@@ -2569,17 +2690,17 @@
       const itemCount = list.skills.length;
       const steps = [
         {
-          title: "are you sure?",
-          description: "this will reset progress in " + list.name + ".",
-          action: "yes, continue"
+          title: "reset all?",
+          description: "reset progress in " + list.name + "?",
+          action: "continue"
         },
         {
-          title: "are you really sure?",
+          title: "this clears every item",
           description: itemCount + " item" + (itemCount === 1 ? " will" : "s will") + " go back to 0, including hidden items.",
-          action: "yes, continue"
+          action: "continue"
         },
         {
-          title: "last chance",
+          title: "final check",
           description: "press reset all to clear " + list.name + ".",
           action: "reset all"
         }
@@ -2661,7 +2782,6 @@
 
     listSelector.addEventListener("change", () => {
       if (!state.lists.some((list) => list.id === listSelector.value)) return;
-      playUiTapSound();
       state.selectedListId = listSelector.value;
       resetTodoEditing();
       saveState();
@@ -2730,26 +2850,6 @@
     resetTodoDialog.addEventListener("close", () => {
       resetTodoConfirmStep = 0;
     });
-
-    document.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) return;
-      const control = event.target.closest("button, .streak-button");
-      if (!control || (control instanceof HTMLButtonElement && control.disabled)) return;
-      control.classList.remove("button-press-feedback");
-      void control.offsetWidth;
-      control.classList.add("button-press-feedback");
-      const usesActionSound =
-        control === plusButton ||
-        control === minusButton ||
-        control === clearButton ||
-        control === resetMultiple ||
-        control === listPlus ||
-        control === listMinus ||
-        control === resetCurrentSkill ||
-        control.dataset.actionSound === "true" ||
-        (control === confirmResetTodo && resetTodoConfirmStep === 2);
-      if (!usesActionSound) playUiTapSound();
-    }, true);
 
     loadState();
     render();

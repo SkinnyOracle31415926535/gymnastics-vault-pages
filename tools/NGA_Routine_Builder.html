@@ -2460,7 +2460,7 @@
     <section class="workspace" id="workspace"></section>
 
     <footer class="footer-note">
-      <strong>Important:</strong> this planner can count the rules recorded here, but it cannot prove holds, angles, actual spotting, landings, timing, equipment, or later federation revisions. It never labels a routine “legal.” Verify against the <a href="https://nationalgym.org/wp-content/uploads/2025/08/NGA-Mens-Gymnastics-Technical-Handbook.pdf" target="_blank" rel="noopener noreferrer">current NGA Men’s Gymnastics Technical Handbook</a> (especially pp. 10–11, 13–14, 28, and 50–55) with a coach or judge.
+      <strong>Important:</strong> a dragged list cannot prove holds, angles, spotting, extra swings, actual landings, time, equipment, or current federation revisions. The app never labels a routine “legal.” See the <a href="../../rulebooks_and_routines/NGA/sources/NGA_Skill_Catalog_Update_Plan.md">skill-catalog update plan</a>, the <a href="../../rulebooks_and_routines/NGA/catalog/README.md">catalog notes</a>, and the current <a href="../../rulebooks_and_routines/NGA/current_rules/2024-2028/NGA_4N_Routine_Builder.md">4N</a> / <a href="../../rulebooks_and_routines/NGA/current_rules/2024-2028/NGA_5N_Routine_Builder.md">5N</a> builder guides.
     </footer>
   </main>
 
@@ -2469,7 +2469,7 @@
     "use strict";
 
     const APP_KEY = "nga-routine-builder-v1";
-    const APP_VERSION = "1.3.0";
+    const APP_VERSION = "1.2.0";
     const STUDENTS = [
       { id: "benjamin-bowie-christopher", name: "Benjamin Bowie Christopher" },
       { id: "kenneth-chan", name: "Kenneth Chan" },
@@ -2488,7 +2488,7 @@
         short: "FX",
         type: "skill",
         ep: { "4N": "EP 8.0", "5N": "EP 7.5" },
-        note: "70 seconds maximum. EG IV may be the dismount; the stick bonus is only on the dismount pass."
+        note: "70 seconds. EG IV may be the dismount. The stick bonus is only on the dismount pass."
       },
       mushroom: {
         name: "Mushroom",
@@ -2502,7 +2502,7 @@
         short: "SR",
         type: "skill",
         ep: { "4N": "EP 8.0", "5N": "EP 7.5" },
-        note: "No swing to handstand is required. Up to three extra full swings are allowed; stick bonus is available."
+        note: "Up to three extra swings. No swing to handstand required. Stick bonus available."
       },
       vault: {
         name: "Vault",
@@ -2516,14 +2516,14 @@
         short: "PB",
         type: "skill",
         ep: { "4N": "EP 8.0", "5N": "EP 7.5" },
-        note: "Up to three extra full swings are allowed. A half swing and hand-on-hand spot are allowed before an EG III under-bar skill."
+        note: "Up to three extra swings. Confirm special under-bar and horizontal-finish conditions with a coach."
       },
       highBar: {
         name: "High Bar",
         short: "HB",
         type: "skill",
         ep: { "4N": "EP 8.0", "5N": "EP 7.5" },
-        note: "Up to three extra full swings and five start movements are allowed. Change of direction is allowed without deduction."
+        note: "Up to three extra swings and five start movements. Confirm conditional value-part finishes with a coach."
       }
     };
 
@@ -2558,9 +2558,9 @@
         { id: "front-handspring", label: "Front handspring over resi to landing mat" }
       ],
       "5N": [
-        { id: "ro-bhs", label: "Round-off, back handspring to stand or back on resi" },
+        { id: "ro-bhs", label: "Round-off, back handspring to stand on resi" },
         { id: "front-handspring", label: "Front handspring to stand on resi" },
-        { id: "hs-swing-quarter", label: "Handspring swing with 1/4 turn to stand or back on resi" }
+        { id: "hs-swing-quarter", label: "Handspring swing with 1/4 turn to stand on resi" }
       ]
     };
 
@@ -2573,17 +2573,11 @@
       ],
       "5N": [
         { id: "tramp", label: "Tramp board plan confirmed." },
-        { id: "resi", label: "Resi is 10' × 5' × 32\" minimum; no vault table is used." },
-        { id: "feet-first", label: "Coach has confirmed the selected vault’s permitted landing: FHS feet first; RO-BHS / HS swing feet or back." },
-        { id: "ro-bhs-safety-zone", label: "If RO-BHS is selected, its safety zone is in place (hand mat recommended)." },
+        { id: "resi", label: "Resi is 10' × 5' × 32\"." },
+        { id: "feet-first", label: "Coach has confirmed the permitted landing option for the selected vault." },
         { id: "landing-not-evaluated", label: "Landing is not evaluated; no stick bonus." }
       ]
     };
-
-    const EXTRA_SWING_EVENTS = new Set(["rings", "parallelBars", "highBar"]);
-    const MAX_EXTRA_FULL_SWINGS = 3;
-    const MAX_HIGH_BAR_START_MOVEMENTS = 5;
-    const MAX_FLOOR_DURATION_SECONDS = 70;
 
     const FALLBACK_MUSHROOM_CHECKS = {
       "4N": [
@@ -2659,8 +2653,6 @@
         sourceNote: sourceNoteFrom(raw),
         isDismount: raw.isDismount === undefined ? normalizeEG(raw.eg || raw.elementGroup || raw.plannedEg || "") === "IV" : Boolean(raw.isDismount),
         countsAsSkill: raw.countsAsSkill !== false,
-        variant: String(raw.variant || "").slice(0, 80),
-        ruleConditionConfirmed: Boolean(raw.ruleConditionConfirmed),
         applicableLevels: Array.isArray(raw.applicableLevels) ? raw.applicableLevels.slice(0, 8).map(String) : [],
         restrictions: Array.isArray(raw.restrictions) ? raw.restrictions.slice(0, 8).map(String) : [],
         custom: Boolean(raw.custom)
@@ -2694,7 +2686,7 @@
     function normalizeSpecialEvents(raw) {
       if (!isObject(raw)) return null;
       const result = {};
-      ["floor", "mushroom", "rings", "vault", "parallelBars", "highBar"].forEach(function (eventId) {
+      ["mushroom", "vault"].forEach(function (eventId) {
         const byLevel = raw[eventId];
         if (!isObject(byLevel)) return;
         result[eventId] = {};
@@ -2845,33 +2837,8 @@
     const soundToggle = document.getElementById("soundToggle");
     let soundContext = null;
 
-    function boundedWholeNumber(value, maximum) {
-      const number = Number(value);
-      if (!Number.isFinite(number) || number <= 0) return 0;
-      return Math.min(Math.floor(number), maximum);
-    }
-
-    function normalizeEventSpecial(raw) {
-      const source = isObject(raw) ? raw : {};
-      const checklist = {};
-      if (isObject(source.checklist)) {
-        Object.keys(source.checklist).slice(0, 80).forEach(function (key) {
-          if (typeof key === "string" && key.length < 120) checklist[key] = Boolean(source.checklist[key]);
-        });
-      }
-      return {
-        vaults: Array.isArray(source.vaults) ? source.vaults.filter(function (id) { return typeof id === "string" && id.length < 120; }).slice(0, 8) : [],
-        checklist: checklist,
-        extraFullSwings: boundedWholeNumber(source.extraFullSwings, 12),
-        highBarStartMovements: boundedWholeNumber(source.highBarStartMovements, 12),
-        floorDurationSeconds: boundedWholeNumber(source.floorDurationSeconds, 300),
-        pbHalfSwingBeforeEgIII: Boolean(source.pbHalfSwingBeforeEgIII),
-        pbHandOnHandSpotBeforeEgIII: Boolean(source.pbHandOnHandSpotBeforeEgIII)
-      };
-    }
-
     function emptyEvent() {
-      return { skills: [], notes: "", special: normalizeEventSpecial({}) };
+      return { skills: [], notes: "", special: { vaults: [], checklist: {} } };
     }
 
     function emptyAthlete() {
@@ -2945,7 +2912,9 @@
         athlete.events[eventId].skills = Array.isArray(source.skills) ? source.skills.map(normalizeStoredSkill).filter(Boolean) : [];
         if (EVENTS[eventId] && EVENTS[eventId].type !== "vault") pinDismountsToFinish(athlete.events[eventId].skills);
         athlete.events[eventId].notes = typeof source.notes === "string" ? source.notes : "";
-        athlete.events[eventId].special = normalizeEventSpecial(source.special);
+        athlete.events[eventId].special = source.special && typeof source.special === "object" ? source.special : { vaults: [], checklist: {} };
+        if (!Array.isArray(athlete.events[eventId].special.vaults)) athlete.events[eventId].special.vaults = [];
+        if (!athlete.events[eventId].special.checklist || typeof athlete.events[eventId].special.checklist !== "object") athlete.events[eventId].special.checklist = {};
       });
       return athlete;
     }
@@ -2990,8 +2959,6 @@
         sourceNote: String(raw.sourceNote || ""),
         isDismount: raw.isDismount === undefined ? normalizeEG(raw.eg || raw.elementGroup || raw.plannedEg || "") === "IV" : Boolean(raw.isDismount),
         countsAsSkill: raw.countsAsSkill !== false,
-        variant: String(raw.variant || "").slice(0, 80),
-        ruleConditionConfirmed: Boolean(raw.ruleConditionConfirmed),
         applicableLevels: Array.isArray(raw.applicableLevels) ? raw.applicableLevels.slice(0, 8).map(String) : [],
         restrictions: Array.isArray(raw.restrictions) ? raw.restrictions.slice(0, 8).map(String) : [],
         catalogVersion: String(raw.catalogVersion || ""),
@@ -3190,12 +3157,7 @@
       if (athlete.level || athlete.status !== "draft") return true;
       return Object.keys(athlete.events || {}).some(function (eventId) {
         const event = athlete.events[eventId] || {};
-        const special = event.special || {};
-        return (event.skills && event.skills.length) || event.notes ||
-          (special.vaults && special.vaults.length) ||
-          Object.keys(special.checklist || {}).some(function (key) { return special.checklist[key]; }) ||
-          Boolean(special.extraFullSwings || special.highBarStartMovements || special.floorDurationSeconds ||
-            special.pbHalfSwingBeforeEgIII || special.pbHandOnHandSpotBeforeEgIII);
+        return (event.skills && event.skills.length) || event.notes || (event.special && ((event.special.vaults && event.special.vaults.length) || Object.keys(event.special.checklist || {}).some(function (key) { return event.special.checklist[key]; })));
       });
     }
 
@@ -3420,7 +3382,7 @@
       if (event.type === "skill") {
         const result = evaluateSkillRoutine(eventId);
         if (!currentAthlete().level) return "none";
-        return result.mathPass && !result.deductionFlags ? (result.catalogReady ? "good" : "warn") : (result.skills.length ? "warn" : "none");
+        return result.mathPass ? (result.catalogReady ? "good" : "warn") : (result.skills.length ? "warn" : "none");
       }
       if (event.type === "mushroom") {
         const result = evaluateMushroom();
@@ -3487,7 +3449,7 @@
         if (event.type === "skill") {
           const result = evaluateSkillRoutine(eventId);
           if (data.skills.length && noLevel) statusText = data.skills.length + " skills selected — choose a level";
-          else if (result.mathPass && result.catalogReady && !result.deductionFlags) { statusText = "Draft math complete — coach review"; pill += " good"; buttonText = "Review routine"; }
+          else if (result.mathPass && result.catalogReady) { statusText = "Draft math complete — coach review"; pill += " good"; buttonText = "Review routine"; }
           else if (data.skills.length) { statusText = data.skills.length + " skills selected — " + result.shortStatus; pill += " warn"; buttonText = "Continue"; }
         } else if (event.type === "vault") {
           const result = evaluateVault();
@@ -3516,7 +3478,7 @@
       const facts = [];
       if (rules) {
         facts.push("EP " + rules.ep);
-        facts.push(rules.minUniqueSkills + "–" + rules.maxUniqueSkills + " performed FIG/SS skills");
+        facts.push(rules.minUniqueSkills + "–" + rules.maxUniqueSkills + " unique FIG/SS skills");
         facts.push(rules.figA + " FIG A / " + rules.ss + " SS credits");
         facts.push("SS cap " + rules.maxSS);
       } else {
@@ -4191,445 +4153,6 @@
         return defaultState();
       }
     }
-
-
-    /*
-      NGA 2025 handbook rule layer.  These fields record only the planning facts
-      a sequence builder can know; performance-dependent conditions stay explicit
-      coach/judge confirmations rather than being inferred from a skill name.
-    */
-    function isFIGKind(kind) {
-      return ["A", "B", "C", "D", "E", "F", "G"].indexOf(kind) !== -1;
-    }
-
-    function nextFIGKind(kind) {
-      const values = ["A", "B", "C", "D", "E", "F", "G"];
-      const index = values.indexOf(kind);
-      return index === -1 ? kind : (values[Math.min(index + 1, values.length - 1)] || kind);
-    }
-
-    function matchesRuleName(skill, expression) {
-      return expression.test(normalizeText(skill && skill.name));
-    }
-
-    function skillRuleCondition(eventId, skill) {
-      if (!skill || skill.spotted) return null;
-      if (eventId === "highBar" && skill.eg === "III" && skill.kind === "A") {
-        return { label: "Horizontal finish confirmed — this FIG EG III A earns EG credit", requiredForEg: true };
-      }
-      if (eventId === "parallelBars" && matchesRuleName(skill, /(?:stutz|salto-bwd|giant.*support)/)) {
-        return { label: "At horizontal confirmed — credit this PB exception as B and EG", requiredForEg: true, kind: "B" };
-      }
-      if (eventId === "highBar" && matchesRuleName(skill, /(?:jam|adler)/)) {
-        return { label: "At 45° confirmed — credit this HB exception as B and EG", requiredForEg: true, kind: "B" };
-      }
-      return null;
-    }
-
-    function hasRingsValueUpgrade(skill) {
-      if (!skill || !isFIGKind(skill.kind)) return false;
-      return skill.eg === "I" || skill.eg === "III" || matchesRuleName(skill, /(?:yamawaki|jonasson)/);
-    }
-
-    function adjustedKindBeforeRange(eventId, skill) {
-      if (!skill) return "Unknown";
-      if (skill.spotted) return "SS";
-      let kind = skill.kind || "Unknown";
-      const condition = skillRuleCondition(eventId, skill);
-      if (condition && condition.kind && skill.ruleConditionConfirmed) kind = condition.kind;
-      if (eventId === "rings" && hasRingsValueUpgrade(skill)) kind = nextFIGKind(kind);
-      return kind;
-    }
-
-    function isRangeConverted(eventId, skill, rules) {
-      const kind = adjustedKindBeforeRange(eventId, skill);
-      return isFIGKind(kind) && rules && rules.allowedFIG.indexOf(kind) === -1;
-    }
-
-    function creditedKind(eventId, skill, rules) {
-      const kind = adjustedKindBeforeRange(eventId, skill);
-      return isRangeConverted(eventId, skill, rules) ? "A" : kind;
-    }
-
-    function creditedEG(eventId, skill) {
-      const condition = skillRuleCondition(eventId, skill);
-      if (condition && condition.requiredForEg && !skill.ruleConditionConfirmed) return "";
-      return skill && skill.eg ? skill.eg : "";
-    }
-
-    function skillCreditKey(skill) {
-      const base = skill && (skill.repeatKey || skill.catalogId || normalizeText(skill.name));
-      const variant = normalizeText(skill && skill.variant);
-      return String(base || "") + (variant ? "::variant-" + variant : "");
-    }
-
-    function getRepeatInfo(skills) {
-      const seen = new Set();
-      return skills.map(function (skill) {
-        const key = skillCreditKey(skill);
-        if (seen.has(key)) return true;
-        seen.add(key);
-        return false;
-      });
-    }
-
-    function creditEligibleSkills(skills) {
-      const seen = new Set();
-      return skills.filter(function (skill) {
-        const key = skillCreditKey(skill);
-        if (seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
-    }
-
-    function evaluateSkillRoutine(eventId) {
-      const athlete = currentAthlete();
-      const rules = catalogRulesFor(athlete.level);
-      const data = athlete.events[eventId] || emptyEvent();
-      const skills = data.skills || [];
-      const special = normalizeEventSpecial(data.special);
-      if (!rules) {
-        return { skills: skills, performedSkills: [], uniqueSkills: [], mathPass: false, catalogReady: false, shortStatus: "choose a level", creditPlan: null, unverified: skills, spotted: [], outOfRange: [], missingGroups: ["I", "II", "III", "IV"], extraFullSwings: special.extraFullSwings, highBarStartMovements: special.highBarStartMovements, floorDurationSeconds: special.floorDurationSeconds, deductionFlags: 0 };
-      }
-      const performedSkills = skills.filter(function (skill) { return skill.countsAsSkill !== false; });
-      const eligible = creditEligibleSkills(performedSkills);
-      const outOfRange = performedSkills.filter(function (skill) { return isRangeConverted(eventId, skill, rules); });
-      const unsupported = performedSkills.filter(function (skill) {
-        const kind = adjustedKindBeforeRange(eventId, skill);
-        return kind !== "SS" && !isFIGKind(kind);
-      });
-      const ssCount = performedSkills.filter(function (skill) { return creditedKind(eventId, skill, rules) === "SS"; }).length;
-      const groupSet = new Set(eligible.map(function (skill) { return creditedEG(eventId, skill); }).filter(Boolean));
-      const missingGroups = ["I", "II", "III", "IV"].filter(function (eg) { return !groupSet.has(eg); });
-      const creditPlan = findCreditPlan(eventId, eligible, rules);
-      const spotted = performedSkills.filter(function (skill) { return skill.spotted; });
-      const conditionPending = eligible.filter(function (skill) {
-        const condition = skillRuleCondition(eventId, skill);
-        return condition && condition.requiredForEg && !skill.ruleConditionConfirmed;
-      });
-      const unverified = performedSkills.filter(function (skill) { return skill.sourceStatus !== "verified"; });
-      const countOk = performedSkills.length >= rules.minUniqueSkills && performedSkills.length <= rules.maxUniqueSkills;
-      const ssOk = ssCount <= rules.maxSS;
-      const figOk = !unsupported.length;
-      const allGroups = !missingGroups.length;
-      const extraSwingOk = !EXTRA_SWING_EVENTS.has(eventId) || special.extraFullSwings <= MAX_EXTRA_FULL_SWINGS;
-      const startMovementsOk = eventId !== "highBar" || special.highBarStartMovements <= MAX_HIGH_BAR_START_MOVEMENTS;
-      const durationRecorded = eventId !== "floor" || special.floorDurationSeconds > 0;
-      const durationOk = eventId !== "floor" || (durationRecorded && special.floorDurationSeconds <= MAX_FLOOR_DURATION_SECONDS);
-      const catalogReady = state.catalog.status === "verified" && !unverified.length;
-      const mathPass = countOk && ssOk && figOk && allGroups && Boolean(creditPlan) && extraSwingOk && startMovementsOk && durationOk && !conditionPending.length;
-      const deductionFlags = outOfRange.length + spotted.length;
-      let shortStatus = "needs requirements";
-      if (mathPass) {
-        if (deductionFlags) shortStatus = "requirements met; deduction review";
-        else shortStatus = catalogReady ? "draft math complete" : "math complete; catalog review";
-      } else if (performedSkills.length < rules.minUniqueSkills) {
-        shortStatus = "needs more performed skills";
-      } else if (!extraSwingOk || !startMovementsOk || !durationOk) {
-        shortStatus = "event-rule review";
-      } else if (conditionPending.length) {
-        shortStatus = "finish/position confirmation needed";
-      }
-      return {
-        skills: skills,
-        performedSkills: performedSkills,
-        uniqueSkills: eligible,
-        countOk: countOk,
-        ssOk: ssOk,
-        figOk: figOk,
-        allGroups: allGroups,
-        mathPass: mathPass,
-        catalogReady: catalogReady,
-        ssCount: ssCount,
-        outOfRange: outOfRange,
-        unsupported: unsupported,
-        missingGroups: missingGroups,
-        creditPlan: creditPlan,
-        unverified: unverified,
-        spotted: spotted,
-        conditionPending: conditionPending,
-        extraFullSwings: special.extraFullSwings,
-        extraSwingOk: extraSwingOk,
-        highBarStartMovements: special.highBarStartMovements,
-        startMovementsOk: startMovementsOk,
-        floorDurationSeconds: special.floorDurationSeconds,
-        durationRecorded: durationRecorded,
-        durationOk: durationOk,
-        deductionFlags: deductionFlags,
-        shortStatus: shortStatus
-      };
-    }
-
-    function findCreditPlan(eventId, skills, rules) {
-      const groups = ["I", "II", "III", "IV"];
-      const candidates = groups.map(function (eg) {
-        return skills.filter(function (skill) {
-          const kind = creditedKind(eventId, skill, rules);
-          return creditedEG(eventId, skill) === eg && (kind === "A" || kind === "SS");
-        });
-      });
-      if (candidates.some(function (items) { return !items.length; })) return null;
-      function visit(index, chosen, aCount, ssCount) {
-        if (index === groups.length) return aCount === rules.figA && ssCount === rules.ss ? chosen : null;
-        const remaining = groups.length - index - 1;
-        for (let i = 0; i < candidates[index].length; i += 1) {
-          const skill = candidates[index][i];
-          const kind = creditedKind(eventId, skill, rules);
-          const nextA = aCount + (kind === "A" ? 1 : 0);
-          const nextSS = ssCount + (kind === "SS" ? 1 : 0);
-          if (nextA > rules.figA || nextSS > rules.ss) continue;
-          if (nextA + remaining < rules.figA || nextSS + remaining < rules.ss) continue;
-          const answer = visit(index + 1, chosen.concat(skill), nextA, nextSS);
-          if (answer) return answer;
-        }
-        return null;
-      }
-      return visit(0, [], 0, 0);
-    }
-
-    function renderEventRuleControls(eventId) {
-      const special = normalizeEventSpecial(currentEventData().special);
-      const controls = [];
-      if (eventId === "floor") {
-        controls.push("<label class=\"field\">Planned floor duration (seconds)<input type=\"number\" min=\"1\" max=\"300\" inputmode=\"numeric\" data-rule-number=\"floorDurationSeconds\" value=\"" + (special.floorDurationSeconds || "") + "\" placeholder=\"70 max\"></label><p class=\"tiny\">A planned duration is required for this check; performance timing still needs a judge/coach review.</p>");
-      }
-      if (EXTRA_SWING_EVENTS.has(eventId)) {
-        controls.push("<label class=\"field\">Extra full swings (non-credit transitions)<input type=\"number\" min=\"0\" max=\"12\" inputmode=\"numeric\" data-rule-number=\"extraFullSwings\" value=\"" + special.extraFullSwings + "\"></label><p class=\"tiny\">These are counted separately from skills. Credited elements with “swing” in their name do not belong here.</p>");
-      }
-      if (eventId === "parallelBars") {
-        controls.push("<label class=\"option-card\"><input type=\"checkbox\" data-rule-toggle=\"pbHalfSwingBeforeEgIII\"" + (special.pbHalfSwingBeforeEgIII ? " checked" : "") + "><span>Used the allowed ½ swing immediately before an EG III under-bar skill.</span></label>");
-        controls.push("<label class=\"option-card\"><input type=\"checkbox\" data-rule-toggle=\"pbHandOnHandSpotBeforeEgIII\"" + (special.pbHandOnHandSpotBeforeEgIII ? " checked" : "") + "><span>Used the allowed hand-on-hand spot before an EG III skill (do not mark that skill “spot used”).</span></label>");
-      }
-      if (eventId === "highBar") {
-        controls.push("<label class=\"field\">Start movements before the routine<input type=\"number\" min=\"0\" max=\"12\" inputmode=\"numeric\" data-rule-number=\"highBarStartMovements\" value=\"" + special.highBarStartMovements + "\"></label><p class=\"tiny\">Up to five movements are allowed without deduction.</p>");
-      }
-      return controls.length ? "<section class=\"event-special\" style=\"margin-top:12px\"><h3>Event-rule plan</h3><div class=\"special-options\">" + controls.join("") + "</div></section>" : "";
-    }
-
-    function renderRoutinePanel(eventId, result, mushroomMode) {
-      const data = currentEventData();
-      const repeatInfo = getRepeatInfo(data.skills);
-      const creditIds = result && result.creditPlan ? result.creditPlan.map(function (item) { return item.id; }) : [];
-      const list = data.skills.length ? data.skills.map(function (skill, index) {
-        return renderRoutineItem(eventId, skill, index, repeatInfo[index], creditIds.indexOf(skill.id) !== -1, mushroomMode);
-      }).join("") : "<div class=\"empty-routine\">Drag skills here in the athlete’s intended performance order.<br><br>On iPad, tap a library skill to add it.</div>";
-      const title = mushroomMode ? "Mushroom sequence draft" : "Routine sequence";
-      const ruleControls = mushroomMode ? "" : renderEventRuleControls(eventId);
-      return "<section class=\"panel\"><div class=\"panel-head\"><div><h3>" + title + "</h3><div class=\"tiny\">Drag to reorder. Catalog-marked dismounts are pinned at the finish.</div></div><button class=\"button small\" type=\"button\" data-action=\"sort-eg\">Sort sequence by EG</button></div><div class=\"panel-body\"><div class=\"routine-list\" id=\"routineList\">" + list + "</div>" + ruleControls + "<label class=\"field\" style=\"margin-top:12px\">Coach notes<textarea class=\"notes\" data-notes placeholder=\"Holds, connections, equipment, coaching cues, judge questions…\">" + escapeHtml(data.notes) + "</textarea></label></div></section>";
-    }
-
-    function renderRoutineItem(eventId, skill, index, repeat, isCredit, mushroomMode) {
-      const rules = catalogRulesFor(currentAthlete().level);
-      const effective = rules ? creditedKind(eventId, skill, rules) : effectiveKind(skill);
-      const condition = skillRuleCondition(eventId, skill);
-      const kindClass = effective === "SS" ? "ss" : effective === "Unknown" ? "unknown" : "fig";
-      const classes = "routine-item" + (isCredit ? " credit" : "") + (repeat ? " repeat" : "");
-      const status = skill.custom ? "Coach-entered / unverified" : sourceStatusLabel(skill.sourceStatus);
-      const repeatNote = repeat ? "<span class=\"chip ss\">repeat: no EG/VP credit</span>" : "";
-      const spotted = skill.spotted ? "<span class=\"chip unknown\">spot used: SS + EG credit; −0.50 review</span>" : "";
-      const rangeConverted = rules && isRangeConverted(eventId, skill, rules) ? "<span class=\"chip unknown\">range → A; −0.50 review</span>" : "";
-      const adjusted = effective !== skill.kind && !skill.spotted && !isRangeConverted(eventId, skill, rules) ? "<span class=\"chip\">NGA value adjustment</span>" : "";
-      const credit = isCredit ? "<span class=\"chip\" style=\"border-color:rgba(121,221,162,.65);color:#d7ffe5\">possible EG credit</span>" : "";
-      const eg = creditedEG(eventId, skill);
-      const egNote = !eg && condition ? "<span class=\"chip unknown\">no EG until confirmed</span>" : "";
-      const finishOnly = skill.isDismount ? "<span class=\"chip ss\">finish only</span>" : "";
-      const conditionControl = condition ? "<label class=\"check-inline\"><input type=\"checkbox\" data-step-rule-condition=\"" + index + "\"" + (skill.ruleConditionConfirmed ? " checked" : "") + "> " + escapeHtml(condition.label) + "</label>" : "";
-      const variantControl = eventId === "floor" ? "<label class=\"check-inline\">Distinct VP variant <input type=\"text\" maxlength=\"80\" data-step-variant=\"" + index + "\" value=\"" + escapeHtml(skill.variant || "") + "\" placeholder=\"e.g., pike or ½ twist\"></label>" : "";
-      return "<article class=\"" + classes + "\" draggable=\"true\" data-routine-index=\"" + index + "\"><span class=\"step-number\">" + (index + 1) + "</span><div><div class=\"routine-name\">" + escapeHtml(skill.name) + "</div><div class=\"routine-flags\"><span class=\"chip " + kindClass + "\">" + escapeHtml(effective) + "</span><span class=\"chip\">" + escapeHtml(skill.code || "no code") + "</span><span class=\"chip\">EG " + escapeHtml(eg || skill.eg || "?") + "</span>" + finishOnly + credit + repeatNote + spotted + rangeConverted + adjusted + egNote + "</div><div class=\"source-label\">" + escapeHtml(status) + "</div></div><div class=\"routine-controls\">" + (mushroomMode ? "" : "<label class=\"check-inline\"><input type=\"checkbox\" data-step-spotted=\"" + index + "\"" + (skill.spotted ? " checked" : "") + "> spot used</label>") + conditionControl + variantControl + "<div class=\"step-actions\"><button type=\"button\" class=\"button small quiet\" data-action=\"move-up\" data-index=\"" + index + "\" aria-label=\"Move skill up\">↑</button><button type=\"button\" class=\"button small quiet\" data-action=\"move-down\" data-index=\"" + index + "\" aria-label=\"Move skill down\">↓</button><button type=\"button\" class=\"button small danger\" data-action=\"remove-skill\" data-index=\"" + index + "\" aria-label=\"Remove skill\">×</button></div></div></article>";
-    }
-
-    function renderRequirementPanel(eventId, result, mushroomMode) {
-      if (mushroomMode) return renderMushroomRequirements(result);
-      const athlete = currentAthlete();
-      const rules = catalogRulesFor(athlete.level);
-      if (!rules) {
-        return "<section class=\"panel\"><div class=\"panel-head\"><h3>Requirement check</h3></div><div class=\"panel-body\"><div class=\"decision warn\"><div class=\"decision-title\">Choose this athlete’s level first</div><div class=\"decision-copy\">The builder will then show the correct 4N or 5N mix, performed-skill range, FIG range, and SS cap.</div></div></div></section>";
-      }
-      const hasDeductions = result.deductionFlags > 0;
-      const decisionClass = result.mathPass ? (result.catalogReady && !hasDeductions ? "good" : "warn") : "bad";
-      const title = result.mathPass ? (hasDeductions ? "Requirement credit met — deduction review required" : (result.catalogReady ? "Draft math complete — still needs coach sign-off" : "Draft math looks complete — catalog review pending")) : "Draft requirement gaps";
-      const copy = result.mathPass
-        ? (hasDeductions ? "Spotted or out-of-range FIG skills retain the handbook’s required credit after conversion, but each carries a −0.50 review flag. A routine with −0.50 or more deductions has a 9.95 maximum score." : (result.catalogReady ? "Performance facts, sequence conditions, and current source updates still need a coach/judge review." : "The chosen labels satisfy the high-level math, but legacy/unverified catalog rows prevent certification."))
-        : "Use the highlighted checks to adjust this draft. The app does not infer performance conditions.";
-      const rows = [
-        { ok: result.countOk, label: rules.minUniqueSkills + "–" + rules.maxUniqueSkills + " FIG/SS skills performed", detail: result.performedSkills.length + " performed / " + result.uniqueSkills.length + " distinct VP identities" },
-        { ok: result.ssOk, label: "Super Skill cap", detail: result.ssCount + " SS credited; maximum " + rules.maxSS },
-        { ok: result.figOk, label: "Recognized FIG values", detail: result.unsupported.length ? result.unsupported.map(function (item) { return item.name + " (" + adjustedKindBeforeRange(eventId, item) + ")"; }).join(", ") + " cannot be credited yet" : "A–" + rules.allowedFIG[rules.allowedFIG.length - 1] + " allowed" },
-        { ok: result.allGroups, label: "All four EGs represented", detail: result.missingGroups.length ? "Missing: " + result.missingGroups.join(", ") : "EG I, II, III, and IV found" },
-        { ok: Boolean(result.creditPlan), label: rules.figA + " FIG A + " + rules.ss + " SS requirement-slot allocation", detail: result.creditPlan ? "One possible four-EG draft allocation is highlighted in green." : "No valid distinct-EG A/SS allocation found yet." }
-      ];
-      if (EXTRA_SWING_EVENTS.has(eventId)) rows.splice(1, 0, { ok: result.extraSwingOk, label: "Extra full swing limit", detail: result.extraFullSwings + " planned; maximum " + MAX_EXTRA_FULL_SWINGS });
-      if (eventId === "highBar") rows.splice(2, 0, { ok: result.startMovementsOk, label: "High-bar start movements", detail: result.highBarStartMovements + " planned; maximum " + MAX_HIGH_BAR_START_MOVEMENTS });
-      if (eventId === "floor") rows.splice(1, 0, { ok: result.durationOk, label: "Floor routine time", detail: result.durationRecorded ? result.floorDurationSeconds + " seconds planned; maximum " + MAX_FLOOR_DURATION_SECONDS : "Record a planned duration to complete this check" });
-      if (result.outOfRange.length) rows.push({ ok: true, label: "Out-of-range FIG conversion", detail: result.outOfRange.length + " skill(s) receive A credit and a −0.50 review flag under the handbook." });
-      if (result.spotted.length) rows.push({ ok: true, label: "Spot-used conversion", detail: result.spotted.length + " skill(s) receive SS + EG credit and a −0.50 review flag." });
-      if (result.conditionPending.length) rows.push({ ok: false, label: "Conditional credit confirmation", detail: result.conditionPending.length + " selected step(s) need their stated finish/position confirmed before EG credit." });
-      rows.push({ ok: result.catalogReady, label: "Catalog rows verified", detail: result.catalogReady ? "Every selected row is marked verified by the loaded catalog." : result.unverified.length + " selected row(s) remain legacy, custom, or unreviewed." });
-      const credit = result.creditPlan ? "<div class=\"credit-list\"><strong>Possible credited EG draft — sequence order stays unchanged:</strong>" + result.creditPlan.map(function (item) { return "<span>EG " + escapeHtml(creditedEG(eventId, item)) + " · " + escapeHtml(item.name) + " (" + escapeHtml(creditedKind(eventId, item, rules)) + ")</span>"; }).join("") + "</div>" : "";
-      return "<section class=\"panel\"><div class=\"panel-head\"><h3>Requirement check</h3><span class=\"catalog-pill " + state.catalog.status + "\">" + escapeHtml(currentAthlete().level) + "</span></div><div class=\"panel-body\"><div class=\"requirement-summary\"><div class=\"decision " + decisionClass + "\"><div class=\"decision-title\">" + escapeHtml(title) + "</div><div class=\"decision-copy\">" + escapeHtml(copy) + "</div>" + credit + "</div><div class=\"checks\">" + rows.map(renderCheckRow).join("") + "</div><p class=\"tiny\">All FIG/SS skills performed count in the 6–8 range, including repeats. A repeat has no VP/EG credit. For floor, enter a distinct official tuck/pike or ½-twist variant to keep it separate for VP credit.</p></div></div></section>";
-    }
-
-    function renderSkillEvent(eventId) {
-      const event = EVENTS[eventId];
-      const athlete = currentAthlete();
-      const rules = catalogRulesFor(athlete.level);
-      const facts = [];
-      if (rules) {
-        facts.push("EP " + rules.ep);
-        facts.push(rules.minUniqueSkills + "–" + rules.maxUniqueSkills + " performed FIG/SS skills");
-        facts.push(rules.figA + " FIG A / " + rules.ss + " SS credits");
-        facts.push("SS cap " + rules.maxSS);
-      } else {
-        facts.push("Choose a level to check requirements");
-      }
-      return "<div class=\"workspace-title\"><div><h2>" + escapeHtml(event.name) + "</h2><div class=\"event-facts\">" + facts.map(function (fact) { return "<span class=\"chip\">" + escapeHtml(fact) + "</span>"; }).join("") + "</div></div><button class=\"button danger small\" type=\"button\" data-action=\"clear-event\">Clear " + escapeHtml(event.short) + "</button></div>" +
-        "<div class=\"rules-callout\"><strong>Draft-only requirements check.</strong> " + escapeHtml(event.note) + " " + (rules ? "The active mix is " + rules.figA + " FIG A requirement slot" + (rules.figA === 1 ? "" : "s") + " plus " + rules.ss + " SS requirement slots." : "Select 4N or 5N before relying on any count.") + "</div>" +
-        renderPlanningGrid(eventId, evaluateSkillRoutine(eventId), false);
-    }
-
-    function evaluateMushroom() {
-      const athlete = currentAthlete();
-      const rules = catalogRulesFor(athlete.level);
-      const data = athlete.events.mushroom || emptyEvent();
-      const checks = mushroomChecksFor(athlete.level);
-      const performedSkills = (data.skills || []).filter(function (skill) { return skill.countsAsSkill !== false; });
-      if (!rules || !checks.length) return { complete: false, shortStatus: "choose a level", performedSkills: performedSkills, countOk: false, missing: [] };
-      const checklist = data.special.checklist || {};
-      const missing = checks.filter(function (check) { return !checklist[check.id]; });
-      const countOk = performedSkills.length >= rules.minUniqueSkills && performedSkills.length <= rules.maxUniqueSkills;
-      const complete = !missing.length && countOk;
-      return { complete: complete, missing: missing, performedSkills: performedSkills, countOk: countOk, shortStatus: !countOk ? "needs " + rules.minUniqueSkills + "–" + rules.maxUniqueSkills + " performed skills" : (missing.length ? missing.length + " checklist item(s) left" : "checklist complete") };
-    }
-
-    function renderMushroom() {
-      const athlete = currentAthlete();
-      const rules = catalogRulesFor(athlete.level);
-      const result = evaluateMushroom();
-      const checks = rules ? mushroomChecksFor(athlete.level) : [];
-      const checkList = rules ? checks.map(function (check) {
-        const checked = Boolean(currentEventData().special.checklist[check.id]);
-        return "<label class=\"option-card\"><input type=\"checkbox\" data-special-check=\"" + check.id + "\"" + (checked ? " checked" : "") + "><span>" + escapeHtml(check.label) + "</span></label>";
-      }).join("") : "<div class=\"decision warn\"><div class=\"decision-title\">Choose a level first</div><div class=\"decision-copy\">Mushroom requirements need a level-specific coach checklist.</div></div>";
-      const facts = rules ? [rules.minUniqueSkills + "–" + rules.maxUniqueSkills + " performed skills", rules.figA + " FIG A / " + rules.ss + " SS", "No stick bonus"] : ["Choose 4N or 5N"];
-      return "<div class=\"workspace-title\"><div><h2>Mushroom</h2><div class=\"event-facts\">" + facts.map(function (fact) { return "<span class=\"chip\">" + escapeHtml(fact) + "</span>"; }).join("") + "</div></div><button class=\"button danger small\" type=\"button\" data-action=\"clear-event\">Clear MR</button></div>" +
-        "<section class=\"event-special\"><h3>Current mushroom build card</h3><p class=\"tiny\">Mushroom/no-pommels requires sequence and finish facts that the legacy skill list cannot prove. The 6–8 performed-skill rule is counted below. SS 4.1 (½ circle to rear support) is a full +0.50 EG exception; confirm that exception with a coach when used.</p><div class=\"special-options\">" + checkList + "</div><p class=\"tiny\">EG I = flair, EG II = circles, EG III = 180° turn, EG IV = dismount. Dismount is rear support or a FIG A-or-higher value part. Landing is not evaluated and there is no stick bonus.</p></section>" +
-        renderPlanningGrid("mushroom", result, true);
-    }
-
-    function renderMushroomRequirements(result) {
-      const athlete = currentAthlete();
-      const level = athlete.level;
-      if (!level) return "<section class=\"panel\"><div class=\"panel-head\"><h3>Mushroom review</h3></div><div class=\"panel-body\"><div class=\"decision warn\"><div class=\"decision-title\">Choose 4N or 5N</div><div class=\"decision-copy\">Mushroom requirements need a level-specific coach checklist.</div></div></div></section>";
-      const rules = catalogRulesFor(level);
-      const rows = [{ ok: result.countOk, label: rules.minUniqueSkills + "–" + rules.maxUniqueSkills + " FIG/SS skills performed", detail: result.performedSkills.length + " performed" }].concat(mushroomChecksFor(level).map(function (check) {
-        return { ok: Boolean(currentEventData().special.checklist[check.id]), label: check.label, detail: Boolean(currentEventData().special.checklist[check.id]) ? "Coach marked this planned" : "Still needs a coach confirmation" };
-      }));
-      return "<section class=\"panel\"><div class=\"panel-head\"><h3>Mushroom review</h3><span class=\"catalog-pill legacy\">Coach check</span></div><div class=\"panel-body\"><div class=\"decision " + (result.complete ? "warn" : "bad") + "\"><div class=\"decision-title\">" + (result.complete ? "Plan checklist complete — performance review required" : "Mushroom requirements still open") + "</div><div class=\"decision-copy\">This special-event card never becomes an automatic legal ruling. Verify rear-support finishes, value parts, and preceding circles/flairs in the real sequence.</div></div><div class=\"checks\" style=\"margin-top:12px\">" + rows.map(renderCheckRow).join("") + "</div></div></section>";
-    }
-
-    function vaultChecklistFor(level) {
-      const fallback = FALLBACK_VAULT_CHECKS[level] || [];
-      const record = state && state.catalog && state.catalog.specialEvents && state.catalog.specialEvents.vault && state.catalog.specialEvents.vault[level];
-      const catalogChecks = record && Array.isArray(record.checklist) ? record.checklist : [];
-      const order = fallback.map(function (item) { return item.id; });
-      const byId = {};
-      catalogChecks.forEach(function (item) { byId[item.id] = item; if (order.indexOf(item.id) === -1) order.push(item.id); });
-      fallback.forEach(function (item) { byId[item.id] = item; });
-      return order.map(function (id) { return byId[id]; }).filter(Boolean);
-    }
-
-    function evaluateVault() {
-      const athlete = currentAthlete();
-      const level = athlete.level;
-      const data = athlete.events.vault || emptyEvent();
-      const special = normalizeEventSpecial(data.special);
-      const selected = special.vaults || [];
-      const plan = vaultPlanFor(level);
-      if (!level || !plan.choices.length) return { selected: selected, complete: false, shortStatus: "choose a level", choiceOk: false, checklistOk: false, safetyRequired: false, safetyOk: false };
-      const allowed = plan.choices.map(function (item) { return item.id; });
-      const distinct = new Set(selected);
-      const choiceOk = level === "4N"
-        ? selected.length === 2 && distinct.size === 2 && allowed.every(function (id) { return selected.indexOf(id) !== -1; })
-        : selected.length === 2 && distinct.size === 2 && selected.every(function (id) { return allowed.indexOf(id) !== -1; });
-      const safetyRequired = level === "5N" && selected.indexOf("ro-bhs") !== -1;
-      const checks = vaultChecklistFor(level).filter(function (check) { return check.id !== "ro-bhs-safety-zone" || safetyRequired; });
-      const checklistOk = checks.every(function (check) { return Boolean(special.checklist[check.id]); });
-      const safetyOk = !safetyRequired || Boolean(special.checklist["ro-bhs-safety-zone"]);
-      return {
-        selected: selected,
-        choiceOk: choiceOk,
-        checklistOk: checklistOk,
-        safetyRequired: safetyRequired,
-        safetyOk: safetyOk,
-        complete: choiceOk && checklistOk,
-        shortStatus: choiceOk ? "equipment/coach check left" : "choose two different permitted vaults"
-      };
-    }
-
-    function renderVault() {
-      const athlete = currentAthlete();
-      const level = athlete.level;
-      const data = athlete.events.vault;
-      const result = evaluateVault();
-      const plan = level ? vaultPlanFor(level) : { choices: [], summary: "" };
-      const choices = plan.choices.map(function (option) {
-        const checked = data.special.vaults.indexOf(option.id) !== -1;
-        return "<label class=\"option-card\"><input type=\"checkbox\" data-vault-choice=\"" + option.id + "\"" + (checked ? " checked" : "") + "><span>" + escapeHtml(option.label) + "</span></label>";
-      }).join("");
-      const checklist = data.special.checklist || {};
-      const buildChecks = level ? vaultChecklistFor(level) : [];
-      return "<div class=\"workspace-title\"><div><h2>Vault</h2><div class=\"event-facts\"><span class=\"chip\">Two different vaults</span><span class=\"chip\">Average the attempts</span><span class=\"chip\">SV 10.0</span></div></div><button class=\"button danger small\" type=\"button\" data-action=\"clear-event\">Clear VT</button></div>" +
-        "<section class=\"event-special\"><h3>" + (level ? level + " approved vault plan" : "Choose a level to see approved vault options") + "</h3><p class=\"tiny\">" + escapeHtml(plan.summary || "Vault is deliberately separate from the skill library; it has no EG/SS/FIG count rules.") + "</p><div class=\"special-options\">" + (choices || "<div class=\"decision warn\"><div class=\"decision-title\">No level selected</div><div class=\"decision-copy\">Select 4N or 5N above.</div></div>") + "</div><div class=\"special-options\">" + buildChecks.map(function (check) { return "<label class=\"option-card\"><input type=\"checkbox\" data-special-check=\"" + check.id + "\"" + (checklist[check.id] ? " checked" : "") + "><span>" + escapeHtml(check.label) + "</span></label>"; }).join("") + "</div></section>" +
-        "<section class=\"two-column\"><div class=\"panel\"><div class=\"panel-head\"><h3>Vault check</h3></div><div class=\"panel-body\">" + renderVaultDecision(result) + "</div></div><div class=\"panel\"><div class=\"panel-head\"><h3>Coach notes</h3></div><div class=\"panel-body\"><label class=\"field\">Equipment, approach, landing plan<textarea class=\"notes\" data-notes placeholder=\"Equipment setup, runway notes, judge question…\">" + escapeHtml(data.notes) + "</textarea></label></div></div></section>";
-    }
-
-    function renderVaultDecision(result) {
-      const title = result.complete ? "Vault plan complete — coach review required" : "Vault plan still open";
-      const rows = [
-        { ok: result.choiceOk, label: "Two different permitted vaults selected", detail: result.selected.length + " vault(s) selected" },
-        { ok: result.safetyOk, label: "RO-BHS safety zone", detail: result.safetyRequired ? (result.safetyOk ? "Recorded for the selected RO-BHS" : "Required because RO-BHS is selected") : "Not required for the selected pair" },
-        { ok: result.checklistOk, label: "Equipment and scoring notes acknowledged", detail: result.checklistOk ? "Build-card notes complete" : "Check the required setup and landing notes" }
-      ];
-      return "<div class=\"decision " + (result.complete ? "warn" : "bad") + "\"><div class=\"decision-title\">" + escapeHtml(title) + "</div><div class=\"decision-copy\">This card organizes the permitted choices. Actual equipment, landing, and scoring remain a coach/judge review.</div></div><div class=\"checks\" style=\"margin-top:12px\">" + rows.map(renderCheckRow).join("") + "</div>";
-    }
-
-    workspace.addEventListener("change", function (event) {
-      const target = event.target;
-      if (!target) return;
-      if (target.dataset.ruleNumber) {
-        const special = currentEventData().special;
-        const maximum = target.dataset.ruleNumber === "floorDurationSeconds" ? 300 : 12;
-        special[target.dataset.ruleNumber] = boundedWholeNumber(target.value, maximum);
-        playSound("click");
-        saveState();
-        renderApp({ preserveLibraryScroll: true });
-        return;
-      }
-      if (target.dataset.ruleToggle) {
-        currentEventData().special[target.dataset.ruleToggle] = target.checked;
-        playSound("click");
-        saveState();
-        renderApp({ preserveLibraryScroll: true });
-        return;
-      }
-      if (target.dataset.stepRuleCondition !== undefined) {
-        const skill = currentEventData().skills[Number(target.dataset.stepRuleCondition)];
-        if (!skill) return;
-        skill.ruleConditionConfirmed = target.checked;
-        playSound("click");
-        saveState();
-        renderApp({ preserveLibraryScroll: true });
-        return;
-      }
-      if (target.dataset.stepVariant !== undefined) {
-        const skill = currentEventData().skills[Number(target.dataset.stepVariant)];
-        if (!skill) return;
-        skill.variant = String(target.value || "").trim().slice(0, 80);
-        saveState();
-        renderApp({ preserveLibraryScroll: true });
-      }
-    });
 
     athleteSelect.addEventListener("change", function () {
       state.lastAthlete = athleteSelect.value;
