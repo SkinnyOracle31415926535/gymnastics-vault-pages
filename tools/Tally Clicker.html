@@ -378,22 +378,34 @@
       gap: 8px;
     }
 
-    .todo-edit-toolbar {
+    .todo-table-actions {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
 
-    .todo-edit-toolbar button {
+    .todo-table-actions button {
       min-height: 60px;
       padding: 8px 12px;
       font-size: 24px;
       text-transform: lowercase;
     }
 
-    .todo-edit-toolbar .hidden-skills-toggle {
+    .todo-table-actions .todo-reset {
+      color: var(--black);
+      background: var(--green);
+    }
+
+    .hidden-skills-toggle {
       color: var(--green);
       background: var(--black);
+    }
+
+    .hidden-skills-action {
+      min-height: 60px;
+      padding: 8px 12px;
+      font-size: 24px;
+      text-transform: lowercase;
     }
 
     .list-select {
@@ -416,16 +428,14 @@
       background: var(--green);
     }
 
-    .list-toolbar button,
-    .list-actions button {
+    .list-toolbar button {
       min-height: 60px;
       padding: 8px 12px;
       font-size: 24px;
       text-transform: lowercase;
     }
 
-    .list-toolbar .delete-list,
-    .remove-skill {
+    .list-toolbar .delete-list {
       color: var(--green);
       background: var(--black);
     }
@@ -694,37 +704,8 @@
       text-transform: lowercase;
     }
 
-    .list-actions {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .todo-edit-actions {
-      grid-template-columns: 1fr;
-    }
-
     #listPanel.is-editing .todo-run-only {
       display: none;
-    }
-
-    .list-reset-actions {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px;
-    }
-
-    .list-reset-actions button {
-      min-height: 62px;
-      padding: 8px 12px;
-      font-size: 24px;
-      text-transform: lowercase;
-    }
-
-    .list-reset-actions .todo-reset {
-      grid-column: 1 / -1;
-      color: var(--black);
-      background: var(--green);
     }
 
     .list-controls .clear {
@@ -1005,13 +986,7 @@
       }
 
       .controls,
-      .counter-actions,
-      .list-actions,
-      .list-reset-actions {
-        grid-template-columns: 1fr;
-      }
-
-      .todo-edit-toolbar {
+      .counter-actions {
         grid-template-columns: 1fr;
       }
 
@@ -1099,11 +1074,6 @@
           <button id="resetCurrentSkill" class="clear" type="button">reset</button>
         </div>
 
-        <div class="todo-edit-toolbar">
-          <button id="editTodo" type="button" aria-pressed="false">edit</button>
-          <button id="hiddenSkillsToggle" class="hidden-skills-toggle" type="button" aria-expanded="false" hidden>0 hidden</button>
-        </div>
-
         <div class="list-table-wrap">
           <table class="list-table">
             <thead id="listTableHead">
@@ -1113,22 +1083,21 @@
           </table>
         </div>
 
+        <div class="todo-table-actions">
+          <button id="editTodo" type="button" aria-pressed="false">edit</button>
+          <button id="resetTodo" class="todo-reset" type="button">reset all</button>
+        </div>
+
+        <button id="hiddenSkillsToggle" class="hidden-skills-toggle hidden-skills-action" type="button" aria-expanded="false" hidden>0 hidden</button>
+
         <div id="hiddenSkillsPanel" class="hidden-skills-panel" hidden></div>
 
-        <div id="todoEditActions" class="list-actions todo-edit-actions" hidden>
-          <button id="removeSkill" class="remove-skill" type="button">remove item</button>
-        </div>
+        <select id="listSelector" class="list-select" aria-label="Choose a TODO"></select>
 
         <div class="list-toolbar">
           <button id="newList" type="button">new</button>
           <button id="renameList" type="button">rename</button>
           <button id="deleteList" class="delete-list" type="button">delete</button>
-        </div>
-
-        <select id="listSelector" class="list-select" aria-label="Choose a TODO"></select>
-
-        <div class="list-reset-actions">
-          <button id="resetTodo" class="todo-reset" type="button">reset all</button>
         </div>
       </section>
     </section>
@@ -1205,18 +1174,6 @@
       <div class="dialog-actions">
         <button id="cancelAddSkill" type="button">cancel</button>
         <button type="submit">add</button>
-      </div>
-    </form>
-  </dialog>
-
-  <dialog id="removeSkillDialog" class="counter-dialog" aria-labelledby="removeSkillDialogTitle">
-    <form id="removeSkillForm" class="dialog-content">
-      <h2 id="removeSkillDialogTitle" class="dialog-title">remove skill</h2>
-      <p class="dialog-description">choose one, then confirm</p>
-      <div id="removeSkillOptions" class="remove-options" aria-label="Skills to remove"></div>
-      <div class="dialog-actions">
-        <button id="cancelRemoveSkill" type="button">cancel</button>
-        <button id="confirmRemoveSkill" class="remove-confirm" type="submit" disabled>remove selected</button>
       </div>
     </form>
   </dialog>
@@ -1300,10 +1257,8 @@
     const editTodo = document.getElementById("editTodo");
     const hiddenSkillsToggle = document.getElementById("hiddenSkillsToggle");
     const hiddenSkillsPanel = document.getElementById("hiddenSkillsPanel");
-    const todoEditActions = document.getElementById("todoEditActions");
     const listTableHead = document.getElementById("listTableHead");
     const listTableBody = document.getElementById("listTableBody");
-    const removeSkill = document.getElementById("removeSkill");
     const newListDialog = document.getElementById("newListDialog");
     const newListForm = document.getElementById("newListForm");
     const newListName = document.getElementById("newListName");
@@ -1321,11 +1276,6 @@
     const addSkillName = document.getElementById("addSkillName");
     const addSkillReps = document.getElementById("addSkillReps");
     const cancelAddSkill = document.getElementById("cancelAddSkill");
-    const removeSkillDialog = document.getElementById("removeSkillDialog");
-    const removeSkillForm = document.getElementById("removeSkillForm");
-    const removeSkillOptions = document.getElementById("removeSkillOptions");
-    const confirmRemoveSkill = document.getElementById("confirmRemoveSkill");
-    const cancelRemoveSkill = document.getElementById("cancelRemoveSkill");
     const skillFlash = document.getElementById("skillFlash");
     const skillFlashSkill = document.getElementById("skillFlashSkill");
     const celebration = document.getElementById("celebration");
@@ -1342,7 +1292,6 @@
     };
     let audioContext = null;
     let selectedRemovalId = null;
-    let selectedSkillRemovalId = null;
     let skillFlashTimer = null;
     let isListEditing = false;
     let isAddingListItem = false;
@@ -2165,7 +2114,6 @@
       editTodo.disabled = !hasList;
       editTodo.textContent = isListEditing ? "done" : "edit";
       editTodo.setAttribute("aria-pressed", isListEditing ? "true" : "false");
-      todoEditActions.hidden = !isListEditing;
 
       listSelector.innerHTML = "";
       if (!state.lists.length) {
@@ -2185,7 +2133,6 @@
       listSelector.disabled = !hasList;
       renameList.disabled = !hasList;
       deleteList.disabled = !hasList;
-      removeSkill.disabled = !hasAnySkills;
       listPlus.disabled = !currentSkill;
       listMinus.disabled = !currentSkill || currentSkill.completed === 0;
       resetCurrentSkill.disabled = !currentSkill || currentSkill.completed === 0;
@@ -2616,59 +2563,6 @@
       statusbar.textContent = list.name + " reset";
     }
 
-    function renderRemoveSkillOptions() {
-      const list = getSelectedList();
-      removeSkillOptions.innerHTML = "";
-      if (!list) return;
-
-      list.skills.forEach((skill) => {
-        const option = document.createElement("button");
-        const selected = skill.id === selectedSkillRemovalId;
-        option.type = "button";
-        option.className = "remove-option";
-        option.textContent = skill.name + ": " + skill.completed + " / " + skill.reps + (skill.hidden ? " (hidden)" : "");
-        option.setAttribute("aria-pressed", selected ? "true" : "false");
-        option.setAttribute("aria-label", "Select " + skill.name + " to remove");
-        option.addEventListener("click", () => {
-          selectedSkillRemovalId = skill.id;
-          renderRemoveSkillOptions();
-          const selectedOption = Array.from(removeSkillOptions.children).find((button) => button.getAttribute("aria-pressed") === "true");
-          if (selectedOption) selectedOption.focus();
-        });
-        removeSkillOptions.appendChild(option);
-      });
-
-      confirmRemoveSkill.disabled = !selectedSkillRemovalId;
-    }
-
-    function openRemoveSkillDialog() {
-      const list = getSelectedList();
-      if (!list?.skills.length) {
-        statusbar.textContent = "no skills to remove";
-        return;
-      }
-      selectedSkillRemovalId = null;
-      renderRemoveSkillOptions();
-      openCounterDialog(removeSkillDialog);
-    }
-
-    function removeSelectedSkill() {
-      const list = getSelectedList();
-      const skill = list?.skills.find((item) => item.id === selectedSkillRemovalId);
-      if (!list || !skill) {
-        statusbar.textContent = "choose a skill first";
-        renderRemoveSkillOptions();
-        return;
-      }
-
-      list.skills = list.skills.filter((item) => item.id !== skill.id);
-      selectedSkillRemovalId = null;
-      saveState();
-      renderList();
-      closeCounterDialog(removeSkillDialog);
-      statusbar.textContent = skill.name + " removed";
-    }
-
     menuToggle.addEventListener("click", () => {
       setMenuOpen(!modeMenu.classList.contains("open"));
     });
@@ -2706,7 +2600,6 @@
     deleteList.addEventListener("click", openDeleteListDialog);
     editTodo.addEventListener("click", () => setListEditing(!isListEditing));
     hiddenSkillsToggle.addEventListener("click", toggleHiddenSkills);
-    removeSkill.addEventListener("click", openRemoveSkillDialog);
     listPlus.addEventListener("click", () => changeCurrentSkill(1));
     listMinus.addEventListener("click", () => changeCurrentSkill(-1));
     resetCurrentSkill.addEventListener("click", resetCurrentSkillProgress);
@@ -2749,13 +2642,7 @@
     });
     cancelAddSkill.addEventListener("click", () => closeCounterDialog(addSkillDialog));
 
-    removeSkillForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      removeSelectedSkill();
-    });
-    cancelRemoveSkill.addEventListener("click", () => closeCounterDialog(removeSkillDialog));
-
-    [addDialog, removeDialog, newListDialog, renameListDialog, deleteListDialog, addSkillDialog, removeSkillDialog].forEach((dialog) => {
+    [addDialog, removeDialog, newListDialog, renameListDialog, deleteListDialog, addSkillDialog].forEach((dialog) => {
       dialog.addEventListener("close", () => restoreDialogFocus(dialog));
     });
 
