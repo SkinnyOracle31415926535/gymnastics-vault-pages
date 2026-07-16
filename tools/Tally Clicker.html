@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-  <link rel="apple-touch-icon" href="icons/tally-clicker-icon-green.png">
-  <link rel="icon" type="image/png" href="icons/tally-clicker-icon-green.png">
+  <link rel="apple-touch-icon" href="icons/tally-clicker-icon.png">
+  <link rel="icon" type="image/png" href="icons/tally-clicker-icon.png">
   <script>
     (() => {
       const stopZoom = (event) => event.preventDefault();
@@ -91,7 +91,12 @@
     button:active {
       color: var(--green);
       background: var(--black);
-      transform: none;
+      transform: translate(2px, 2px) scale(0.98);
+    }
+
+    button.button-press-feedback,
+    .streak-button.button-press-feedback {
+      animation: button-press-feedback 160ms steps(2, end);
     }
 
     button:disabled {
@@ -201,6 +206,7 @@
     .streak-button:active {
       color: var(--green);
       background: var(--black);
+      transform: translate(2px, 2px) scale(0.98);
     }
 
     .mode-button.active {
@@ -673,6 +679,8 @@
       color: var(--black);
       background: var(--green);
       border: 4px solid var(--black);
+      filter: blur(0.24px);
+      text-shadow: 0 0 1.2px currentColor;
     }
 
     .hidden-skills-heading {
@@ -732,7 +740,7 @@
     }
 
     .skill-flash.active {
-      animation: skill-screen-flash 460ms steps(1, end) both;
+      animation: skill-screen-flash 920ms steps(1, end) both;
     }
 
     .skill-flash-copy {
@@ -855,10 +863,17 @@
       50%, 100% { background: var(--black); }
     }
 
+    @keyframes button-press-feedback {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      35%, 65% { transform: translate(2px, 2px) scale(0.96); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .celebration,
       .celebration-card,
-      .skill-flash.active {
+      .skill-flash.active,
+      button.button-press-feedback,
+      .streak-button.button-press-feedback {
         animation: none;
       }
 
@@ -1505,8 +1520,7 @@
     }
 
     function playIncrementDing(context, now, score) {
-      const step = ((Math.max(score, 1) - 1) % 10);
-      const startsNewTen = score > 1 && step === 0;
+      const step = Math.min(Math.max(score, 1), 10) - 1;
       const baseFrequency = 520;
       const frequency = baseFrequency * Math.pow(2, step / 12);
       const overtoneFrequency = frequency * 2.01;
@@ -1537,51 +1551,6 @@
       shine.start(now);
       bell.stop(now + 0.44);
       shine.stop(now + 0.24);
-
-      if (startsNewTen) {
-        // The regular click supplies the root; this short major arpeggio is
-        // a clear little level-up fanfare instead of a reset sound.
-        const cheerOne = context.createOscillator();
-        const cheerTwo = context.createOscillator();
-        const cheerThree = context.createOscillator();
-        const cheerOneGain = context.createGain();
-        const cheerTwoGain = context.createGain();
-        const cheerThreeGain = context.createGain();
-        const cueStart = now + 0.012;
-        const secondNoteStart = cueStart + 0.06;
-        const thirdNoteStart = cueStart + 0.12;
-
-        cheerOne.type = "triangle";
-        cheerTwo.type = "sine";
-        cheerThree.type = "sine";
-        cheerOne.frequency.setValueAtTime(659.25, cueStart);
-        cheerTwo.frequency.setValueAtTime(783.99, secondNoteStart);
-        cheerThree.frequency.setValueAtTime(1046.5, thirdNoteStart);
-
-        cheerOneGain.gain.setValueAtTime(0.0001, cueStart);
-        cheerOneGain.gain.exponentialRampToValueAtTime(0.115, cueStart + 0.004);
-        cheerOneGain.gain.exponentialRampToValueAtTime(0.0001, cueStart + 0.105);
-        cheerTwoGain.gain.setValueAtTime(0.0001, secondNoteStart);
-        cheerTwoGain.gain.exponentialRampToValueAtTime(0.1, secondNoteStart + 0.004);
-        cheerTwoGain.gain.exponentialRampToValueAtTime(0.0001, secondNoteStart + 0.13);
-        cheerThreeGain.gain.setValueAtTime(0.0001, thirdNoteStart);
-        cheerThreeGain.gain.exponentialRampToValueAtTime(0.09, thirdNoteStart + 0.004);
-        cheerThreeGain.gain.exponentialRampToValueAtTime(0.0001, thirdNoteStart + 0.18);
-
-        cheerOne.connect(cheerOneGain);
-        cheerTwo.connect(cheerTwoGain);
-        cheerThree.connect(cheerThreeGain);
-        cheerOneGain.connect(context.destination);
-        cheerTwoGain.connect(context.destination);
-        cheerThreeGain.connect(context.destination);
-
-        cheerOne.start(cueStart);
-        cheerTwo.start(secondNoteStart);
-        cheerThree.start(thirdNoteStart);
-        cheerOne.stop(cueStart + 0.115);
-        cheerTwo.stop(secondNoteStart + 0.14);
-        cheerThree.stop(thirdNoteStart + 0.19);
-      }
     }
 
     function playMinusSound(context, now) {
@@ -1632,6 +1601,26 @@
       click.stop(now + 0.06);
     }
 
+    function playUiTapSound() {
+      const context = getAudioContext();
+      if (context.state === "suspended") context.resume();
+      const now = context.currentTime;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(340, now);
+      oscillator.frequency.exponentialRampToValueAtTime(480, now + 0.055);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.11, now + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.09);
+    }
+
     function playSound(kind, score) {
       const context = getAudioContext();
       if (context.state === "suspended") context.resume();
@@ -1652,7 +1641,7 @@
       skillFlash.classList.remove("active");
       void skillFlash.offsetWidth;
       skillFlash.classList.add("active");
-      skillFlashTimer = window.setTimeout(() => skillFlash.classList.remove("active"), 470);
+      skillFlashTimer = window.setTimeout(() => skillFlash.classList.remove("active"), 940);
     }
 
     function showTodoCelebration() {
@@ -1804,12 +1793,14 @@
 
         const plus = document.createElement("button");
         plus.type = "button";
+        plus.dataset.actionSound = "true";
         plus.textContent = "+";
         plus.setAttribute("aria-label", "Add point to " + item.name);
         plus.addEventListener("click", () => changeMultipleScore(item.id, 1, card));
 
         const minus = document.createElement("button");
         minus.type = "button";
+        minus.dataset.actionSound = "true";
         minus.textContent = "-";
         minus.setAttribute("aria-label", "Subtract point from " + item.name);
         minus.addEventListener("click", () => changeMultipleScore(item.id, -1, card));
@@ -2670,6 +2661,7 @@
 
     listSelector.addEventListener("change", () => {
       if (!state.lists.some((list) => list.id === listSelector.value)) return;
+      playUiTapSound();
       state.selectedListId = listSelector.value;
       resetTodoEditing();
       saveState();
@@ -2738,6 +2730,26 @@
     resetTodoDialog.addEventListener("close", () => {
       resetTodoConfirmStep = 0;
     });
+
+    document.addEventListener("click", (event) => {
+      if (!(event.target instanceof Element)) return;
+      const control = event.target.closest("button, .streak-button");
+      if (!control || (control instanceof HTMLButtonElement && control.disabled)) return;
+      control.classList.remove("button-press-feedback");
+      void control.offsetWidth;
+      control.classList.add("button-press-feedback");
+      const usesActionSound =
+        control === plusButton ||
+        control === minusButton ||
+        control === clearButton ||
+        control === resetMultiple ||
+        control === listPlus ||
+        control === listMinus ||
+        control === resetCurrentSkill ||
+        control.dataset.actionSound === "true" ||
+        (control === confirmResetTodo && resetTodoConfirmStep === 2);
+      if (!usesActionSound) playUiTapSound();
+    }, true);
 
     loadState();
     render();
