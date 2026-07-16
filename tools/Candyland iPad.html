@@ -736,6 +736,18 @@
     .progress-key { display: flex; flex-wrap: wrap; gap: 10px 16px; margin: 9px 1px 0; color: #5d5035; font-size: 11px; font-weight: 750; }
     .progress-key b { color: #d94b83; }
     .progress-note { margin: 13px 0 0; color: #5d5035; font-size: 11px; line-height: 1.4; }
+    .progress-saved-turns { margin-top: 17px; padding-top: 14px; border-top: 3px dashed #d9c9dd; }
+    .progress-saved-turns-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 8px; }
+    .progress-saved-turns-head strong { color: #263a70; font-size: 14px; }
+    .progress-saved-turns-head span { color: #5d5035; font-size: 11px; font-weight: 750; text-align: right; }
+    .progress-saved-turn-list { display: grid; max-height: 300px; gap: 7px; overflow-y: auto; padding-right: 2px; }
+    .progress-saved-turn { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 9px 10px; border: 2px solid #c8dce8; border-radius: 9px; background: #f9fdff; }
+    .progress-saved-turn strong, .progress-saved-turn span { display: block; }
+    .progress-saved-turn strong { color: #263a70; font-size: 12px; }
+    .progress-saved-turn span { margin-top: 2px; color: #5d5035; font-size: 11px; font-weight: 700; }
+    .progress-remove-turn { min-height: 34px; border: 2px solid #bd354e; border-radius: 7px; padding: 5px 8px; color: #bd354e; background: #fff7f8; font-size: 11px; font-weight: 1000; }
+    .progress-remove-turn:hover { color: #fff; background: #bd354e; }
+    .progress-saved-empty { margin: 0; color: #5d5035; font-size: 12px; font-weight: 750; }
     @media (max-width: 560px) {
       .turn-launcher { align-items: stretch; flex-direction: column; }
       .turn-launcher .button { width: 100%; }
@@ -747,6 +759,9 @@
       .progress-periods { grid-template-columns: repeat(4, minmax(0, 1fr)); }
       .progress-period { padding-left: 5px; padding-right: 5px; }
       .progress-summary { grid-template-columns: 1fr; }
+      .progress-saved-turns-head { align-items: flex-start; flex-direction: column; }
+      .progress-saved-turn { align-items: stretch; grid-template-columns: 1fr; }
+      .progress-remove-turn { width: 100%; }
     }
     @media (prefers-reduced-motion: reduce) {
       .turn-result-count.reward-pop { animation: none; }
@@ -834,6 +849,7 @@
           <p class="turn-sync-status" id="turnSyncStatus" aria-live="polite"></p>
         </div>
         <div class="turn-wizard-actions">
+          <button class="button light" id="undoTurnButton" type="button" disabled>Undo this turn</button>
           <button class="button light" id="editTurnAmountButton" type="button">Edit circles</button>
           <button class="button pink" id="nextKidButton" type="button">Next kid</button>
         </div>
@@ -892,6 +908,7 @@
       <div class="progress-chart-wrap"><div id="progressChart"></div></div>
       <div class="progress-key"><span><b>●</b> average circles per turn</span><span id="progressSampleKey">Each point includes its number of turns.</span></div>
       <p class="progress-note">Empty time periods stay blank instead of becoming zero. A point with one turn is still useful, but it is not enough evidence to call a trend.</p>
+      <div class="progress-saved-turns" id="progressSavedTurns" aria-live="polite"></div>
     </div>
   </dialog>
 
@@ -1111,7 +1128,7 @@
         }
         if (button.matches('[data-turn-athlete]')) { playSound('select'); return; }
         if (button.matches('[data-progress-period]')) { playSound('period'); return; }
-        if (button.matches('[data-close], #closeTurnFlowButton, #closeProgressButton, #changeTurnAthleteButton, #editTurnAmountButton')) { playSound('back'); return; }
+        if (button.matches('[data-close], #closeTurnFlowButton, #closeProgressButton, #changeTurnAthleteButton, #editTurnAmountButton, #undoTurnButton, [data-remove-turn]')) { playSound('back'); return; }
         if (button.matches('#nextKidButton')) { playSound('next'); return; }
         if (button.matches('#showCardsButton')) { playSound('confirm'); return; }
         if (button.matches('#openTurnFlowButton, #progressButton, #manageButton, #addClassButton, [data-edit-athlete], [data-manage-class]')) { playSound('navigate'); return; }
@@ -1160,11 +1177,24 @@
         node.textContent = lastTurn?.syncStatus || '';
         node.className = `turn-sync-status ${lastTurn?.syncTone || ''}`;
       }
+      function renderUndoButton() {
+        const button = el('#undoTurnButton');
+        if (!button) return;
+        const persistenceState = lastTurn?.persistenceState || '';
+        const busy = persistenceState === 'saving' || persistenceState === 'undoing';
+        button.disabled = !lastTurn || busy;
+        button.textContent = persistenceState === 'saving' ? 'Saving…' : persistenceState === 'undoing' ? 'Undoing…' : 'Undo this turn';
+      }
       function setTurnSyncStatus(message, tone = '') {
         if (!lastTurn) return;
         lastTurn.syncStatus = message;
         lastTurn.syncTone = tone;
         renderTurnSyncStatus();
+      }
+      function setTurnPersistenceState(persistenceState) {
+        if (!lastTurn) return;
+        lastTurn.persistenceState = persistenceState;
+        renderUndoButton();
       }
       function cloudPayloadForTurn(athlete) {
         const group = currentClass();
@@ -1201,9 +1231,18 @@
       async function postTurnRecord(payload) {
         return saveTurnOnThisIpad(payload);
       }
+      async function deleteTurnRecord(turnRecordId) {
+        const previous = Array.isArray(state.history) ? state.history : [];
+        const next = previous.filter((turn) => turn?.id !== turnRecordId);
+        const removed = next.length !== previous.length;
+        state.history = next;
+        saveState();
+        return removed;
+      }
       async function syncQueuedTurns() {}
       async function persistTurn(athlete) {
         const payload = cloudPayloadForTurn(athlete);
+        setTurnPersistenceState('saving');
         setTurnSyncStatus('Saving on this iPad…');
         try {
           const saved = await postTurnRecord(payload);
@@ -1211,10 +1250,13 @@
           if (lastTurn?.cloudId === payload.id) {
             lastTurn.work = cleanNumber(saved.circles, lastTurn.work);
             lastTurn.cards = cleanNumber(saved.cardsAwarded, lastTurn.cards);
+            lastTurn.wasSavedRemotely = false;
+            setTurnPersistenceState('saved');
             setTurnSyncStatus('Saved on this iPad.', '');
           }
           if (el('#progressDialog').open && statsAthleteId === athlete.id) loadProgressTurns();
         } catch (error) {
+          setTurnPersistenceState('not-saved');
           setTurnSyncStatus('Could not save on this iPad. Check Safari storage.', 'problem');
         }
       }
@@ -1386,9 +1428,26 @@
         el('#progressContext').textContent = message;
         el('#progressSampleKey').textContent = 'Each point includes its number of turns.';
       }
+      function renderSavedTurns() {
+        const root = el('#progressSavedTurns');
+        if (!root) return;
+        const recent = [...statsTurns]
+          .sort((a, b) => String(b.occurredAt).localeCompare(String(a.occurredAt)));
+        const header = '<div class="progress-saved-turns-head"><strong>Recent saved turns</strong><span>Remove a test turn whenever you need to.</span></div>';
+        if (!recent.length) {
+          root.innerHTML = `${header}<p class="progress-saved-empty">No saved turns for this athlete yet.</p>`;
+          return;
+        }
+        root.innerHTML = header + '<div class="progress-saved-turn-list">' + recent.map((turn) => {
+          const when = [turn.localDate, String(turn.localTime || '').slice(0, 5)].filter(Boolean).join(' · ') || 'Saved turn';
+          const detail = `${when} · ${formatCircles(turn.circles)} · ${plural(cleanNumber(turn.cardsAwarded), 'card')}`;
+          return `<div class="progress-saved-turn"><div><strong>${safeText(turn.athleteName || 'Athlete')}</strong><span>${safeText(detail)}</span></div><button class="progress-remove-turn" type="button" data-remove-turn="${safeText(turn.id)}" aria-label="Remove saved turn from ${safeText(when)}">Remove</button></div>`;
+        }).join('') + '</div>';
+      }
       function renderProgressData() {
         const points = progressPoints();
         const turnsInWindow = points.flatMap((point) => point.turns);
+        renderSavedTurns();
         if (!turnsInWindow.length) {
           setProgressBlank('No turns are saved on this iPad in this time window yet.');
           renderProgressChart(points);
@@ -1437,6 +1496,7 @@
           statsTurns = [];
           setProgressBlank('Pick an athlete to see progress.');
           renderProgressChart([]);
+          renderSavedTurns();
           return;
         }
         setProgressBlank('Loading this iPad’s saved turns…');
@@ -1446,6 +1506,23 @@
           .filter((turn) => turn?.athleteId === athlete.id || (turn?.athleteName === athlete.name && turn?.className === group.name))
           .sort((a, b) => String(a.occurredAt).localeCompare(String(b.occurredAt)));
         renderProgressData();
+      }
+      async function removeSavedTurn(turnRecordId) {
+        const turn = statsTurns.find((item) => item.id === turnRecordId);
+        if (!turn) return;
+        const when = [turn.localDate, String(turn.localTime || '').slice(0, 5)].filter(Boolean).join(' · ') || 'this saved turn';
+        if (!window.confirm(`Remove ${turn.athleteName}'s ${when} turn? This cannot be undone.`)) return;
+        const button = document.querySelector(`[data-remove-turn="${turnRecordId}"]`);
+        if (button) button.disabled = true;
+        try {
+          await deleteTurnRecord(turnRecordId);
+          statsTurns = statsTurns.filter((item) => item.id !== turnRecordId);
+          renderProgressData();
+          toast('Saved turn removed.', 'success');
+        } catch (error) {
+          if (button) button.disabled = false;
+          toast(error?.message || 'Could not remove this turn.');
+        }
       }
       function setProgressPeriod(period) {
         statsPeriod = period;
@@ -1531,6 +1608,7 @@
           el('#turnResultWord').textContent = lastTurn.cards === 1 ? 'card' : 'cards';
           el('#turnResultSummary').textContent = lastTurn.name + ' did ' + formatCircles(lastTurn.work) + '.';
           renderTurnSyncStatus();
+          renderUndoButton();
         }
         if (el('#turnFlowDialog').open) requestAnimationFrame(() => el('#turnDialogTitle').focus());
       }
@@ -1621,8 +1699,10 @@
           base: previousTurn?.base || result.base,
           increment: previousTurn?.increment || result.increment,
           ...timestamp,
-          syncStatus: previousTurn?.syncStatus || '',
-          syncTone: previousTurn?.syncTone || ''
+          syncStatus: '',
+          syncTone: '',
+          persistenceState: 'saving',
+          wasSavedRemotely: false
         };
         setTurnStep('result');
         celebrateTurnResult();
@@ -1631,6 +1711,24 @@
       }
       function editTurnAmount() {
         setTurnStep('amount');
+      }
+      async function undoLastTurn() {
+        const turn = lastTurn;
+        if (!turn || turn.persistenceState === 'saving' || turn.persistenceState === 'undoing') return;
+        setTurnPersistenceState('undoing');
+        setTurnSyncStatus('Undoing this turn…', 'waiting');
+        try {
+          await deleteTurnRecord(turn.cloudId);
+          removeQueuedTurn(turn.cloudId);
+          if (el('#progressDialog').open) await loadProgressTurns();
+          resetTurn();
+          toast(`${turn.name.split(' ')[0]}'s turn was removed.`, 'success');
+        } catch (error) {
+          if (lastTurn?.cloudId === turn.cloudId) {
+            setTurnPersistenceState('saved');
+            setTurnSyncStatus(error?.message || 'Could not undo this turn. Try again.', 'problem');
+          }
+        }
       }
       function nextKid() {
         resetTurn();
@@ -1743,6 +1841,7 @@
       el('#turnCircleForm').addEventListener('submit', showTurnResult);
       el('#changeTurnAthleteButton').addEventListener('click', resetTurn);
       el('#editTurnAmountButton').addEventListener('click', editTurnAmount);
+      el('#undoTurnButton').addEventListener('click', undoLastTurn);
       el('#nextKidButton').addEventListener('click', nextKid);
       el('#classForm').addEventListener('submit', createClass);
       el('#athleteForm').addEventListener('submit', saveAthlete);
@@ -1755,6 +1854,8 @@
         if (turnAthlete) { selectTurnAthlete(turnAthlete.dataset.turnAthlete); return; }
         const progressPeriod = event.target.closest('[data-progress-period]');
         if (progressPeriod) { setProgressPeriod(progressPeriod.dataset.progressPeriod); return; }
+        const removeTurn = event.target.closest('[data-remove-turn]');
+        if (removeTurn) { removeSavedTurn(removeTurn.dataset.removeTurn); return; }
         const edit = event.target.closest('[data-edit-athlete]');
         if (edit) { openAthleteDialog(edit.dataset.editAthlete); return; }
         const manage = event.target.closest('[data-manage-class]');
