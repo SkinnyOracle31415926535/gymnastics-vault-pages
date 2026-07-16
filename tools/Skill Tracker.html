@@ -350,9 +350,9 @@
       right: 12px;
       bottom: 12px;
       z-index: 60;
-      width: min(420px, calc(100vw - 24px));
+      width: min(320px, calc(100vw - 24px));
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 8px;
       padding: 8px;
       background: rgba(5, 0, 5, 0.88);
@@ -1098,8 +1098,17 @@
       color: var(--lime);
       background: var(--black);
       border: 3px inset var(--yellow);
+      cursor: pointer;
+      font-family: inherit;
       font-size: 28px;
       line-height: 1;
+    }
+
+    .add-panel-current-value.is-set-editing {
+      color: var(--black);
+      background: var(--lime);
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px var(--pink);
     }
 
     .pin-pad,
@@ -1147,7 +1156,7 @@
     }
 
     .add-panel-actions {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
     #customAddButton {
@@ -1155,29 +1164,6 @@
       background: var(--lime);
       border-color: var(--black);
       box-shadow: 4px 4px 0 var(--cyan);
-    }
-
-    #autoAddToggleButton {
-      padding-inline: 5px;
-      color: var(--black);
-      background: var(--yellow);
-      border-color: var(--white);
-      border-right-color: var(--black);
-      border-bottom-color: var(--black);
-      box-shadow: 3px 3px 0 var(--shadow);
-      font-size: 11px;
-      line-height: 0.95;
-      overflow-wrap: normal;
-      text-wrap: balance;
-    }
-
-    #autoAddToggleButton.is-active {
-      color: var(--black);
-      background: var(--yellow);
-      border-color: var(--white);
-      border-right-color: var(--black);
-      border-bottom-color: var(--black);
-      box-shadow: 3px 3px 0 var(--shadow);
     }
 
     .add-kids-input textarea {
@@ -1596,20 +1582,7 @@
     <section id="focusControls" class="focus-controls" aria-label="Locked focus controls" hidden>
       <button id="focusUndoButton" type="button" disabled>Undo</button>
       <button id="focusRedoButton" type="button" disabled>Redo</button>
-      <button id="focusAddModeButton" type="button" aria-pressed="false">Mode: View</button>
       <button id="focusUnlockButton" class="unlock-focus" type="button">Admin</button>
-    </section>
-
-    <section id="focusModePanel" class="focus-mode-panel" aria-label="Choose Focus View mode" hidden>
-      <div class="focus-mode-panel-title">Focus View Mode</div>
-      <div class="focus-mode-message">Choose what tapping a progress box does. You can change this anytime in Focus View.</div>
-      <div class="focus-mode-actions">
-        <button type="button" data-focus-mode="quick">Add +1</button>
-        <button type="button" data-focus-mode="custom" data-focus-auto-add="true">Auto Add</button>
-        <button type="button" data-focus-mode="custom" data-focus-auto-add="false">Set Total</button>
-        <button type="button" data-focus-mode="type">View Only</button>
-        <button id="cancelFocusModeButton" type="button">Cancel</button>
-      </div>
     </section>
 
     <section class="toolbar edit-tools" aria-label="Editing tools">
@@ -1677,10 +1650,10 @@
     <section id="addPanel" class="add-panel" aria-label="Add progress" hidden>
       <div id="addPanelTitle" class="add-panel-title">Add more reps</div>
       <div id="addPanelCurrent" class="add-panel-current" aria-live="polite">
-        <span class="add-panel-current-label">Current Total</span>
-        <span id="addPanelCurrentValue" class="add-panel-current-value">0</span>
+        <span id="addPanelCurrentLabel" class="add-panel-current-label">Total</span>
+        <button id="addPanelCurrentValue" class="add-panel-current-value" type="button" title="Double-click to set the total">0</button>
       </div>
-      <label class="custom-add">
+      <label id="customAddField" class="custom-add">
         <span id="customAddLabel">Add this many more</span>
         <input id="customAddInput" type="text" inputmode="none" placeholder="extra reps" readonly>
       </label>
@@ -1699,8 +1672,7 @@
         <button type="button" data-pad-action="backspace">Del</button>
       </div>
       <div class="add-panel-actions">
-        <button id="customAddButton" type="button">Add More</button>
-        <button id="autoAddToggleButton" type="button" aria-pressed="true">Auto Add: On</button>
+        <button id="customAddButton" type="button">Enter</button>
         <button id="closeAddPanelButton" type="button">Close</button>
       </div>
     </section>
@@ -2013,10 +1985,7 @@
     const focusControls = document.querySelector("#focusControls");
     const focusUndoButton = document.querySelector("#focusUndoButton");
     const focusRedoButton = document.querySelector("#focusRedoButton");
-    const focusAddModeButton = document.querySelector("#focusAddModeButton");
     const focusUnlockButton = document.querySelector("#focusUnlockButton");
-    const focusModePanel = document.querySelector("#focusModePanel");
-    const focusModeButtons = document.querySelectorAll("[data-focus-mode]");
     const settingsLockButton = document.querySelector("#settingsLockButton");
     const naModeButton = document.querySelector("#naModeButton");
     const addModeButton = document.querySelector("#addModeButton");
@@ -2024,11 +1993,12 @@
     const addPanel = document.querySelector("#addPanel");
     const addPanelTitle = document.querySelector("#addPanelTitle");
     const addPanelCurrent = document.querySelector("#addPanelCurrent");
+    const addPanelCurrentLabel = document.querySelector("#addPanelCurrentLabel");
     const addPanelCurrentValue = document.querySelector("#addPanelCurrentValue");
+    const customAddField = document.querySelector("#customAddField");
     const customAddLabel = document.querySelector("#customAddLabel");
     const customAddInput = document.querySelector("#customAddInput");
     const customAddButton = document.querySelector("#customAddButton");
-    const autoAddToggleButton = document.querySelector("#autoAddToggleButton");
     const cellEntryPanel = document.querySelector("#cellEntryPanel");
     const cellEntryTitle = document.querySelector("#cellEntryTitle");
     const cellEntryCurrent = document.querySelector("#cellEntryCurrent");
@@ -2062,7 +2032,9 @@
     let activeSheet = "sheet-1";
     let activeCustomSheetKeys = [];
     let activeAddTarget = null;
-    let autoAddEnabled = true;
+    let addPanelEntryMode = "add";
+    let addPanelSetSelectionActive = false;
+    let lastAddPanelTotalTapAt = 0;
     let selectedEntryRowIndex = null;
     let selectedEntryAthleteIndex = null;
     let activeCellEntryTarget = null;
@@ -2091,7 +2063,6 @@
     let archiveDayView = false;
     let calendarRolloverTimer = null;
     let appState = loadAppState();
-    autoAddEnabled = normalizeAutoAddEnabled(appState.focusAutoAddEnabled);
     let activeClassId = appState.activeClassId;
     let state = getActiveClassRecord().data;
     let settingsLocked = Boolean(appState.settingsLocked);
@@ -2099,7 +2070,6 @@
     const historyLimit = 60;
     const undoStack = [];
     const redoStack = [];
-    let lockedUndoDepth = 0;
     let lastHistorySnapshot = "";
 
     syncClassSelect();
@@ -2171,18 +2141,7 @@
     redoButton.addEventListener("click", redoLastChange);
     focusUndoButton.addEventListener("click", undoLastChange);
     focusRedoButton.addEventListener("click", redoLastChange);
-    focusAddModeButton.addEventListener("click", openFocusModePanel);
     focusUnlockButton.addEventListener("click", toggleSettingsLock);
-    focusModeButtons.forEach((button) => {
-      button.addEventListener("click", () => {
-        const customAutoAdd = button.dataset.focusAutoAdd;
-        enterFocusView(
-          button.dataset.focusMode,
-          customAutoAdd === undefined ? undefined : customAutoAdd === "true"
-        );
-      });
-    });
-    document.querySelector("#cancelFocusModeButton").addEventListener("click", () => closeFocusModePanel(true));
     document.querySelector("#saveSheetNameButton").addEventListener("click", renameActiveSheet);
     document.querySelector("#closeRenamePanelButton").addEventListener("click", () => closeRenamePanel(true));
     document.querySelector("#saveAddKidsButton").addEventListener("click", addKidsToActiveClass);
@@ -2257,7 +2216,7 @@
     customAddButton.addEventListener("click", () => {
       addProgressAmount(Number(customAddInput.value));
     });
-    autoAddToggleButton.addEventListener("click", toggleAutoAdd);
+    addPanelCurrentValue.addEventListener("pointerup", handleAddPanelTotalPointerUp);
     document.querySelectorAll("[data-pad-value]").forEach((button) => {
       button.addEventListener("click", () => {
         appendCustomAmountDigit(button.dataset.padValue);
@@ -2292,13 +2251,17 @@
     });
     document.querySelector("#closeAddPanelButton").addEventListener("click", () => closeAddPanel(true));
     document.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !addPanel.hidden) {
+        event.preventDefault();
+        addProgressAmount(Number(customAddInput.value));
+        return;
+      }
       if (event.key === "Escape") {
         closeAddPanel(true);
         closeCellEntryPanel(true);
         closeRenamePanel(true);
         closeAddKidsPanel(true);
         closeRemoveKidsPanel(true);
-        closeFocusModePanel(true);
         closePinLockPanel(true);
         closeSheetStatsPanel(true);
       }
@@ -2738,10 +2701,6 @@
       }
     }
 
-    function normalizeAutoAddEnabled(value) {
-      return value !== false;
-    }
-
     function normalizeAppState(candidate) {
       const source = candidate && typeof candidate === "object" ? candidate : {};
       const classes = {};
@@ -2825,7 +2784,6 @@
         activeClassId: active,
         settingsLocked: Boolean(source.settingsLocked),
         focusViewMode: normalizeFocusViewMode(source.focusViewMode),
-        focusAutoAddEnabled: normalizeAutoAddEnabled(source.focusAutoAddEnabled),
         removedBuiltInClasses,
         classes
       };
@@ -3226,7 +3184,6 @@
       closeRenamePanel();
       closeAddKidsPanel();
       closeRemoveKidsPanel();
-      closeFocusModePanel();
       closePinLockPanel();
       closeSheetStatsPanel();
       pendingConfirmAction = onConfirm;
@@ -3263,7 +3220,6 @@
       closeAddKidsPanel();
       closeRemoveKidsPanel();
       closeConfirmPanel();
-      closeFocusModePanel();
       closeSheetStatsPanel();
       pendingPinAction = onUnlock;
       enteredPin = "";
@@ -3399,7 +3355,7 @@
 
     function toggleSettingsLock() {
       if (!settingsLocked) {
-        openFocusModePanel();
+        enterFocusView();
         return;
       }
 
@@ -3408,9 +3364,7 @@
         "Enter PIN to leave Focus View and edit.",
         () => {
           settingsLocked = false;
-          lockedUndoDepth = 0;
           resetFocusViewTransientState();
-          closeFocusModePanel();
           applySettingsLockState();
           saveState(false);
           storageStatus.textContent = "focus view off";
@@ -3419,101 +3373,37 @@
       );
     }
 
-    function openFocusModePanel() {
-      closeAddPanel();
-      closeCellEntryPanel();
-      closeRenamePanel();
-      closeAddKidsPanel();
-      closeRemoveKidsPanel();
-      closeConfirmPanel();
-      closePinLockPanel();
-      closeSheetStatsPanel();
-      focusModePanel.hidden = false;
-      playSound("open");
-    }
-
-    function closeFocusModePanel(shouldPlay = false) {
-      const wasOpen = !focusModePanel.hidden;
-      focusModePanel.hidden = true;
-      if (shouldPlay && wasOpen) {
-        storageStatus.textContent = "canceled";
-        playSound("cancel");
-      }
-    }
-
-    function enterFocusView(mode, customAutoAdd) {
+    function enterFocusView() {
       resetFocusViewTransientState();
-      if (typeof customAutoAdd === "boolean") {
-        autoAddEnabled = customAutoAdd;
-        appState.focusAutoAddEnabled = autoAddEnabled;
-        updateAutoAddToggle();
-      }
-      focusViewMode = normalizeFocusViewMode(mode);
+      focusViewMode = customAddMode;
       applyFocusViewMode(focusViewMode);
-      closeFocusModePanel();
       settingsLocked = true;
       applySettingsLockState();
       saveState(false);
       resetHistoryBaseline();
-      storageStatus.textContent = `${focusViewModeLabel(focusViewMode)} focus view`;
+      storageStatus.textContent = "focus view on";
       playSound("save");
     }
 
-    function normalizeFocusViewMode(mode) {
-      if (mode === quickAddMode || mode === customAddMode) {
-        return mode;
-      }
-      return "type";
+    function normalizeFocusViewMode() {
+      return customAddMode;
     }
 
-    function focusViewModeLabel(mode) {
-      const normalized = normalizeFocusViewMode(mode);
-      if (normalized === quickAddMode) {
-        return "+1";
-      }
-      if (normalized === customAddMode) {
-        return autoAddEnabled ? "auto add" : "set total";
-      }
-      return "view only";
-    }
-
-    function updateFocusAddModeButton() {
-      const normalized = normalizeFocusViewMode(focusViewMode);
-      const label = normalized === quickAddMode
-        ? "Mode: +1"
-        : normalized === customAddMode
-          ? autoAddEnabled ? "Mode: Add" : "Mode: Set"
-          : "Mode: View";
-      const description = normalized === quickAddMode
-        ? "Add 1"
-        : normalized === customAddMode
-          ? autoAddEnabled ? "Auto Add" : "Set Total"
-          : "View Only";
-      focusAddModeButton.textContent = label;
-      focusAddModeButton.setAttribute("aria-pressed", String(normalized !== "type"));
-      focusAddModeButton.setAttribute("aria-label", `${description}. Change Focus View mode`);
-      focusAddModeButton.title = "Change Focus View mode";
-    }
-
-    function applyFocusViewMode(mode, shouldPlay = false) {
-      const normalized = normalizeFocusViewMode(mode);
-      focusViewMode = normalized;
+    function applyFocusViewMode(_mode, shouldPlay = false) {
+      focusViewMode = customAddMode;
       setRemoveMode(false, false);
       setNaMode(false, false);
-      setAddMode(normalized === "type" ? false : normalized, shouldPlay);
-      updateFocusAddModeButton();
+      setAddMode(customAddMode, shouldPlay);
     }
 
     function applySettingsLockState() {
       appState.settingsLocked = settingsLocked;
       appState.focusViewMode = focusViewMode;
-      appState.focusAutoAddEnabled = autoAddEnabled;
       document.body.classList.toggle("settings-locked", settingsLocked);
       settingsLockButton.classList.toggle("is-active", settingsLocked);
       settingsLockButton.setAttribute("aria-pressed", String(settingsLocked));
       settingsLockButton.textContent = settingsLocked ? "Unlock Focus" : "Focus View";
       focusControls.hidden = !settingsLocked;
-      updateFocusAddModeButton();
       lockableSettingElements().forEach((element) => {
         element.disabled = settingsLocked;
       });
@@ -3524,7 +3414,6 @@
         closeRenamePanel();
         closeAddKidsPanel();
         closeRemoveKidsPanel();
-        closeFocusModePanel();
         closeConfirmPanel();
         closeSheetStatsPanel();
       }
@@ -4880,8 +4769,7 @@
         athlete,
         clearSelectionOnSave
       };
-      customAddInput.value = "";
-      updateAutoAddToggle();
+      resetAddPanelEntry();
       updateAddPanelCurrent();
       addPanel.hidden = false;
       playSound("open");
@@ -4891,7 +4779,7 @@
       const wasOpen = !addPanel.hidden;
       activeAddTarget = null;
       addPanel.hidden = true;
-      customAddInput.value = "";
+      resetAddPanelEntry();
       if (shouldPlay && wasOpen) {
         playSound("close");
       }
@@ -4982,79 +4870,136 @@
       playSound(isComplete && !wasComplete ? "complete" : "save");
     }
 
-    function updateAddPanelCurrent() {
+    function resetAddPanelEntry() {
+      addPanelEntryMode = "add";
+      addPanelSetSelectionActive = false;
+      lastAddPanelTotalTapAt = 0;
+      customAddInput.value = "";
+      customAddField.hidden = false;
+      addPanelCurrentValue.classList.remove("is-set-editing");
+    }
+
+    function addPanelCurrentTotal() {
       if (!activeAddTarget) {
-        setAddPanelCurrentValue("0");
-        return;
+        return 0;
       }
       const currentValue = activeAddTarget.row.values[activeAddTarget.athleteIndex] || "-";
       const currentNumber = parseNumber(currentValue);
-      const currentTotal = Number.isFinite(currentNumber) ? currentNumber : 0;
-      const addAmount = parseNumber(customAddInput.value);
-      const hasTypedAmount = cleanName(customAddInput.value) !== "" && Number.isFinite(addAmount);
-      const displayTotal = hasTypedAmount
-        ? autoAddEnabled ? currentTotal + addAmount : addAmount
-        : currentTotal;
-      setAddPanelCurrentValue(formatProgressValue(displayTotal));
+      return Number.isFinite(currentNumber) ? currentNumber : 0;
     }
 
-    function setAddPanelCurrentValue(value) {
+    function hasAddPanelDraft() {
+      return cleanName(customAddInput.value) !== "" && Number.isFinite(parseNumber(customAddInput.value));
+    }
+
+    function displayedAddPanelTotal() {
+      const currentTotal = addPanelCurrentTotal();
+      const draft = parseNumber(customAddInput.value);
+      if (!hasAddPanelDraft()) {
+        return currentTotal;
+      }
+      return addPanelEntryMode === "set" ? draft : currentTotal + draft;
+    }
+
+    function updateAddPanelCurrent() {
+      if (!activeAddTarget) {
+        addPanelCurrentLabel.textContent = "Total";
+        setAddPanelCurrentValue("0");
+        return;
+      }
+
+      const currentTotal = addPanelCurrentTotal();
+      const draft = parseNumber(customAddInput.value);
+      const hasDraft = hasAddPanelDraft();
+
+      if (addPanelEntryMode === "set") {
+        addPanelTitle.textContent = `Set total for ${athleteDisplayName(activeAddTarget.athlete)}`;
+        addPanelCurrentLabel.textContent = "Set total";
+        customAddField.hidden = true;
+        setAddPanelCurrentValue(hasDraft ? formatProgressValue(draft) : "—", true);
+        return;
+      }
+
+      addPanelTitle.textContent = `Add for ${athleteDisplayName(activeAddTarget.athlete)}`;
+      addPanelCurrentLabel.textContent = hasDraft
+        ? `Adding ${formatProgressValue(draft)} → total`
+        : "Total";
+      customAddField.hidden = false;
+      customAddLabel.textContent = "Add a number";
+      customAddInput.placeholder = "amount";
+      setAddPanelCurrentValue(formatProgressValue(hasDraft ? currentTotal + draft : currentTotal));
+    }
+
+    function setAddPanelCurrentValue(value, isSetEditing = false) {
       addPanelCurrentValue.textContent = value;
-      addPanelCurrent.setAttribute("aria-label", `Current Total ${value}`);
-    }
-
-    function toggleAutoAdd() {
-      autoAddEnabled = !autoAddEnabled;
-      appState.focusAutoAddEnabled = autoAddEnabled;
-      updateAutoAddToggle();
-      updateAddPanelCurrent();
-      updateFocusAddModeButton();
-      saveState(false);
-      playSound(autoAddEnabled ? "modeOn" : "modeOff");
-    }
-
-    function updateAutoAddToggle() {
-      autoAddToggleButton.textContent = autoAddEnabled ? "Auto Add" : "Set Total";
-      autoAddToggleButton.setAttribute("aria-pressed", String(autoAddEnabled));
-      autoAddToggleButton.setAttribute(
+      addPanelCurrentValue.classList.toggle("is-set-editing", isSetEditing);
+      addPanelCurrent.setAttribute("aria-label", isSetEditing ? `Set total ${value}` : `Total ${value}`);
+      addPanelCurrentValue.setAttribute(
         "aria-label",
-        autoAddEnabled ? "Auto Add is selected. Switch to Set Total" : "Set Total is selected. Switch to Auto Add"
+        isSetEditing
+          ? `Setting total ${value}. Use the keypad, then press Enter.`
+          : `Total ${value}. Double-tap to set the total.`
       );
-      autoAddToggleButton.classList.toggle("is-active", autoAddEnabled);
-      customAddLabel.textContent = autoAddEnabled ? "Add this many more" : "Set number to";
-      customAddButton.textContent = autoAddEnabled ? "Add More" : "Set Number";
-      customAddInput.placeholder = autoAddEnabled ? "extra reps" : "new total";
-      updateAddPanelTitle();
+      addPanelCurrentValue.title = isSetEditing
+        ? "Use the keypad to set this total"
+        : "Double-click to set the total";
     }
 
-    function updateAddPanelTitle() {
+    function handleAddPanelTotalPointerUp(event) {
+      if (addPanel.hidden || !activeAddTarget) {
+        return;
+      }
+      if (event.pointerType === "mouse" && event.button !== 0) {
+        return;
+      }
+      event.preventDefault();
+      const now = Date.now();
+      const isDoubleTap = now - lastAddPanelTotalTapAt <= progressDoubleTapMs;
+      lastAddPanelTotalTapAt = isDoubleTap ? 0 : now;
+      if (isDoubleTap) {
+        beginSetTotalEdit();
+      }
+    }
+
+    function beginSetTotalEdit() {
       if (!activeAddTarget) {
         return;
       }
-      const action = autoAddEnabled ? "Add more for" : "Set total for";
-      addPanelTitle.textContent = `${action} ${athleteDisplayName(activeAddTarget.athlete)}`;
+      customAddInput.value = formatProgressValue(displayedAddPanelTotal());
+      addPanelEntryMode = "set";
+      addPanelSetSelectionActive = true;
+      updateAddPanelCurrent();
+      storageStatus.textContent = "edit total, then press Enter";
+      playSound("modeOn");
     }
 
     function appendCustomAmountDigit(digit) {
       const nextDigit = String(digit || "").replace(/\D/g, "");
-      if (!nextDigit) {
+      if (!nextDigit || addPanel.hidden) {
         return;
       }
-      const current = customAddInput.value === "0" ? "" : customAddInput.value;
+      const shouldReplaceSelection = addPanelEntryMode === "set" && addPanelSetSelectionActive;
+      const current = shouldReplaceSelection || customAddInput.value === "0" ? "" : customAddInput.value;
       customAddInput.value = `${current}${nextDigit}`.slice(0, 5);
+      addPanelSetSelectionActive = false;
       updateAddPanelCurrent();
       playSound("pad");
     }
 
     function updateCustomAmount(action) {
+      if (addPanel.hidden) {
+        return;
+      }
       if (action === "clear") {
         customAddInput.value = "";
+        addPanelSetSelectionActive = false;
         updateAddPanelCurrent();
         playSound("padAction");
         return;
       }
       if (action === "backspace") {
-        customAddInput.value = customAddInput.value.slice(0, -1);
+        customAddInput.value = addPanelSetSelectionActive ? "" : customAddInput.value.slice(0, -1);
+        addPanelSetSelectionActive = false;
         updateAddPanelCurrent();
         playSound("padAction");
       }
@@ -5067,32 +5012,30 @@
         return;
       }
 
-      const { row, athleteIndex, input, clearSelectionOnSave } = activeAddTarget;
+      const { row, athleteIndex, input } = activeAddTarget;
       if (blockFocusNaCell(row, athleteIndex)) {
         return;
       }
       const hasTypedAmount = cleanName(customAddInput.value) !== "" && Number.isFinite(amount);
-      if (!hasTypedAmount || (autoAddEnabled ? amount <= 0 : amount < 0)) {
-        storageStatus.textContent = autoAddEnabled ? "pick an amount to add" : "enter a number";
+      const isSetTotal = addPanelEntryMode === "set";
+      if (!hasTypedAmount || (isSetTotal ? amount < 0 : amount <= 0)) {
+        storageStatus.textContent = isSetTotal ? "enter a total" : "pick an amount to add";
         playSound("error");
         return;
       }
       const wasComplete = progressStateName(row.values[athleteIndex], row.goal) === "complete";
       const currentNumber = parseNumber(row.values[athleteIndex]);
       const currentTotal = Number.isFinite(currentNumber) ? currentNumber : 0;
-      const nextValue = autoAddEnabled ? currentTotal + amount : amount;
+      const nextValue = isSetTotal ? amount : currentTotal + amount;
       row.values[athleteIndex] = formatProgressValue(nextValue);
       input.value = row.values[athleteIndex];
       updateRowProgress(input.closest("tr"), row);
       updateStats();
       saveState();
       closeAddPanel();
-      if (clearSelectionOnSave) {
-        clearEntrySelection();
-      }
       const isComplete = progressStateName(row.values[athleteIndex], row.goal) === "complete";
-      storageStatus.textContent = autoAddEnabled ? `added ${formatProgressValue(amount)}` : `set ${formatProgressValue(amount)}`;
-      playSound(isComplete && !wasComplete ? "complete" : "add");
+      storageStatus.textContent = isSetTotal ? `set ${formatProgressValue(amount)}` : `added ${formatProgressValue(amount)}`;
+      playSound(isComplete && !wasComplete ? "complete" : isSetTotal ? "save" : "add");
     }
 
     function blockFocusNaCell(row, athleteIndex) {
@@ -5602,7 +5545,6 @@
       appState.activeClassId = activeClassId;
       appState.settingsLocked = settingsLocked;
       appState.focusViewMode = focusViewMode;
-      appState.focusAutoAddEnabled = autoAddEnabled;
       getActiveClassRecord().data = state;
       return JSON.stringify(appState);
     }
@@ -5611,12 +5553,11 @@
       lastHistorySnapshot = snapshotCurrentState();
       undoStack.length = 0;
       redoStack.length = 0;
-      lockedUndoDepth = 0;
       updateHistoryButtons();
     }
 
     function updateHistoryButtons() {
-      const undoDisabled = undoStack.length === 0 || (settingsLocked && lockedUndoDepth >= 1);
+      const undoDisabled = undoStack.length === 0;
       const redoDisabled = redoStack.length === 0;
       undoButton.disabled = undoDisabled;
       redoButton.disabled = redoDisabled;
@@ -5632,7 +5573,6 @@
         activeClassId = appState.activeClassId;
         settingsLocked = Boolean(appState.settingsLocked);
         focusViewMode = normalizeFocusViewMode(appState.focusViewMode);
-        autoAddEnabled = normalizeAutoAddEnabled(appState.focusAutoAddEnabled);
         syncClassSelect();
         syncControlsFromState();
         activeEvent = normalizeEventFilter(viewEvent);
@@ -5671,16 +5611,9 @@
       if (!undoStack.length) {
         return;
       }
-      if (settingsLocked && lockedUndoDepth >= 1) {
-        storageStatus.textContent = "only one undo in locked mode";
-        playSound("error");
-        updateHistoryButtons();
-        return;
-      }
 
       const previousSnapshot = undoStack[undoStack.length - 1];
       const currentSnapshot = snapshotCurrentState();
-      const wasLocked = settingsLocked;
       if (!restoreHistorySnapshot(previousSnapshot)) {
         return;
       }
@@ -5689,9 +5622,6 @@
       redoStack.push(currentSnapshot);
       if (redoStack.length > historyLimit) {
         redoStack.shift();
-      }
-      if (wasLocked) {
-        lockedUndoDepth = 1;
       }
       saveState(false);
       storageStatus.textContent = "undone";
@@ -5705,7 +5635,6 @@
 
       const nextSnapshot = redoStack[redoStack.length - 1];
       const currentSnapshot = snapshotCurrentState();
-      const wasLocked = settingsLocked;
       if (!restoreHistorySnapshot(nextSnapshot)) {
         return;
       }
@@ -5714,9 +5643,6 @@
       undoStack.push(currentSnapshot);
       if (undoStack.length > historyLimit) {
         undoStack.shift();
-      }
-      if (wasLocked) {
-        lockedUndoDepth = 0;
       }
       saveState(false);
       storageStatus.textContent = "redone";
@@ -5731,9 +5657,6 @@
           undoStack.shift();
         }
         redoStack.length = 0;
-        if (settingsLocked) {
-          lockedUndoDepth = 0;
-        }
       }
       lastHistorySnapshot = snapshot;
       let saved = false;
@@ -5861,7 +5784,6 @@
         archiveDayView = false;
         settingsLocked = Boolean(appState.settingsLocked);
         focusViewMode = normalizeFocusViewMode(appState.focusViewMode);
-        autoAddEnabled = normalizeAutoAddEnabled(appState.focusAutoAddEnabled);
         resetFocusViewTransientState();
         clearEntrySelection();
         syncClassSelect();
