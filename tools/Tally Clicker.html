@@ -1506,7 +1506,6 @@
 
     function playIncrementDing(context, now, score) {
       const step = Math.min(Math.max(score, 1), 10) - 1;
-      const reachesTen = score === 10;
       const baseFrequency = 520;
       const frequency = baseFrequency * Math.pow(2, step / 12);
       const overtoneFrequency = frequency * 2.01;
@@ -1537,51 +1536,6 @@
       shine.start(now);
       bell.stop(now + 0.44);
       shine.stop(now + 0.24);
-
-      if (reachesTen) {
-        // The pitch reaches its high point at 10 and stays there afterward.
-        // This brighter, louder cue makes hitting 10 easy to notice.
-        const cheerOne = context.createOscillator();
-        const cheerTwo = context.createOscillator();
-        const cheerThree = context.createOscillator();
-        const cheerOneGain = context.createGain();
-        const cheerTwoGain = context.createGain();
-        const cheerThreeGain = context.createGain();
-        const cueStart = now + 0.012;
-        const secondNoteStart = cueStart + 0.06;
-        const thirdNoteStart = cueStart + 0.12;
-
-        cheerOne.type = "triangle";
-        cheerTwo.type = "sine";
-        cheerThree.type = "sine";
-        cheerOne.frequency.setValueAtTime(659.25, cueStart);
-        cheerTwo.frequency.setValueAtTime(783.99, secondNoteStart);
-        cheerThree.frequency.setValueAtTime(1046.5, thirdNoteStart);
-
-        cheerOneGain.gain.setValueAtTime(0.0001, cueStart);
-        cheerOneGain.gain.exponentialRampToValueAtTime(0.2, cueStart + 0.004);
-        cheerOneGain.gain.exponentialRampToValueAtTime(0.0001, cueStart + 0.105);
-        cheerTwoGain.gain.setValueAtTime(0.0001, secondNoteStart);
-        cheerTwoGain.gain.exponentialRampToValueAtTime(0.17, secondNoteStart + 0.004);
-        cheerTwoGain.gain.exponentialRampToValueAtTime(0.0001, secondNoteStart + 0.13);
-        cheerThreeGain.gain.setValueAtTime(0.0001, thirdNoteStart);
-        cheerThreeGain.gain.exponentialRampToValueAtTime(0.15, thirdNoteStart + 0.004);
-        cheerThreeGain.gain.exponentialRampToValueAtTime(0.0001, thirdNoteStart + 0.18);
-
-        cheerOne.connect(cheerOneGain);
-        cheerTwo.connect(cheerTwoGain);
-        cheerThree.connect(cheerThreeGain);
-        cheerOneGain.connect(context.destination);
-        cheerTwoGain.connect(context.destination);
-        cheerThreeGain.connect(context.destination);
-
-        cheerOne.start(cueStart);
-        cheerTwo.start(secondNoteStart);
-        cheerThree.start(thirdNoteStart);
-        cheerOne.stop(cueStart + 0.115);
-        cheerTwo.stop(secondNoteStart + 0.14);
-        cheerThree.stop(thirdNoteStart + 0.19);
-      }
     }
 
     function playMinusSound(context, now) {
