@@ -346,8 +346,8 @@
       background: rgba(0, 216, 255, 0.13);
     }
 
-    .sheet-tools {
-      grid-template-columns: repeat(3, var(--tool-button-width));
+    .sheet-create-tools {
+      grid-template-columns: var(--tool-button-width);
       background: rgba(255, 240, 74, 0.18);
     }
 
@@ -376,7 +376,7 @@
 
     .sheet-edit-actions {
       display: grid;
-      grid-template-columns: repeat(3, minmax(104px, 1fr));
+      grid-template-columns: repeat(2, minmax(104px, 1fr));
       gap: 8px;
     }
 
@@ -1472,8 +1472,8 @@
         margin-left: 0;
       }
 
-      .sheet-tools {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+      .sheet-create-tools {
+        grid-template-columns: 1fr;
       }
 
       .sheet-edit-tools {
@@ -1691,6 +1691,9 @@
         <button id="naModeButton" type="button" aria-pressed="false">n/a Mode: Off</button>
         <button id="editModeButton" type="button" aria-pressed="false">Edit</button>
       </div>
+      <div class="tool-group sheet-create-tools" aria-label="Sheet controls">
+        <button id="createSheetButton" type="button">+ New Sheet</button>
+      </div>
       <div class="toolbar-end-tools" aria-label="Focus controls">
         <div class="tool-group focus-tools" aria-label="Focus controls">
           <button id="settingsLockButton" type="button" aria-pressed="false">Focus View</button>
@@ -1700,7 +1703,6 @@
     <section id="sheetEditTools" class="sheet-edit-tools" aria-label="Sheet editing controls" hidden>
       <div id="sheetEditTitle" class="sheet-edit-title">Editing sheet</div>
       <div class="sheet-edit-actions">
-        <button id="createSheetButton" type="button">+ New Sheet</button>
         <button id="renameSheetButton" type="button">Rename Sheet</button>
         <button id="removeSheetButton" type="button">Remove Sheet</button>
       </div>
