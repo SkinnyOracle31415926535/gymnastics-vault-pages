@@ -350,9 +350,9 @@
       right: 12px;
       bottom: 12px;
       z-index: 60;
-      width: min(320px, calc(100vw - 24px));
+      width: min(420px, calc(100vw - 24px));
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 8px;
       padding: 8px;
       background: rgba(5, 0, 5, 0.88);
@@ -989,6 +989,10 @@
       transform: translateX(-50%);
     }
 
+    .focus-mode-panel {
+      z-index: 110;
+    }
+
     .sheet-stats {
       width: min(760px, calc(100% - 20px));
       max-height: min(78vh, 680px);
@@ -1205,6 +1209,10 @@
     #cancelFocusModeButton {
       height: 58px;
       min-height: 58px;
+    }
+
+    #cancelFocusModeButton {
+      grid-column: 1 / -1;
     }
 
     .confirm-panel-message,
@@ -1588,15 +1596,17 @@
     <section id="focusControls" class="focus-controls" aria-label="Locked focus controls" hidden>
       <button id="focusUndoButton" type="button" disabled>Undo</button>
       <button id="focusRedoButton" type="button" disabled>Redo</button>
+      <button id="focusAddModeButton" type="button" aria-pressed="false">Mode: View</button>
       <button id="focusUnlockButton" class="unlock-focus" type="button">Admin</button>
     </section>
 
     <section id="focusModePanel" class="focus-mode-panel" aria-label="Choose Focus View mode" hidden>
       <div class="focus-mode-panel-title">Focus View Mode</div>
-      <div class="focus-mode-message">Choose the progress mode for Focus View.</div>
+      <div class="focus-mode-message">Choose what tapping a progress box does. You can change this anytime in Focus View.</div>
       <div class="focus-mode-actions">
         <button type="button" data-focus-mode="quick">Add +1</button>
-        <button type="button" data-focus-mode="custom">Custom Add</button>
+        <button type="button" data-focus-mode="custom" data-focus-auto-add="true">Auto Add</button>
+        <button type="button" data-focus-mode="custom" data-focus-auto-add="false">Set Total</button>
         <button type="button" data-focus-mode="type">View Only</button>
         <button id="cancelFocusModeButton" type="button">Cancel</button>
       </div>
@@ -2003,6 +2013,7 @@
     const focusControls = document.querySelector("#focusControls");
     const focusUndoButton = document.querySelector("#focusUndoButton");
     const focusRedoButton = document.querySelector("#focusRedoButton");
+    const focusAddModeButton = document.querySelector("#focusAddModeButton");
     const focusUnlockButton = document.querySelector("#focusUnlockButton");
     const focusModePanel = document.querySelector("#focusModePanel");
     const focusModeButtons = document.querySelectorAll("[data-focus-mode]");
@@ -2080,6 +2091,7 @@
     let archiveDayView = false;
     let calendarRolloverTimer = null;
     let appState = loadAppState();
+    autoAddEnabled = normalizeAutoAddEnabled(appState.focusAutoAddEnabled);
     let activeClassId = appState.activeClassId;
     let state = getActiveClassRecord().data;
     let settingsLocked = Boolean(appState.settingsLocked);
@@ -2159,9 +2171,16 @@
     redoButton.addEventListener("click", redoLastChange);
     focusUndoButton.addEventListener("click", undoLastChange);
     focusRedoButton.addEventListener("click", redoLastChange);
+    focusAddModeButton.addEventListener("click", openFocusModePanel);
     focusUnlockButton.addEventListener("click", toggleSettingsLock);
     focusModeButtons.forEach((button) => {
-      button.addEventListener("click", () => enterFocusView(button.dataset.focusMode));
+      button.addEventListener("click", () => {
+        const customAutoAdd = button.dataset.focusAutoAdd;
+        enterFocusView(
+          button.dataset.focusMode,
+          customAutoAdd === undefined ? undefined : customAutoAdd === "true"
+        );
+      });
     });
     document.querySelector("#cancelFocusModeButton").addEventListener("click", () => closeFocusModePanel(true));
     document.querySelector("#saveSheetNameButton").addEventListener("click", renameActiveSheet);
@@ -2719,6 +2738,10 @@
       }
     }
 
+    function normalizeAutoAddEnabled(value) {
+      return value !== false;
+    }
+
     function normalizeAppState(candidate) {
       const source = candidate && typeof candidate === "object" ? candidate : {};
       const classes = {};
@@ -2802,6 +2825,7 @@
         activeClassId: active,
         settingsLocked: Boolean(source.settingsLocked),
         focusViewMode: normalizeFocusViewMode(source.focusViewMode),
+        focusAutoAddEnabled: normalizeAutoAddEnabled(source.focusAutoAddEnabled),
         removedBuiltInClasses,
         classes
       };
@@ -3417,8 +3441,13 @@
       }
     }
 
-    function enterFocusView(mode) {
+    function enterFocusView(mode, customAutoAdd) {
       resetFocusViewTransientState();
+      if (typeof customAutoAdd === "boolean") {
+        autoAddEnabled = customAutoAdd;
+        appState.focusAutoAddEnabled = autoAddEnabled;
+        updateAutoAddToggle();
+      }
       focusViewMode = normalizeFocusViewMode(mode);
       applyFocusViewMode(focusViewMode);
       closeFocusModePanel();
@@ -3443,9 +3472,27 @@
         return "+1";
       }
       if (normalized === customAddMode) {
-        return "custom add";
+        return autoAddEnabled ? "auto add" : "set total";
       }
       return "view only";
+    }
+
+    function updateFocusAddModeButton() {
+      const normalized = normalizeFocusViewMode(focusViewMode);
+      const label = normalized === quickAddMode
+        ? "Mode: +1"
+        : normalized === customAddMode
+          ? autoAddEnabled ? "Mode: Add" : "Mode: Set"
+          : "Mode: View";
+      const description = normalized === quickAddMode
+        ? "Add 1"
+        : normalized === customAddMode
+          ? autoAddEnabled ? "Auto Add" : "Set Total"
+          : "View Only";
+      focusAddModeButton.textContent = label;
+      focusAddModeButton.setAttribute("aria-pressed", String(normalized !== "type"));
+      focusAddModeButton.setAttribute("aria-label", `${description}. Change Focus View mode`);
+      focusAddModeButton.title = "Change Focus View mode";
     }
 
     function applyFocusViewMode(mode, shouldPlay = false) {
@@ -3454,16 +3501,19 @@
       setRemoveMode(false, false);
       setNaMode(false, false);
       setAddMode(normalized === "type" ? false : normalized, shouldPlay);
+      updateFocusAddModeButton();
     }
 
     function applySettingsLockState() {
       appState.settingsLocked = settingsLocked;
       appState.focusViewMode = focusViewMode;
+      appState.focusAutoAddEnabled = autoAddEnabled;
       document.body.classList.toggle("settings-locked", settingsLocked);
       settingsLockButton.classList.toggle("is-active", settingsLocked);
       settingsLockButton.setAttribute("aria-pressed", String(settingsLocked));
       settingsLockButton.textContent = settingsLocked ? "Unlock Focus" : "Focus View";
       focusControls.hidden = !settingsLocked;
+      updateFocusAddModeButton();
       lockableSettingElements().forEach((element) => {
         element.disabled = settingsLocked;
       });
@@ -4527,6 +4577,11 @@
         if (blockFocusNaCell(row, athleteIndex)) {
           return;
         }
+        if (settingsLocked && focusViewMode === "type") {
+          storageStatus.textContent = "Focus View is view only";
+          playSound("error");
+          return;
+        }
         if (addMode || naMode) {
           runProgressModeAction(event);
           if (addMode !== customAddMode) {
@@ -4561,6 +4616,42 @@
         saveState();
       };
       const handleProgressPointerUp = (event) => {
+        if (settingsLocked && focusViewMode === "type") {
+          event.preventDefault();
+          storageStatus.textContent = "Focus View is view only";
+          playSound("error");
+          return;
+        }
+        if (settingsLocked && addMode === customAddMode) {
+          if (event.pointerType === "mouse" && event.button !== 0) {
+            return;
+          }
+          event.preventDefault();
+          if (blockFocusNaCell(row, athleteIndex)) {
+            return;
+          }
+          const wasSelectedTarget = isEntryTarget(rowIndex, athleteIndex);
+          if (!wasSelectedTarget && (selectedEntryRowIndex !== null || selectedEntryAthleteIndex !== null)) {
+            clearEntrySelection();
+          }
+          openAddPanel(row, athleteIndex, input, athlete, wasSelectedTarget);
+          return;
+        }
+        if (settingsLocked && addMode === quickAddMode) {
+          if (isEntryTarget(rowIndex, athleteIndex)) {
+            runSelectedEntryAction(event);
+            return;
+          }
+          if (event.pointerType === "mouse" && event.button !== 0) {
+            return;
+          }
+          event.preventDefault();
+          if (blockFocusNaCell(row, athleteIndex)) {
+            return;
+          }
+          armProgressConfirmation(row, rowIndex, athleteIndex, athlete);
+          return;
+        }
         if (isEntryTarget(rowIndex, athleteIndex)) {
           runSelectedEntryAction(event);
           return;
@@ -4789,9 +4880,7 @@
         athlete,
         clearSelectionOnSave
       };
-      addPanelTitle.textContent = `Add more for ${athleteDisplayName(athlete)}`;
       customAddInput.value = "";
-      autoAddEnabled = true;
       updateAutoAddToggle();
       updateAddPanelCurrent();
       addPanel.hidden = false;
@@ -4916,18 +5005,34 @@
 
     function toggleAutoAdd() {
       autoAddEnabled = !autoAddEnabled;
+      appState.focusAutoAddEnabled = autoAddEnabled;
       updateAutoAddToggle();
       updateAddPanelCurrent();
+      updateFocusAddModeButton();
+      saveState(false);
       playSound(autoAddEnabled ? "modeOn" : "modeOff");
     }
 
     function updateAutoAddToggle() {
-      autoAddToggleButton.textContent = autoAddEnabled ? "Auto Add: On" : "Auto Add: Off";
+      autoAddToggleButton.textContent = autoAddEnabled ? "Auto Add" : "Set Total";
       autoAddToggleButton.setAttribute("aria-pressed", String(autoAddEnabled));
+      autoAddToggleButton.setAttribute(
+        "aria-label",
+        autoAddEnabled ? "Auto Add is selected. Switch to Set Total" : "Set Total is selected. Switch to Auto Add"
+      );
       autoAddToggleButton.classList.toggle("is-active", autoAddEnabled);
       customAddLabel.textContent = autoAddEnabled ? "Add this many more" : "Set number to";
       customAddButton.textContent = autoAddEnabled ? "Add More" : "Set Number";
       customAddInput.placeholder = autoAddEnabled ? "extra reps" : "new total";
+      updateAddPanelTitle();
+    }
+
+    function updateAddPanelTitle() {
+      if (!activeAddTarget) {
+        return;
+      }
+      const action = autoAddEnabled ? "Add more for" : "Set total for";
+      addPanelTitle.textContent = `${action} ${athleteDisplayName(activeAddTarget.athlete)}`;
     }
 
     function appendCustomAmountDigit(digit) {
@@ -5497,6 +5602,7 @@
       appState.activeClassId = activeClassId;
       appState.settingsLocked = settingsLocked;
       appState.focusViewMode = focusViewMode;
+      appState.focusAutoAddEnabled = autoAddEnabled;
       getActiveClassRecord().data = state;
       return JSON.stringify(appState);
     }
@@ -5526,6 +5632,7 @@
         activeClassId = appState.activeClassId;
         settingsLocked = Boolean(appState.settingsLocked);
         focusViewMode = normalizeFocusViewMode(appState.focusViewMode);
+        autoAddEnabled = normalizeAutoAddEnabled(appState.focusAutoAddEnabled);
         syncClassSelect();
         syncControlsFromState();
         activeEvent = normalizeEventFilter(viewEvent);
@@ -5754,6 +5861,7 @@
         archiveDayView = false;
         settingsLocked = Boolean(appState.settingsLocked);
         focusViewMode = normalizeFocusViewMode(appState.focusViewMode);
+        autoAddEnabled = normalizeAutoAddEnabled(appState.focusAutoAddEnabled);
         resetFocusViewTransientState();
         clearEntrySelection();
         syncClassSelect();
