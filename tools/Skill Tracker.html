@@ -526,7 +526,8 @@
         var(--paper);
     }
 
-    label {
+    label,
+    .custom-add {
       display: grid;
       gap: 3px;
       font-family: var(--font-mono);
@@ -992,6 +993,9 @@
       color: var(--black);
       font-family: var(--font-mono);
       font-size: clamp(12px, calc(var(--athlete-col-width) * 0.24), var(--table-text-font-size));
+      pointer-events: none;
+      caret-color: transparent;
+      user-select: none;
     }
 
     body.na-mode td.progress {
@@ -1230,6 +1234,13 @@
       text-align: left;
     }
 
+    #customAddInput,
+    #cellEntryInput {
+      pointer-events: none;
+      caret-color: transparent;
+      user-select: none;
+    }
+
     .add-panel-actions,
     .cell-entry-actions,
     .rename-panel-actions,
@@ -1342,10 +1353,6 @@
 
     tbody tr:hover td {
       background-color: #fff9a6;
-    }
-
-    tbody tr:hover td.progress::before {
-      background: linear-gradient(90deg, rgba(255, 75, 216, 0.7), rgba(0, 216, 255, 0.78));
     }
 
     .footer {
@@ -1715,7 +1722,7 @@
     <section class="toolbar class-tools" aria-label="Class tools">
       <label>
         Class or kid names
-        <input id="newClassInput" type="text" placeholder="class name or kid names">
+        <input id="newClassInput" type="text" placeholder="class name or kid names" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       </label>
       <button id="createClassButton" type="button">Create Class</button>
       <button id="addKidsButton" type="button">Add Kids</button>
@@ -1751,10 +1758,10 @@
         <span id="addPanelCurrentLabel" class="add-panel-current-label">Total</span>
         <button id="addPanelCurrentValue" class="add-panel-current-value" type="button" title="Double-click to set the total">0</button>
       </div>
-      <label id="customAddField" class="custom-add">
+      <div id="customAddField" class="custom-add">
         <span id="customAddLabel">Add this many more</span>
-        <input id="customAddInput" type="text" inputmode="none" placeholder="extra reps" readonly>
-      </label>
+        <input id="customAddInput" type="text" inputmode="none" placeholder="extra reps" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly aria-readonly="true" tabindex="-1">
+      </div>
       <div class="pin-pad" aria-label="Custom amount keypad">
         <button type="button" data-pad-value="1">1</button>
         <button type="button" data-pad-value="2">2</button>
@@ -1778,10 +1785,10 @@
     <section id="cellEntryPanel" class="cell-entry-panel" aria-label="Set progress number" hidden>
       <div id="cellEntryTitle" class="cell-entry-panel-title">Set number</div>
       <div id="cellEntryCurrent" class="cell-entry-current">Current: -</div>
-      <label class="custom-add">
+      <div class="custom-add">
         New total
-        <input id="cellEntryInput" type="text" inputmode="none" placeholder="number" readonly>
-      </label>
+        <input id="cellEntryInput" type="text" inputmode="none" placeholder="number" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly aria-readonly="true" tabindex="-1">
+      </div>
       <div class="pin-pad" aria-label="Set number keypad">
         <button type="button" data-entry-value="1">1</button>
         <button type="button" data-entry-value="2">2</button>
@@ -1806,7 +1813,7 @@
       <div id="renamePanelTitle" class="rename-panel-title">Rename sheet</div>
       <label>
         Sheet label
-        <input id="sheetNameInput" type="text" placeholder="sheet name">
+        <input id="sheetNameInput" type="text" placeholder="sheet name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       </label>
       <div class="rename-panel-actions">
         <button id="saveSheetNameButton" type="button">Save Name</button>
@@ -1818,7 +1825,7 @@
       <div id="addKidsPanelTitle" class="add-kids-panel-title">Add kids</div>
       <label class="add-kids-input">
         Kid names
-        <textarea id="addKidsNamesInput" rows="4" placeholder="Mia, Leo, Sam"></textarea>
+        <textarea id="addKidsNamesInput" rows="4" placeholder="Mia, Leo, Sam" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
       </label>
       <div class="add-kids-actions">
         <button id="saveAddKidsButton" type="button">Add Kids</button>
@@ -4410,6 +4417,10 @@
         input.type = "text";
       }
       input.value = value;
+      input.autocomplete = "off";
+      input.setAttribute("autocorrect", "off");
+      input.setAttribute("autocapitalize", "off");
+      input.spellcheck = false;
       let currentValue = value;
       input.readOnly = textCellShouldBeReadOnly(className);
       input.setAttribute("aria-readonly", String(input.readOnly));
@@ -4632,10 +4643,15 @@
       td.dataset.athleteIndex = String(athleteIndex);
       const input = document.createElement("input");
       input.type = "text";
-      input.inputMode = "decimal";
+      input.inputMode = "none";
       input.value = row.values[athleteIndex] || "";
-      input.readOnly = settingsLocked;
-      input.setAttribute("aria-readonly", String(settingsLocked));
+      input.readOnly = true;
+      input.tabIndex = -1;
+      input.autocomplete = "off";
+      input.setAttribute("autocorrect", "off");
+      input.setAttribute("autocapitalize", "off");
+      input.spellcheck = false;
+      input.setAttribute("aria-readonly", "true");
       input.setAttribute("aria-label", `${athleteDisplayName(athlete)} ${row.skill}`);
       const runSelectedEntryAction = (event) => {
         event.preventDefault();
@@ -4648,11 +4664,11 @@
           playSound("error");
           return;
         }
-        if (addMode || naMode) {
+        if (naMode) {
           runProgressModeAction(event);
           return;
         }
-        openCellEntryPanel(row, rowIndex, athleteIndex, input, athlete);
+        openAddPanel(row, athleteIndex, input, athlete, true);
       };
       const runProgressModeAction = (event) => {
         if (!addMode && !naMode) {
@@ -4690,7 +4706,8 @@
           clearEntrySelection();
           return;
         }
-        if (settingsLocked && addMode === customAddMode) {
+        const useCustomKeypad = (settingsLocked && addMode === customAddMode) || (!settingsLocked && !naMode);
+        if (useCustomKeypad) {
           if (isEntryTarget(rowIndex, athleteIndex)) {
             runSelectedEntryAction(event);
             return;
@@ -4764,6 +4781,19 @@
           clearEntrySelection();
           return;
         }
+        const useCustomKeypad = (settingsLocked && addMode === customAddMode) || (!settingsLocked && !naMode);
+        if (useCustomKeypad) {
+          event.preventDefault();
+          if (isEntryTarget(rowIndex, athleteIndex)) {
+            runSelectedEntryAction(event);
+            return;
+          }
+          if (selectedEntryRowIndex !== null || selectedEntryAthleteIndex !== null) {
+            clearEntrySelection();
+          }
+          armProgressConfirmation(row, rowIndex, athleteIndex, athlete);
+          return;
+        }
         if (!isEntryTarget(rowIndex, athleteIndex)) {
           if (selectedEntryRowIndex !== null || selectedEntryAthleteIndex !== null) {
             clearEntrySelection();
@@ -4771,21 +4801,6 @@
           return;
         }
         runSelectedEntryAction(event);
-      });
-      input.addEventListener("input", () => {
-        if (settingsLocked) {
-          input.value = row.values[athleteIndex] || "";
-          storageStatus.textContent = "use Focus View mode";
-          playSound("error");
-          return;
-        }
-        const wasComplete = progressStateName(row.values[athleteIndex], row.goal) === "complete";
-        row.values[athleteIndex] = input.value;
-        saveState();
-        updateRowProgress(td.parentElement, row);
-        updateStats();
-        const isComplete = progressStateName(row.values[athleteIndex], row.goal) === "complete";
-        playSound(isComplete && !wasComplete ? "complete" : "edit");
       });
       td.appendChild(input);
       return td;
@@ -4902,6 +4917,9 @@
     function openAddPanel(row, athleteIndex, input, athlete, clearSelectionOnSave = false) {
       if (blockFocusNaCell(row, athleteIndex)) {
         return;
+      }
+      if (document.activeElement instanceof HTMLElement) {
+        document.activeElement.blur();
       }
       closeCellEntryPanel();
       closeRenamePanel();
