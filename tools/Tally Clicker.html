@@ -91,7 +91,12 @@
     button:active {
       color: var(--green);
       background: var(--black);
-      transform: none;
+      transform: translate(2px, 2px) scale(0.98);
+    }
+
+    button.button-press-feedback,
+    .streak-button.button-press-feedback {
+      animation: button-press-feedback 160ms steps(2, end);
     }
 
     button:disabled {
@@ -201,6 +206,7 @@
     .streak-button:active {
       color: var(--green);
       background: var(--black);
+      transform: translate(2px, 2px) scale(0.98);
     }
 
     .mode-button.active {
@@ -857,10 +863,17 @@
       50%, 100% { background: var(--black); }
     }
 
+    @keyframes button-press-feedback {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      35%, 65% { transform: translate(2px, 2px) scale(0.96); }
+    }
+
     @media (prefers-reduced-motion: reduce) {
       .celebration,
       .celebration-card,
-      .skill-flash.active {
+      .skill-flash.active,
+      button.button-press-feedback,
+      .streak-button.button-press-feedback {
         animation: none;
       }
 
@@ -2694,6 +2707,15 @@
     resetTodoDialog.addEventListener("close", () => {
       resetTodoConfirmStep = 0;
     });
+
+    document.addEventListener("click", (event) => {
+      if (!(event.target instanceof Element)) return;
+      const control = event.target.closest("button, .streak-button");
+      if (!control || (control instanceof HTMLButtonElement && control.disabled)) return;
+      control.classList.remove("button-press-feedback");
+      void control.offsetWidth;
+      control.classList.add("button-press-feedback");
+    }, true);
 
     loadState();
     render();
