@@ -3,8 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-  <link rel="apple-touch-icon" href="icons/skill-tracker-icon.png">
-  <link rel="icon" type="image/png" href="icons/skill-tracker-icon.png">
   <script>
     (() => {
       const stopZoom = (event) => event.preventDefault();
@@ -137,10 +135,6 @@
       line-height: 1.05;
       letter-spacing: 0;
       text-transform: uppercase;
-    }
-
-    button[hidden] {
-      display: none !important;
     }
 
     button:active {
@@ -346,42 +340,9 @@
       background: rgba(0, 216, 255, 0.13);
     }
 
-    .sheet-create-tools {
-      grid-template-columns: var(--tool-button-width);
+    .sheet-tools {
+      grid-template-columns: repeat(3, var(--tool-button-width));
       background: rgba(255, 240, 74, 0.18);
-    }
-
-    .sheet-edit-tools {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-      align-items: center;
-      padding: 10px;
-      background:
-        linear-gradient(90deg, rgba(255, 75, 216, 0.2), rgba(0, 216, 255, 0.22)),
-        var(--paper);
-      border-bottom: 4px double var(--black);
-    }
-
-    .sheet-edit-tools[hidden] {
-      display: none;
-    }
-
-    .sheet-edit-title {
-      color: var(--black);
-      font-family: var(--font-mono);
-      font-size: 16px;
-      font-weight: 900;
-    }
-
-    .sheet-edit-actions {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(104px, 1fr));
-      gap: 8px;
-    }
-
-    .sheet-edit-actions button {
-      min-height: 48px;
     }
 
     .focus-controls {
@@ -443,7 +404,6 @@
     body.settings-locked .day-tools,
     body.settings-locked .event-tabs,
     body.settings-locked .sheet-tabs,
-    body.settings-locked .sheet-edit-tools,
     body.settings-locked .edit-tools,
     body.settings-locked .footer,
     body.settings-locked .class-tools,
@@ -526,8 +486,7 @@
         var(--paper);
     }
 
-    label,
-    .custom-add {
+    label {
       display: grid;
       gap: 3px;
       font-family: var(--font-mono);
@@ -839,50 +798,6 @@
       resize: none;
     }
 
-    td.skill.is-sheet-editing textarea {
-      min-height: var(--table-input-height);
-      height: auto;
-    }
-
-    .skill-row-actions {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 4px;
-      padding: 4px;
-      background: rgba(0, 216, 255, 0.16);
-      border-top: 2px solid var(--grid);
-    }
-
-    .skill-row-actions button {
-      min-height: 30px;
-      height: 30px;
-      padding: 2px 4px;
-      font-family: var(--font-mono);
-      font-size: 16px;
-      font-weight: 900;
-    }
-
-    .skill-row-actions .edit-delete-skill {
-      color: var(--white);
-      background: var(--red);
-      border-color: var(--black);
-      box-shadow: 2px 2px 0 var(--shadow);
-    }
-
-    .edit-add-skill-row td {
-      padding: 8px;
-      background: rgba(140, 255, 0, 0.24) !important;
-    }
-
-    .edit-add-skill-row button {
-      width: 100%;
-      min-height: 48px;
-      color: var(--black);
-      background: var(--lime);
-      border-color: var(--black);
-      box-shadow: 4px 4px 0 var(--cyan);
-    }
-
     td.progress {
       overflow: hidden;
     }
@@ -993,9 +908,6 @@
       color: var(--black);
       font-family: var(--font-mono);
       font-size: clamp(12px, calc(var(--athlete-col-width) * 0.24), var(--table-text-font-size));
-      pointer-events: none;
-      caret-color: transparent;
-      user-select: none;
     }
 
     body.na-mode td.progress {
@@ -1039,6 +951,16 @@
     }
 
     body.add-mode td.progress input {
+      pointer-events: none;
+    }
+
+    body.remove-mode td.skill {
+      cursor: not-allowed;
+      background: #ffe7f8;
+      box-shadow: inset 0 0 0 3px rgba(255, 75, 216, 0.48);
+    }
+
+    body.remove-mode td.skill textarea {
       pointer-events: none;
     }
 
@@ -1234,13 +1156,6 @@
       text-align: left;
     }
 
-    #customAddInput,
-    #cellEntryInput {
-      pointer-events: none;
-      caret-color: transparent;
-      user-select: none;
-    }
-
     .add-panel-actions,
     .cell-entry-actions,
     .rename-panel-actions,
@@ -1353,6 +1268,10 @@
 
     tbody tr:hover td {
       background-color: #fff9a6;
+    }
+
+    tbody tr:hover td.progress::before {
+      background: linear-gradient(90deg, rgba(255, 75, 216, 0.7), rgba(0, 216, 255, 0.78));
     }
 
     .footer {
@@ -1479,15 +1398,7 @@
         margin-left: 0;
       }
 
-      .sheet-create-tools {
-        grid-template-columns: 1fr;
-      }
-
-      .sheet-edit-tools {
-        grid-template-columns: 1fr;
-      }
-
-      .sheet-edit-actions {
+      .sheet-tools {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
@@ -1538,9 +1449,6 @@
       .toolbar,
       .event-tabs,
       .sheet-tabs,
-      .sheet-edit-tools,
-      .skill-row-actions,
-      .edit-add-skill-row,
       .ticker,
       .footer {
         display: none;
@@ -1695,11 +1603,17 @@
         <button id="redoButton" type="button" disabled>Redo</button>
       </div>
       <div class="tool-group mode-tools" aria-label="Mode controls">
+        <button id="addModeButton" type="button" aria-pressed="false">Add Mode: Off</button>
         <button id="naModeButton" type="button" aria-pressed="false">n/a Mode: Off</button>
-        <button id="editModeButton" type="button" aria-pressed="false">Edit</button>
       </div>
-      <div class="tool-group sheet-create-tools" aria-label="Sheet controls">
-        <button id="createSheetButton" type="button">+ New Sheet</button>
+      <div class="tool-group skill-tools" aria-label="Skill editing controls">
+        <button id="addRowButton" type="button">Add Skill</button>
+        <button id="removeModeButton" type="button" aria-pressed="false">Remove Skill: Off</button>
+      </div>
+      <div class="tool-group sheet-tools" aria-label="Sheet naming controls">
+        <button id="createSheetButton" type="button">Create Sheet</button>
+        <button id="renameSheetButton" type="button">Name Sheet</button>
+        <button id="removeSheetButton" type="button">Remove Sheet</button>
       </div>
       <div class="toolbar-end-tools" aria-label="Focus controls">
         <div class="tool-group focus-tools" aria-label="Focus controls">
@@ -1707,13 +1621,7 @@
         </div>
       </div>
     </section>
-    <section id="sheetEditTools" class="sheet-edit-tools" aria-label="Sheet editing controls" hidden>
-      <div id="sheetEditTitle" class="sheet-edit-title">Editing sheet</div>
-      <div class="sheet-edit-actions">
-        <button id="renameSheetButton" type="button">Rename Sheet</button>
-        <button id="removeSheetButton" type="button">Remove Sheet</button>
-      </div>
-    </section>
+
     <footer class="footer">
       <span><span class="blink">NEW</span> Gymnastics skill sheets and class saves are loaded.</span>
       <span id="storageStatus" role="status" aria-live="polite">local save on</span>
@@ -1722,7 +1630,7 @@
     <section class="toolbar class-tools" aria-label="Class tools">
       <label>
         Class or kid names
-        <input id="newClassInput" type="text" placeholder="class name or kid names" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input id="newClassInput" type="text" placeholder="class name or kid names">
       </label>
       <button id="createClassButton" type="button">Create Class</button>
       <button id="addKidsButton" type="button">Add Kids</button>
@@ -1758,10 +1666,10 @@
         <span id="addPanelCurrentLabel" class="add-panel-current-label">Total</span>
         <button id="addPanelCurrentValue" class="add-panel-current-value" type="button" title="Double-click to set the total">0</button>
       </div>
-      <div id="customAddField" class="custom-add">
+      <label id="customAddField" class="custom-add">
         <span id="customAddLabel">Add this many more</span>
-        <input id="customAddInput" type="text" inputmode="none" placeholder="extra reps" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly aria-readonly="true" tabindex="-1">
-      </div>
+        <input id="customAddInput" type="text" inputmode="none" placeholder="extra reps" readonly>
+      </label>
       <div class="pin-pad" aria-label="Custom amount keypad">
         <button type="button" data-pad-value="1">1</button>
         <button type="button" data-pad-value="2">2</button>
@@ -1785,10 +1693,10 @@
     <section id="cellEntryPanel" class="cell-entry-panel" aria-label="Set progress number" hidden>
       <div id="cellEntryTitle" class="cell-entry-panel-title">Set number</div>
       <div id="cellEntryCurrent" class="cell-entry-current">Current: -</div>
-      <div class="custom-add">
+      <label class="custom-add">
         New total
-        <input id="cellEntryInput" type="text" inputmode="none" placeholder="number" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" readonly aria-readonly="true" tabindex="-1">
-      </div>
+        <input id="cellEntryInput" type="text" inputmode="none" placeholder="number" readonly>
+      </label>
       <div class="pin-pad" aria-label="Set number keypad">
         <button type="button" data-entry-value="1">1</button>
         <button type="button" data-entry-value="2">2</button>
@@ -1813,7 +1721,7 @@
       <div id="renamePanelTitle" class="rename-panel-title">Rename sheet</div>
       <label>
         Sheet label
-        <input id="sheetNameInput" type="text" placeholder="sheet name" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <input id="sheetNameInput" type="text" placeholder="sheet name">
       </label>
       <div class="rename-panel-actions">
         <button id="saveSheetNameButton" type="button">Save Name</button>
@@ -1825,7 +1733,7 @@
       <div id="addKidsPanelTitle" class="add-kids-panel-title">Add kids</div>
       <label class="add-kids-input">
         Kid names
-        <textarea id="addKidsNamesInput" rows="4" placeholder="Mia, Leo, Sam" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+        <textarea id="addKidsNamesInput" rows="4" placeholder="Mia, Leo, Sam"></textarea>
       </label>
       <div class="add-kids-actions">
         <button id="saveAddKidsButton" type="button">Add Kids</button>
@@ -2093,9 +2001,8 @@
     const focusUnlockButton = document.querySelector("#focusUnlockButton");
     const settingsLockButton = document.querySelector("#settingsLockButton");
     const naModeButton = document.querySelector("#naModeButton");
-    const editModeButton = document.querySelector("#editModeButton");
-    const sheetEditTools = document.querySelector("#sheetEditTools");
-    const sheetEditTitle = document.querySelector("#sheetEditTitle");
+    const addModeButton = document.querySelector("#addModeButton");
+    const removeModeButton = document.querySelector("#removeModeButton");
     const addPanelBackdrop = document.querySelector("#addPanelBackdrop");
     const addPanel = document.querySelector("#addPanel");
     const addPanelTitle = document.querySelector("#addPanelTitle");
@@ -2131,9 +2038,10 @@
     const pinDisplay = document.querySelector("#pinDisplay");
     const submitPinButton = document.querySelector("#submitPinButton");
     let naMode = false;
+    const quickAddMode = "quick";
     const customAddMode = "custom";
     let addMode = false;
-    let sheetEditMode = false;
+    let removeMode = false;
     let activeEvent = "floor";
     let activeSheet = "sheet-1";
     let activeCustomSheetKeys = [];
@@ -2212,6 +2120,24 @@
     document.addEventListener("touchend", preventBrowserDoubleTapZoom, { passive: false });
     document.addEventListener("click", playButtonFallbackSound);
 
+    document.querySelector("#addRowButton").addEventListener("click", () => {
+      if (blockLockedSettings()) {
+        return;
+      }
+      state.rows.push({
+        event: activeEvent,
+        sheet: activeSheet,
+        skill: "New skill",
+        goal: "100",
+        values: defaultValues()
+      });
+      saveState();
+      playSound("add");
+      render();
+      updateStats();
+      focusLastSkill();
+    });
+
     document.querySelector("#createClassButton").addEventListener("click", createClassFromInput);
     document.querySelector("#addKidsButton").addEventListener("click", addKidsToActiveClass);
     document.querySelector("#removeKidsButton").addEventListener("click", openRemoveKidsPanel);
@@ -2284,11 +2210,17 @@
       }
       setNaMode(!naMode);
     });
-    editModeButton.addEventListener("click", () => {
+    addModeButton.addEventListener("click", () => {
       if (blockLockedSettings()) {
         return;
       }
-      setSheetEditMode(!sheetEditMode);
+      cycleAddMode();
+    });
+    removeModeButton.addEventListener("click", () => {
+      if (blockLockedSettings()) {
+        return;
+      }
+      confirmRemoveModeToggle();
     });
     eventButtons.forEach((button) => {
       button.addEventListener("click", () => {
@@ -3447,8 +3379,6 @@
         () => {
           settingsLocked = false;
           resetFocusViewTransientState();
-          setAddMode(false, false);
-          setSheetEditMode(false, false);
           applySettingsLockState();
           saveState(false);
           storageStatus.textContent = "focus view off";
@@ -3458,7 +3388,6 @@
     }
 
     function enterFocusView() {
-      setSheetEditMode(false, false);
       resetFocusViewTransientState();
       focusViewMode = customAddMode;
       applyFocusViewMode(focusViewMode);
@@ -3476,6 +3405,7 @@
 
     function applyFocusViewMode(_mode, shouldPlay = false) {
       focusViewMode = customAddMode;
+      setRemoveMode(false, false);
       setNaMode(false, false);
       setAddMode(customAddMode, shouldPlay);
     }
@@ -3493,7 +3423,7 @@
       });
 
       if (settingsLocked) {
-        setSheetEditMode(false, false);
+        setRemoveMode(false, false);
         applyFocusViewMode(focusViewMode, false);
         closeRenamePanel();
         closeAddKidsPanel();
@@ -3516,8 +3446,10 @@
         classSelect,
         savedDaySelect,
         newClassInput,
+        addModeButton,
+        removeModeButton,
         naModeButton,
-        editModeButton,
+        document.querySelector("#addRowButton"),
         document.querySelector("#createSheetButton"),
         document.querySelector("#renameSheetButton"),
         document.querySelector("#removeSheetButton"),
@@ -4056,7 +3988,6 @@
       const record = getActiveClassRecord();
       record.sheetLabels[sheetLabelKey(activeEvent, activeSheet)] = nextLabel;
       renderSheetTabs();
-      syncSheetEditModeUI();
       updateSheetStatsPage();
       saveState();
       closeRenamePanel();
@@ -4380,7 +4311,6 @@
     }
 
     function render() {
-      syncSheetEditModeUI();
       trackerBody.innerHTML = "";
       visibleRows().forEach(({ row, rowIndex }) => {
         const tr = document.createElement("tr");
@@ -4398,9 +4328,6 @@
         trackerBody.appendChild(tr);
         updateRowProgress(tr, row);
       });
-      if (sheetEditMode && !settingsLocked) {
-        appendEditAddSkillRow();
-      }
       updateEntrySelectionUI();
     }
 
@@ -4417,10 +4344,6 @@
         input.type = "text";
       }
       input.value = value;
-      input.autocomplete = "off";
-      input.setAttribute("autocorrect", "off");
-      input.setAttribute("autocapitalize", "off");
-      input.spellcheck = false;
       let currentValue = value;
       input.readOnly = textCellShouldBeReadOnly(className);
       input.setAttribute("aria-readonly", String(input.readOnly));
@@ -4429,7 +4352,7 @@
           input.value = currentValue;
           return;
         }
-        if (className === "skill" && naMode) {
+        if (className === "skill" && (naMode || removeMode)) {
           input.value = currentValue;
           input.blur();
           return;
@@ -4445,18 +4368,13 @@
       });
       td.appendChild(input);
       if (className === "skill") {
-        if (sheetEditMode && !settingsLocked) {
-          td.classList.add("is-sheet-editing");
-          appendSkillEditActions(td, rowIndex);
-        }
-        td.title = settingsLocked
-          ? "Settings are locked"
-          : sheetEditMode ? "Use the controls below to reorder or remove this skill" : "Tap a skill, then a green box";
+        td.title = settingsLocked ? "Settings are locked" : "Turn on Remove Skill, then tap here to remove this skill";
         td.addEventListener("click", (event) => {
           if (handleBulkNaRowClick(event, rowIndex)) {
             return;
           }
-          if (sheetEditMode) {
+          if (removeMode) {
+            removeSkill(rowIndex);
             return;
           }
           if (event.detail === 2 && selectedEntryRowIndex === rowIndex) {
@@ -4471,100 +4389,8 @@
       return td;
     }
 
-    function appendSkillEditActions(td, rowIndex) {
-      const activeRows = rowsForActiveSheet();
-      const position = activeRows.findIndex((entry) => entry.rowIndex === rowIndex);
-      const actions = document.createElement("div");
-      actions.className = "skill-row-actions";
-      const makeAction = (label, title, onClick) => {
-        const button = document.createElement("button");
-        button.type = "button";
-        button.textContent = label;
-        button.title = title;
-        button.setAttribute("aria-label", title);
-        button.addEventListener("click", (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          onClick();
-        });
-        actions.appendChild(button);
-        return button;
-      };
-      const moveUpButton = makeAction("↑", "Move skill up", () => moveSkillWithinActiveSheet(rowIndex, -1));
-      const moveDownButton = makeAction("↓", "Move skill down", () => moveSkillWithinActiveSheet(rowIndex, 1));
-      const removeButton = makeAction("×", "Remove skill", () => removeSkill(rowIndex));
-      removeButton.classList.add("edit-delete-skill");
-      moveUpButton.disabled = position <= 0;
-      moveDownButton.disabled = position < 0 || position >= activeRows.length - 1;
-      td.appendChild(actions);
-    }
-
-    function appendEditAddSkillRow() {
-      const tr = document.createElement("tr");
-      tr.className = "edit-add-skill-row";
-      const td = document.createElement("td");
-      td.colSpan = 2 + visibleAthleteEntries().length;
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = "+ New Skill";
-      button.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        addSkillToActiveSheet();
-      });
-      td.appendChild(button);
-      tr.appendChild(td);
-      trackerBody.appendChild(tr);
-    }
-
-    function addSkillToActiveSheet() {
-      if (blockLockedSettings()) {
-        return;
-      }
-      state.rows.push({
-        event: activeEvent,
-        sheet: activeSheet,
-        skill: "New skill",
-        goal: "100",
-        values: defaultValues()
-      });
-      saveState();
-      render();
-      updateStats();
-      storageStatus.textContent = "added new skill";
-      playSound("add");
-      focusLastSkill();
-    }
-
-    function moveSkillWithinActiveSheet(rowIndex, direction) {
-      if (blockLockedSettings()) {
-        return;
-      }
-      const activeRows = rowsForActiveSheet();
-      const position = activeRows.findIndex((entry) => entry.rowIndex === rowIndex);
-      const target = activeRows[position + direction];
-      if (position < 0 || !target) {
-        playSound("error");
-        return;
-      }
-      const row = state.rows[rowIndex];
-      const targetRow = state.rows[target.rowIndex];
-      if (!row || !targetRow) {
-        storageStatus.textContent = "skill missing";
-        playSound("error");
-        return;
-      }
-      [state.rows[rowIndex], state.rows[target.rowIndex]] = [targetRow, row];
-      clearEntrySelection();
-      saveState();
-      render();
-      updateStats();
-      storageStatus.textContent = `moved ${cleanName(row.skill) || "skill"} ${direction < 0 ? "up" : "down"}`;
-      playSound("click");
-    }
-
     function textCellShouldBeReadOnly(className) {
-      return settingsLocked || (className === "skill" && naMode);
+      return settingsLocked || (className === "skill" && (naMode || removeMode));
     }
 
     function syncTextCellEditState() {
@@ -4643,15 +4469,10 @@
       td.dataset.athleteIndex = String(athleteIndex);
       const input = document.createElement("input");
       input.type = "text";
-      input.inputMode = "none";
+      input.inputMode = "decimal";
       input.value = row.values[athleteIndex] || "";
-      input.readOnly = true;
-      input.tabIndex = -1;
-      input.autocomplete = "off";
-      input.setAttribute("autocorrect", "off");
-      input.setAttribute("autocapitalize", "off");
-      input.spellcheck = false;
-      input.setAttribute("aria-readonly", "true");
+      input.readOnly = settingsLocked;
+      input.setAttribute("aria-readonly", String(settingsLocked));
       input.setAttribute("aria-label", `${athleteDisplayName(athlete)} ${row.skill}`);
       const runSelectedEntryAction = (event) => {
         event.preventDefault();
@@ -4664,11 +4485,14 @@
           playSound("error");
           return;
         }
-        if (naMode) {
+        if (addMode || naMode) {
           runProgressModeAction(event);
+          if (addMode !== customAddMode) {
+            clearEntrySelection();
+          }
           return;
         }
-        openAddPanel(row, athleteIndex, input, athlete, true);
+        openCellEntryPanel(row, rowIndex, athleteIndex, input, athlete);
       };
       const runProgressModeAction = (event) => {
         if (!addMode && !naMode) {
@@ -4680,7 +4504,11 @@
           return;
         }
         if (addMode) {
-          openAddPanel(row, athleteIndex, input, athlete, isEntryTarget(rowIndex, athleteIndex));
+          if (addMode === customAddMode) {
+            openAddPanel(row, athleteIndex, input, athlete, isEntryTarget(rowIndex, athleteIndex));
+            return;
+          }
+          addProgressDirect(row, athleteIndex, input, td, 1);
           return;
         }
 
@@ -4697,17 +4525,7 @@
           playSound("error");
           return;
         }
-        if (naMode && !settingsLocked) {
-          if (event.pointerType === "mouse" && event.button !== 0) {
-            return;
-          }
-          event.preventDefault();
-          runProgressModeAction(event);
-          clearEntrySelection();
-          return;
-        }
-        const useCustomKeypad = (settingsLocked && addMode === customAddMode) || (!settingsLocked && !naMode);
-        if (useCustomKeypad) {
+        if (settingsLocked && addMode === customAddMode) {
           if (isEntryTarget(rowIndex, athleteIndex)) {
             runSelectedEntryAction(event);
             return;
@@ -4721,6 +4539,21 @@
           }
           if (selectedEntryRowIndex !== null || selectedEntryAthleteIndex !== null) {
             clearEntrySelection();
+          }
+          armProgressConfirmation(row, rowIndex, athleteIndex, athlete);
+          return;
+        }
+        if (settingsLocked && addMode === quickAddMode) {
+          if (isEntryTarget(rowIndex, athleteIndex)) {
+            runSelectedEntryAction(event);
+            return;
+          }
+          if (event.pointerType === "mouse" && event.button !== 0) {
+            return;
+          }
+          event.preventDefault();
+          if (blockFocusNaCell(row, athleteIndex)) {
+            return;
           }
           armProgressConfirmation(row, rowIndex, athleteIndex, athlete);
           return;
@@ -4752,7 +4585,7 @@
 
         if (!isDoubleTap) {
           storageStatus.textContent = addMode
-            ? "double click for custom add"
+            ? addMode === customAddMode ? "double click for custom add" : "double click to add 1"
             : "double click for n/a";
           return;
         }
@@ -4760,7 +4593,7 @@
         armProgressConfirmation(row, rowIndex, athleteIndex, athlete);
       };
       const handleProgressDoubleClick = (event) => {
-        if (window.PointerEvent || (!addMode && !naMode) || (naMode && !settingsLocked)) {
+        if (window.PointerEvent || (!addMode && !naMode)) {
           return;
         }
         event.preventDefault();
@@ -4775,25 +4608,6 @@
         if (window.PointerEvent) {
           return;
         }
-        if (naMode && !settingsLocked) {
-          event.preventDefault();
-          runProgressModeAction(event);
-          clearEntrySelection();
-          return;
-        }
-        const useCustomKeypad = (settingsLocked && addMode === customAddMode) || (!settingsLocked && !naMode);
-        if (useCustomKeypad) {
-          event.preventDefault();
-          if (isEntryTarget(rowIndex, athleteIndex)) {
-            runSelectedEntryAction(event);
-            return;
-          }
-          if (selectedEntryRowIndex !== null || selectedEntryAthleteIndex !== null) {
-            clearEntrySelection();
-          }
-          armProgressConfirmation(row, rowIndex, athleteIndex, athlete);
-          return;
-        }
         if (!isEntryTarget(rowIndex, athleteIndex)) {
           if (selectedEntryRowIndex !== null || selectedEntryAthleteIndex !== null) {
             clearEntrySelection();
@@ -4801,6 +4615,21 @@
           return;
         }
         runSelectedEntryAction(event);
+      });
+      input.addEventListener("input", () => {
+        if (settingsLocked) {
+          input.value = row.values[athleteIndex] || "";
+          storageStatus.textContent = "use Focus View mode";
+          playSound("error");
+          return;
+        }
+        const wasComplete = progressStateName(row.values[athleteIndex], row.goal) === "complete";
+        row.values[athleteIndex] = input.value;
+        saveState();
+        updateRowProgress(td.parentElement, row);
+        updateStats();
+        const isComplete = progressStateName(row.values[athleteIndex], row.goal) === "complete";
+        playSound(isComplete && !wasComplete ? "complete" : "edit");
       });
       td.appendChild(input);
       return td;
@@ -4810,10 +4639,8 @@
       const changed = naMode !== isOn;
       naMode = isOn;
       if (naMode) {
-        if (sheetEditMode) {
-          setSheetEditMode(false, false);
-        }
         setAddMode(false, false);
+        setRemoveMode(false, false);
       }
       document.body.classList.toggle("na-mode", naMode);
       naModeButton.classList.toggle("is-active", naMode);
@@ -4831,42 +4658,35 @@
     }
 
     function normalizeAddMode(mode) {
+      if (mode === true || mode === quickAddMode) {
+        return quickAddMode;
+      }
       if (mode === customAddMode) {
         return customAddMode;
       }
       return false;
     }
 
-    function setSheetEditMode(isOn, shouldPlay = true) {
-      const nextMode = Boolean(isOn) && !settingsLocked;
-      const changed = sheetEditMode !== nextMode;
-      if (nextMode) {
-        setNaMode(false, false);
-        setAddMode(false, false);
-      }
-      sheetEditMode = nextMode;
-      document.body.classList.toggle("sheet-edit-mode", sheetEditMode);
-      sheetEditTools.hidden = !sheetEditMode;
-      editModeButton.classList.toggle("is-active", sheetEditMode);
-      editModeButton.setAttribute("aria-pressed", String(sheetEditMode));
-      editModeButton.textContent = sheetEditMode ? "Done" : "Edit";
-      syncSheetEditModeUI();
-      clearEntrySelection();
-      if (changed) {
-        render();
-      }
-      if (changed && shouldPlay) {
-        storageStatus.textContent = sheetEditMode ? "edit mode on" : "edit mode off";
-        playSound(sheetEditMode ? "modeOn" : "modeOff");
-      }
-    }
-
-    function syncSheetEditModeUI() {
-      sheetEditTools.hidden = !sheetEditMode;
-      if (!sheetEditMode) {
+    function cycleAddMode() {
+      if (!addMode) {
+        setAddMode(quickAddMode);
         return;
       }
-      sheetEditTitle.textContent = `Editing ${getEventLabel(activeEvent)} / ${getSheetLabel(activeEvent, activeSheet)}`;
+      if (addMode === quickAddMode) {
+        setAddMode(customAddMode);
+        return;
+      }
+      setAddMode(false);
+    }
+
+    function addModeButtonText(mode) {
+      if (mode === quickAddMode) {
+        return "Add Mode: +1";
+      }
+      if (mode === customAddMode) {
+        return "Add Mode: Custom";
+      }
+      return "Add Mode: Off";
     }
 
     function setAddMode(mode, shouldPlay = true) {
@@ -4875,18 +4695,52 @@
       addMode = nextMode;
       const isOn = Boolean(addMode);
       if (isOn) {
-        if (sheetEditMode) {
-          setSheetEditMode(false, false);
-        }
         setNaMode(false, false);
+        setRemoveMode(false, false);
       }
       document.body.classList.toggle("add-mode", isOn);
       document.body.classList.toggle("custom-add-mode", addMode === customAddMode);
+      addModeButton.classList.toggle("is-active", isOn);
+      addModeButton.setAttribute("aria-pressed", String(isOn));
+      addModeButton.textContent = addModeButtonText(addMode);
       if (addMode !== customAddMode) {
         closeAddPanel();
       }
       if (changed && shouldPlay) {
+        storageStatus.textContent = addModeButtonText(addMode);
         playSound(isOn ? "modeOn" : "modeOff");
+      }
+    }
+
+    function confirmRemoveModeToggle() {
+      if (removeMode) {
+        setRemoveMode(false);
+        return;
+      }
+
+      openConfirmPanel(
+        "Turn On Remove Skill",
+        "Turn on Remove Skill? Tapping a skill will ask again before removing it.",
+        "Turn On",
+        () => setRemoveMode(true)
+      );
+    }
+
+    function setRemoveMode(isOn, shouldPlay = true) {
+      const changed = removeMode !== isOn;
+      removeMode = isOn;
+      if (removeMode) {
+        setNaMode(false, false);
+        setAddMode(false, false);
+        closeAddPanel();
+      }
+      document.body.classList.toggle("remove-mode", removeMode);
+      removeModeButton.classList.toggle("is-active", removeMode);
+      removeModeButton.setAttribute("aria-pressed", String(removeMode));
+      removeModeButton.textContent = removeMode ? "Remove Skill: On" : "Remove Skill: Off";
+      syncTextCellEditState();
+      if (changed && shouldPlay) {
+        playSound(removeMode ? "modeOn" : "modeOff");
       }
     }
 
@@ -4917,9 +4771,6 @@
     function openAddPanel(row, athleteIndex, input, athlete, clearSelectionOnSave = false) {
       if (blockFocusNaCell(row, athleteIndex)) {
         return;
-      }
-      if (document.activeElement instanceof HTMLElement) {
-        document.activeElement.blur();
       }
       closeCellEntryPanel();
       closeRenamePanel();

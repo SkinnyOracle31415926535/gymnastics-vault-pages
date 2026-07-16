@@ -3,8 +3,6 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
-  <link rel="apple-touch-icon" href="icons/streak-counter-icon.png">
-  <link rel="icon" type="image/png" href="icons/streak-counter-icon.png">
   <script>
     (() => {
       const stopZoom = (event) => event.preventDefault();
@@ -1615,10 +1613,6 @@
       playTone(760, 0.075, "square", 0.1, 0);
     }
 
-    function playUiTapSound() {
-      playTone(380, 0.065, "triangle", 0.105, 0);
-    }
-
     function playTeamTickSound() {
       playPassSound();
     }
@@ -2058,10 +2052,7 @@
     });
 
     loadGroupButton.addEventListener("click", loadSelectedGroup);
-    groupSelect.addEventListener("change", () => {
-      playUiTapSound();
-      loadSelectedGroup();
-    });
+    groupSelect.addEventListener("change", loadSelectedGroup);
     newGroupButton.addEventListener("click", newGroup);
     applyRosterButton.addEventListener("click", applyRoster);
     saveGroupButton.addEventListener("click", saveCurrentGroup);
@@ -2089,20 +2080,6 @@
     celebration.addEventListener("click", (event) => {
       if (event.target === celebration) hideCelebration();
     });
-
-    document.addEventListener("click", (event) => {
-      if (!(event.target instanceof Element)) return;
-      const control = event.target.closest("button, .tally-link");
-      if (!control || (control instanceof HTMLButtonElement && control.disabled)) return;
-      const usesActionSound =
-        control.matches("[data-action]") ||
-        control === teamPassButton ||
-        control === teamBreakButton ||
-        control === undoTeamButton ||
-        (control === resetScoresButton && scoreResetArmed) ||
-        (control === resetTeamButton && teamResetArmed);
-      if (!usesActionSound) playUiTapSound();
-    }, true);
 
     loadState();
     renderAll();
