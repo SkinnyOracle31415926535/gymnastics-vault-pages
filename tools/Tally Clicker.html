@@ -1164,6 +1164,18 @@
     </form>
   </dialog>
 
+  <dialog id="resetTodoDialog" class="counter-dialog" aria-labelledby="resetTodoDialogTitle" aria-describedby="resetTodoDescription">
+    <form id="resetTodoForm" class="dialog-content">
+      <h2 id="resetTodoDialogTitle" class="dialog-title">reset all?</h2>
+      <p id="resetTodoStep" class="dialog-description">step 1 of 3</p>
+      <p id="resetTodoDescription" class="dialog-description">this will clear every item's progress.</p>
+      <div class="dialog-actions">
+        <button id="cancelResetTodo" type="button">cancel</button>
+        <button id="confirmResetTodo" type="submit">continue</button>
+      </div>
+    </form>
+  </dialog>
+
   <dialog id="addSkillDialog" class="counter-dialog" aria-labelledby="addSkillDialogTitle">
     <form id="addSkillForm" class="dialog-content">
       <h2 id="addSkillDialogTitle" class="dialog-title">add skill</h2>
@@ -1254,6 +1266,13 @@
     const listMinus = document.getElementById("listMinus");
     const resetCurrentSkill = document.getElementById("resetCurrentSkill");
     const resetTodo = document.getElementById("resetTodo");
+    const resetTodoDialog = document.getElementById("resetTodoDialog");
+    const resetTodoForm = document.getElementById("resetTodoForm");
+    const resetTodoDialogTitle = document.getElementById("resetTodoDialogTitle");
+    const resetTodoStep = document.getElementById("resetTodoStep");
+    const resetTodoDescription = document.getElementById("resetTodoDescription");
+    const confirmResetTodo = document.getElementById("confirmResetTodo");
+    const cancelResetTodo = document.getElementById("cancelResetTodo");
     const editTodo = document.getElementById("editTodo");
     const hiddenSkillsToggle = document.getElementById("hiddenSkillsToggle");
     const hiddenSkillsPanel = document.getElementById("hiddenSkillsPanel");
@@ -1293,6 +1312,7 @@
     let audioContext = null;
     let selectedRemovalId = null;
     let skillFlashTimer = null;
+    let resetTodoConfirmStep = 0;
     let isListEditing = false;
     let isAddingListItem = false;
     let showHiddenSkills = false;
@@ -2549,6 +2569,65 @@
       statusbar.textContent = skill.name + " reset; other skill progress is unchanged";
     }
 
+    function renderResetTodoConfirmation() {
+      const list = getSelectedList();
+      if (!list) return;
+
+      const itemCount = list.skills.length;
+      const steps = [
+        {
+          title: "reset all?",
+          description: "reset progress in " + list.name + "?",
+          action: "continue"
+        },
+        {
+          title: "this clears every item",
+          description: itemCount + " item" + (itemCount === 1 ? " will" : "s will") + " go back to 0, including hidden items.",
+          action: "continue"
+        },
+        {
+          title: "final check",
+          description: "press reset all to clear " + list.name + ".",
+          action: "reset all"
+        }
+      ];
+      const currentStep = steps[resetTodoConfirmStep - 1];
+      if (!currentStep) return;
+
+      resetTodoDialogTitle.textContent = currentStep.title;
+      resetTodoStep.textContent = "step " + resetTodoConfirmStep + " of 3";
+      resetTodoDescription.textContent = currentStep.description;
+      confirmResetTodo.textContent = currentStep.action;
+      confirmResetTodo.classList.toggle("remove-confirm", resetTodoConfirmStep === 3);
+    }
+
+    function openResetTodoDialog() {
+      const list = getSelectedList();
+      if (!list?.skills.length) {
+        statusbar.textContent = "no items to reset";
+        return;
+      }
+
+      resetTodoConfirmStep = 1;
+      renderResetTodoConfirmation();
+      openCounterDialog(resetTodoDialog);
+      window.requestAnimationFrame(() => cancelResetTodo.focus());
+      statusbar.textContent = "reset confirmation 1 of 3";
+    }
+
+    function advanceResetTodoConfirmation() {
+      if (resetTodoConfirmStep < 3) {
+        resetTodoConfirmStep += 1;
+        renderResetTodoConfirmation();
+        window.requestAnimationFrame(() => cancelResetTodo.focus());
+        statusbar.textContent = "reset confirmation " + resetTodoConfirmStep + " of 3";
+        return;
+      }
+
+      resetEntireTodo();
+      closeCounterDialog(resetTodoDialog);
+    }
+
     function resetEntireTodo() {
       const list = getSelectedList();
       if (!list?.skills.length) return;
@@ -2603,7 +2682,7 @@
     listPlus.addEventListener("click", () => changeCurrentSkill(1));
     listMinus.addEventListener("click", () => changeCurrentSkill(-1));
     resetCurrentSkill.addEventListener("click", resetCurrentSkillProgress);
-    resetTodo.addEventListener("click", resetEntireTodo);
+    resetTodo.addEventListener("click", openResetTodoDialog);
     closeCelebration.addEventListener("click", hideTodoCelebration);
 
     addCounterForm.addEventListener("submit", (event) => {
@@ -2642,8 +2721,20 @@
     });
     cancelAddSkill.addEventListener("click", () => closeCounterDialog(addSkillDialog));
 
-    [addDialog, removeDialog, newListDialog, renameListDialog, deleteListDialog, addSkillDialog].forEach((dialog) => {
+    resetTodoForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      advanceResetTodoConfirmation();
+    });
+    cancelResetTodo.addEventListener("click", () => {
+      closeCounterDialog(resetTodoDialog);
+      statusbar.textContent = "reset canceled";
+    });
+
+    [addDialog, removeDialog, newListDialog, renameListDialog, deleteListDialog, resetTodoDialog, addSkillDialog].forEach((dialog) => {
       dialog.addEventListener("close", () => restoreDialogFocus(dialog));
+    });
+    resetTodoDialog.addEventListener("close", () => {
+      resetTodoConfirmStep = 0;
     });
 
     loadState();
