@@ -2576,17 +2576,17 @@
       const itemCount = list.skills.length;
       const steps = [
         {
-          title: "reset all?",
-          description: "reset progress in " + list.name + "?",
-          action: "continue"
+          title: "are you sure?",
+          description: "this will reset progress in " + list.name + ".",
+          action: "yes, continue"
         },
         {
-          title: "this clears every item",
+          title: "are you really sure?",
           description: itemCount + " item" + (itemCount === 1 ? " will" : "s will") + " go back to 0, including hidden items.",
-          action: "continue"
+          action: "yes, continue"
         },
         {
-          title: "final check",
+          title: "last chance",
           description: "press reset all to clear " + list.name + ".",
           action: "reset all"
         }
