@@ -1601,6 +1601,26 @@
       click.stop(now + 0.06);
     }
 
+    function playUiTapSound() {
+      const context = getAudioContext();
+      if (context.state === "suspended") context.resume();
+      const now = context.currentTime;
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+
+      oscillator.type = "triangle";
+      oscillator.frequency.setValueAtTime(340, now);
+      oscillator.frequency.exponentialRampToValueAtTime(480, now + 0.055);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(0.11, now + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.08);
+
+      oscillator.connect(gain);
+      gain.connect(context.destination);
+      oscillator.start(now);
+      oscillator.stop(now + 0.09);
+    }
+
     function playSound(kind, score) {
       const context = getAudioContext();
       if (context.state === "suspended") context.resume();
@@ -1773,12 +1793,14 @@
 
         const plus = document.createElement("button");
         plus.type = "button";
+        plus.dataset.actionSound = "true";
         plus.textContent = "+";
         plus.setAttribute("aria-label", "Add point to " + item.name);
         plus.addEventListener("click", () => changeMultipleScore(item.id, 1, card));
 
         const minus = document.createElement("button");
         minus.type = "button";
+        minus.dataset.actionSound = "true";
         minus.textContent = "-";
         minus.setAttribute("aria-label", "Subtract point from " + item.name);
         minus.addEventListener("click", () => changeMultipleScore(item.id, -1, card));
@@ -2639,6 +2661,7 @@
 
     listSelector.addEventListener("change", () => {
       if (!state.lists.some((list) => list.id === listSelector.value)) return;
+      playUiTapSound();
       state.selectedListId = listSelector.value;
       resetTodoEditing();
       saveState();
@@ -2715,6 +2738,17 @@
       control.classList.remove("button-press-feedback");
       void control.offsetWidth;
       control.classList.add("button-press-feedback");
+      const usesActionSound =
+        control === plusButton ||
+        control === minusButton ||
+        control === clearButton ||
+        control === resetMultiple ||
+        control === listPlus ||
+        control === listMinus ||
+        control === resetCurrentSkill ||
+        control.dataset.actionSound === "true" ||
+        (control === confirmResetTodo && resetTodoConfirmStep === 2);
+      if (!usesActionSound) playUiTapSound();
     }, true);
 
     loadState();
