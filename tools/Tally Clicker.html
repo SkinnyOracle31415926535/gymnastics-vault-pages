@@ -36,15 +36,9 @@
 
     :root {
       --brat-font: Arial, "Helvetica Neue", Helvetica, sans-serif;
-      --green: #d9f2cb;
-      --black: #06381f;
-      --white: #efffea;
-      --deep: #031d12;
-      --emerald: #128a4c;
-      --lime: #70e37d;
-      --panel: #b7d3ad;
-      --edge-light: #f8fff3;
-      --edge-dark: #31563a;
+      --green: #8ace00;
+      --black: #050505;
+      --white: #ffffff;
     }
 
     body {
@@ -53,8 +47,8 @@
       color: var(--black);
       font-family: var(--brat-font);
       font-weight: 400;
-      background: radial-gradient(circle at 50% 0%, #0b5d3c 0%, var(--deep) 60%);
-      text-shadow: none;
+      background: var(--green);
+      text-shadow: 0 0 0.6px rgba(5, 5, 5, 0.4);
       -webkit-text-size-adjust: 100%;
     }
 
@@ -79,34 +73,30 @@
     button {
       min-height: 56px;
       color: var(--black);
-      background: var(--panel);
-      border: 2px solid var(--edge-dark);
-      border-top-color: var(--edge-light);
-      border-left-color: var(--edge-light);
-      border-radius: 4px;
-      box-shadow: 2px 2px 0 var(--deep);
+      background: var(--green);
+      border: 4px solid var(--black);
+      border-radius: 0;
+      box-shadow: none;
       font-size: clamp(24px, 7vw, 42px);
       font-weight: 500;
       font-stretch: normal;
       letter-spacing: 0;
-      filter: none;
-      text-shadow: none;
+      filter: blur(0.2px);
+      text-shadow: 0 0 1.5px rgba(5, 5, 5, 0.42);
       cursor: pointer;
       touch-action: manipulation;
       user-select: none;
     }
 
     button:active {
-      color: var(--white);
-      background: var(--emerald);
-      border-color: var(--deep);
-      box-shadow: none;
-      transform: translate(2px, 2px);
+      color: var(--green);
+      background: var(--black);
+      transform: none;
     }
 
     button:disabled {
-      color: #627568;
-      background: #98ad92;
+      color: #476600;
+      background: #a6cf4d;
       cursor: not-allowed;
     }
 
@@ -115,9 +105,9 @@
       min-height: 52px;
       padding: 8px 10px;
       color: var(--black);
-      background: var(--white);
-      border: 2px solid var(--edge-dark);
-      border-radius: 4px;
+      background: var(--green);
+      border: 4px solid var(--black);
+      border-radius: 0;
       font-size: 28px;
       font-weight: 500;
       outline: none;
@@ -130,23 +120,22 @@
       display: grid;
       grid-template-rows: auto auto 1fr auto;
       background: var(--green);
-      border: 3px solid var(--deep);
-      box-shadow: 0 0 0 2px var(--lime), 7px 7px 0 rgba(1, 11, 7, 0.65);
+      border: 4px solid var(--black);
     }
 
     .titlebar {
       min-height: 52px;
       padding: 0;
-      color: var(--white);
-      background: linear-gradient(90deg, var(--deep), var(--emerald), #0b5d3c);
-      border-bottom: 3px solid var(--deep);
+      color: var(--black);
+      background: var(--green);
+      border-bottom: 4px solid var(--black);
       font-size: 34px;
       font-weight: 500;
       font-stretch: normal;
       letter-spacing: 0;
       text-transform: lowercase;
-      filter: none;
-      text-shadow: 1px 1px 0 var(--deep);
+      filter: blur(0.34px);
+      text-shadow: 0 0 1.8px rgba(5, 5, 5, 0.48);
     }
 
     .menu-toggle {
@@ -983,107 +972,6 @@
       text-transform: lowercase;
       filter: blur(0.22px);
       text-shadow: 0 0 1.4px rgba(5, 5, 5, 0.38);
-    }
-
-    /* Student Shuffle visual language */
-    .mode-menu {
-      background: #c8ddb5;
-      border-bottom: 3px solid var(--deep);
-    }
-
-    .mode-button,
-    .streak-button,
-    .todo-table-actions .todo-reset,
-    .list-toolbar button,
-    .remove-option,
-    .hidden-skill-row button,
-    .show-all-skills {
-      background: var(--panel);
-    }
-
-    .mode-button.active,
-    .clear,
-    .hidden-skills-toggle,
-    .list-toolbar .delete-list,
-    .remove-action,
-    .remove-confirm,
-    .counter-score,
-    .success-message,
-    .list-table th,
-    .remove-option[aria-pressed="true"] {
-      color: var(--white);
-      background: linear-gradient(135deg, var(--deep), var(--emerald));
-      border-color: var(--deep);
-      text-shadow: 1px 1px 0 var(--deep);
-    }
-
-    .display,
-    .current-skill,
-    .counter-card,
-    .run-summary,
-    .run-current-skill,
-    .hidden-skills-panel,
-    .counter-dialog,
-    .empty {
-      background: var(--white);
-      border: 2px solid var(--edge-dark);
-      border-top-color: var(--edge-light);
-      border-left-color: var(--edge-light);
-      box-shadow: 3px 3px 0 rgba(3, 29, 18, 0.3);
-      filter: none;
-      text-shadow: none;
-    }
-
-    .display,
-    .current-skill {
-      color: var(--deep);
-      background: radial-gradient(circle at 50% 35%, #efffea 0%, var(--green) 58%, #b7d3ad 100%);
-    }
-
-    .display.plus-flash,
-    .display.minus-flash,
-    .counter-card.plus-flash,
-    .counter-card.minus-flash {
-      color: var(--white);
-      background: var(--emerald);
-    }
-
-    .progress-track {
-      background: var(--white);
-      border: 2px solid var(--edge-dark);
-    }
-
-    .progress-fill {
-      background: linear-gradient(90deg, var(--emerald), var(--lime));
-    }
-
-    .list-table,
-    .list-select,
-    .statusbar {
-      background: var(--white);
-      filter: none;
-      text-shadow: none;
-    }
-
-    .list-table th,
-    .list-table td,
-    .list-table-wrap,
-    .statusbar {
-      border-color: var(--edge-dark);
-    }
-
-    .list-table .is-current td,
-    .list-table .is-complete td {
-      background: #c8ddb5;
-    }
-
-    .skill-flash,
-    .celebration {
-      background: var(--deep);
-    }
-
-    .counter-dialog::backdrop {
-      background: rgba(3, 29, 18, 0.72);
     }
 
     @media (max-width: 560px) {
@@ -2690,17 +2578,17 @@
       const itemCount = list.skills.length;
       const steps = [
         {
-          title: "reset all?",
-          description: "reset progress in " + list.name + "?",
-          action: "continue"
+          title: "are you sure?",
+          description: "this will reset progress in " + list.name + ".",
+          action: "yes, continue"
         },
         {
-          title: "this clears every item",
+          title: "are you really sure?",
           description: itemCount + " item" + (itemCount === 1 ? " will" : "s will") + " go back to 0, including hidden items.",
-          action: "continue"
+          action: "yes, continue"
         },
         {
-          title: "final check",
+          title: "last chance",
           description: "press reset all to clear " + list.name + ".",
           action: "reset all"
         }
