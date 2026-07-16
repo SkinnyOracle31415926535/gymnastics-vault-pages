@@ -730,7 +730,7 @@
     }
 
     .skill-flash.active {
-      animation: skill-screen-flash 460ms steps(1, end) both;
+      animation: skill-screen-flash 920ms steps(1, end) both;
     }
 
     .skill-flash-copy {
@@ -1503,8 +1503,8 @@
     }
 
     function playIncrementDing(context, now, score) {
-      const step = ((Math.max(score, 1) - 1) % 10);
-      const startsNewTen = score > 1 && step === 0;
+      const step = Math.min(Math.max(score, 1), 10) - 1;
+      const reachesTen = score === 10;
       const baseFrequency = 520;
       const frequency = baseFrequency * Math.pow(2, step / 12);
       const overtoneFrequency = frequency * 2.01;
@@ -1536,9 +1536,9 @@
       bell.stop(now + 0.44);
       shine.stop(now + 0.24);
 
-      if (startsNewTen) {
-        // The regular click supplies the root; this short major arpeggio is
-        // a clear little level-up fanfare instead of a reset sound.
+      if (reachesTen) {
+        // The pitch reaches its high point at 10 and stays there afterward.
+        // This brighter, louder cue makes hitting 10 easy to notice.
         const cheerOne = context.createOscillator();
         const cheerTwo = context.createOscillator();
         const cheerThree = context.createOscillator();
@@ -1557,13 +1557,13 @@
         cheerThree.frequency.setValueAtTime(1046.5, thirdNoteStart);
 
         cheerOneGain.gain.setValueAtTime(0.0001, cueStart);
-        cheerOneGain.gain.exponentialRampToValueAtTime(0.115, cueStart + 0.004);
+        cheerOneGain.gain.exponentialRampToValueAtTime(0.2, cueStart + 0.004);
         cheerOneGain.gain.exponentialRampToValueAtTime(0.0001, cueStart + 0.105);
         cheerTwoGain.gain.setValueAtTime(0.0001, secondNoteStart);
-        cheerTwoGain.gain.exponentialRampToValueAtTime(0.1, secondNoteStart + 0.004);
+        cheerTwoGain.gain.exponentialRampToValueAtTime(0.17, secondNoteStart + 0.004);
         cheerTwoGain.gain.exponentialRampToValueAtTime(0.0001, secondNoteStart + 0.13);
         cheerThreeGain.gain.setValueAtTime(0.0001, thirdNoteStart);
-        cheerThreeGain.gain.exponentialRampToValueAtTime(0.09, thirdNoteStart + 0.004);
+        cheerThreeGain.gain.exponentialRampToValueAtTime(0.15, thirdNoteStart + 0.004);
         cheerThreeGain.gain.exponentialRampToValueAtTime(0.0001, thirdNoteStart + 0.18);
 
         cheerOne.connect(cheerOneGain);
@@ -1650,7 +1650,7 @@
       skillFlash.classList.remove("active");
       void skillFlash.offsetWidth;
       skillFlash.classList.add("active");
-      skillFlashTimer = window.setTimeout(() => skillFlash.classList.remove("active"), 470);
+      skillFlashTimer = window.setTimeout(() => skillFlash.classList.remove("active"), 940);
     }
 
     function showTodoCelebration() {
