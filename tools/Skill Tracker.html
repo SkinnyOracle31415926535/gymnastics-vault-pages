@@ -1018,6 +1018,18 @@
       transform: translate(-50%, -50%);
     }
 
+    .add-panel-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      background: rgba(0, 0, 0, 0.18);
+      touch-action: none;
+    }
+
+    .add-panel-backdrop[hidden] {
+      display: none;
+    }
+
     .add-kids-panel {
       top: 50%;
       bottom: auto;
@@ -1647,7 +1659,8 @@
       </div>
     </section>
 
-    <section id="addPanel" class="add-panel" aria-label="Add progress" hidden>
+    <div id="addPanelBackdrop" class="add-panel-backdrop" aria-hidden="true" hidden></div>
+    <section id="addPanel" class="add-panel" aria-label="Add progress" aria-modal="true" role="dialog" hidden>
       <div id="addPanelTitle" class="add-panel-title">Add more reps</div>
       <div id="addPanelCurrent" class="add-panel-current" aria-live="polite">
         <span id="addPanelCurrentLabel" class="add-panel-current-label">Total</span>
@@ -1990,6 +2003,7 @@
     const naModeButton = document.querySelector("#naModeButton");
     const addModeButton = document.querySelector("#addModeButton");
     const removeModeButton = document.querySelector("#removeModeButton");
+    const addPanelBackdrop = document.querySelector("#addPanelBackdrop");
     const addPanel = document.querySelector("#addPanel");
     const addPanelTitle = document.querySelector("#addPanelTitle");
     const addPanelCurrent = document.querySelector("#addPanelCurrent");
@@ -4512,6 +4526,10 @@
           return;
         }
         if (settingsLocked && addMode === customAddMode) {
+          if (isEntryTarget(rowIndex, athleteIndex)) {
+            runSelectedEntryAction(event);
+            return;
+          }
           if (event.pointerType === "mouse" && event.button !== 0) {
             return;
           }
@@ -4519,11 +4537,10 @@
           if (blockFocusNaCell(row, athleteIndex)) {
             return;
           }
-          const wasSelectedTarget = isEntryTarget(rowIndex, athleteIndex);
-          if (!wasSelectedTarget && (selectedEntryRowIndex !== null || selectedEntryAthleteIndex !== null)) {
+          if (selectedEntryRowIndex !== null || selectedEntryAthleteIndex !== null) {
             clearEntrySelection();
           }
-          openAddPanel(row, athleteIndex, input, athlete, wasSelectedTarget);
+          armProgressConfirmation(row, rowIndex, athleteIndex, athlete);
           return;
         }
         if (settingsLocked && addMode === quickAddMode) {
@@ -4771,6 +4788,7 @@
       };
       resetAddPanelEntry();
       updateAddPanelCurrent();
+      addPanelBackdrop.hidden = false;
       addPanel.hidden = false;
       playSound("open");
     }
@@ -4779,7 +4797,11 @@
       const wasOpen = !addPanel.hidden;
       activeAddTarget = null;
       addPanel.hidden = true;
+      addPanelBackdrop.hidden = true;
       resetAddPanelEntry();
+      if (wasOpen) {
+        clearEntrySelection();
+      }
       if (shouldPlay && wasOpen) {
         playSound("close");
       }
