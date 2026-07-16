@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="apple-touch-icon" href="icons/color-game-wheel-icon-v2.png">
+  <link rel="icon" type="image/png" href="icons/color-game-wheel-icon-v2.png">
   <script>
     (() => {
       const stopZoom = (event) => event.preventDefault();
@@ -363,18 +365,12 @@
       padding: 8px;
       background: rgba(0, 0, 0, 0.2);
       border: 4px ridge rgba(255, 255, 255, 0.82);
-      font-family: Impact, "Arial Black", "Trebuchet MS", sans-serif;
+      font-family: "Arial Black", Impact, "Comic Sans MS", sans-serif;
       font-size: clamp(30px, 6vw, 52px);
       font-weight: 900;
-      letter-spacing: 0.04em;
       line-height: 1;
       overflow-wrap: anywhere;
       text-transform: uppercase;
-      -webkit-text-stroke: 1px rgba(0, 0, 0, 0.58);
-      text-shadow:
-        2px 2px 0 #000033,
-        4px 4px 0 rgba(0, 0, 0, 0.38),
-        0 0 8px rgba(255, 255, 255, 0.55);
     }
 
     .position-card {
@@ -400,17 +396,15 @@
 
     .position-name {
       color: #000033;
-      font-family: Impact, "Arial Black", "Trebuchet MS", sans-serif;
+      font-family: "Arial Black", Impact, "Comic Sans MS", sans-serif;
       font-size: clamp(48px, 9vw, 96px);
       font-weight: 900;
-      letter-spacing: 0.025em;
       line-height: 0.96;
       overflow-wrap: anywhere;
       text-shadow:
         2px 2px 0 #ffffff,
         4px 4px 0 var(--pink),
-        6px 6px 0 #0033ff,
-        8px 8px 0 rgba(0, 0, 0, 0.3);
+        6px 6px 0 rgba(0, 0, 0, 0.22);
     }
 
     .controls {
@@ -422,73 +416,6 @@
     .main-controls {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-
-    .next-challenge {
-      grid-column: 1 / -1;
-      min-height: 64px;
-      color: #ffffff;
-      background: #1764d8;
-      border-color: #ffffff #0b347e #0b347e #ffffff;
-      font-size: clamp(22px, 4vw, 34px);
-      text-decoration: none;
-      text-shadow: 1px 2px 0 #0b347e;
-    }
-
-    .prompt.rolling { animation: rollingPulse 95ms steps(2, end) infinite; }
-
-    @keyframes rollingPulse {
-      0% { filter: saturate(1) contrast(1); transform: translateX(0); }
-      50% { filter: saturate(1.55) contrast(1.12); transform: translateX(-2px); }
-      100% { filter: saturate(1.25) contrast(1.06); transform: translateX(2px); }
-    }
-
-    .game-bottom {
-      display: grid;
-      grid-template-columns: minmax(0, 1.35fr) minmax(250px, .65fr);
-      gap: 10px;
-    }
-
-    .quick-colors {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 7px;
-      margin-top: 8px;
-    }
-
-    .quick-color {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      min-height: 34px;
-      padding: 4px 8px 4px 5px;
-      color: #000033;
-      background: #ffffcc;
-      border: 2px solid #000033;
-      font-family: "Courier New", Courier, monospace;
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .quick-color input { width: 17px; height: 17px; min-height: 0; padding: 0; }
-    .mini-swatch { width: 17px; height: 17px; border: 1px solid #000033; }
-
-    .team-panel { padding: 9px; background: #fffdf2; border: 5px ridge var(--yellow); }
-    .team-list { display: grid; gap: 6px; margin-top: 8px; }
-    .kid-row { display: grid; grid-template-columns: 1fr auto auto auto auto; align-items: center; gap: 8px; min-height: 58px; padding: 7px; background: #ccffff; border: 2px solid #000033; }
-    .kid-name { min-width: 0; overflow: hidden; font-family: "Courier New", Courier, monospace; font-size: 17px; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
-    .kid-points { min-width: 52px; text-align: center; font-family: "Arial Black", Impact, sans-serif; font-size: 34px; line-height: 1; text-shadow: 2px 2px 0 #ffffff; }
-    .points-button, .remove-kid { min-width: 42px; min-height: 42px; padding: 3px 9px; font-size: 22px; text-decoration: none; }
-    .remove-kid { display: none; color: #ffffff; background: #c52f39; text-shadow: none; }
-    .kid-row.delete-ready .remove-kid { display: block; }
-    .add-kid { display: grid; grid-template-columns: 1fr auto; gap: 6px; margin-top: 8px; }
-    .empty-team { padding: 8px; color: #444466; font-family: "Courier New", Courier, monospace; font-size: 12px; }
-
-    .color-editor-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 7px; margin: 8px 0; }
-    .color-editor-row { display: grid; grid-template-columns: auto 26px minmax(0, 1fr) 42px; align-items: center; gap: 6px; padding: 6px; background: #ffffcc; border: 2px solid #000033; font-family: "Courier New", Courier, monospace; font-size: 12px; font-weight: 800; }
-    .color-editor-row input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; padding: 0; }
-    .color-editor-row input[type="color"] { width: 26px; min-height: 26px; padding: 0; border: 1px solid #000033; }
-    .color-editor-row input[type="number"] { min-height: 28px; padding: 2px; border-width: 2px; text-align: center; }
-    .add-color { display: grid; grid-template-columns: minmax(0, 1fr) 54px auto; gap: 7px; margin: 8px 0; }
 
     .roll {
       display: grid;
@@ -584,6 +511,169 @@
       font-size: 12px;
       font-weight: 800;
       line-height: 1.25;
+    }
+
+    /* Rainbow arcade theme: playful on its own, with the color wheel as the star. */
+    :root {
+      --ink: #17152b;
+      --paper: #fffdf2;
+      --panel: #f0efff;
+      --line: #211a4d;
+      --shadow: rgba(15, 10, 48, 0.3);
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 12% 12%, rgba(255, 74, 166, 0.52) 0 2px, transparent 3px),
+        radial-gradient(circle at 84% 20%, rgba(24, 201, 190, 0.55) 0 3px, transparent 4px),
+        radial-gradient(circle at 36% 76%, rgba(255, 228, 92, 0.5) 0 2px, transparent 3px),
+        radial-gradient(circle at 50% 0%, #2b1b72 0%, #11112f 58%, #08091d 100%);
+      font-family: "Trebuchet MS", Arial, sans-serif;
+    }
+
+    .app {
+      background: linear-gradient(145deg, #f8f7ff, #e5e1fb);
+      border: 3px solid #17152b;
+      box-shadow: 0 0 0 3px #ffe45c, 8px 8px 0 rgba(5, 5, 24, 0.72);
+    }
+
+    .titlebar {
+      padding: 14px 16px;
+      color: #fffdf2;
+      background: linear-gradient(105deg, #1c164c 0%, #3d278e 45%, #d63d93 100%);
+      border: 0;
+      border-bottom: 4px solid #17152b;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      letter-spacing: 0.04em;
+      text-shadow: 2px 2px 0 #17152b;
+    }
+
+    .titlebar::before {
+      inset: auto 0 0;
+      height: 5px;
+      border: 0;
+      background: linear-gradient(90deg, #f34a3d, #ff8a34, #ffe45c, #0e8f60, #1764d8, #6949d8, #ff4aa6);
+    }
+
+    .title-flash,
+    .roll,
+    .roll-label {
+      animation: none;
+    }
+
+    .window-button {
+      background: #f0efff;
+      border-color: #ffffff #17152b #17152b #ffffff;
+    }
+
+    .web-strip {
+      color: #211a4d;
+      background: #fffdf2;
+      border-bottom: 2px solid #c8c2ec;
+    }
+
+    .marquee-box,
+    .status {
+      color: #f0efff;
+      background: #17152b;
+      border-color: #3d278e;
+    }
+
+    .web-badge,
+    .hit-counter,
+    .sound-toggle {
+      color: #fffdf2;
+      background: #3d278e;
+      border: 2px solid #17152b;
+      text-shadow: none;
+    }
+
+    .workspace {
+      padding: 14px;
+    }
+
+    .prompt,
+    .panel {
+      background: var(--paper);
+      border: 2px solid #c8c2ec;
+      box-shadow: 4px 4px 0 rgba(33, 26, 77, 0.2);
+    }
+
+    .color-swatch {
+      border-right: 3px solid #211a4d;
+    }
+
+    .position-card {
+      background:
+        radial-gradient(circle at 85% 15%, rgba(255, 74, 166, 0.16) 0 3px, transparent 4px),
+        radial-gradient(circle at 18% 76%, rgba(24, 201, 190, 0.18) 0 3px, transparent 4px),
+        #fffdf2;
+    }
+
+    .position-label,
+    label {
+      color: #3d278e;
+      text-decoration: none;
+      text-shadow: none;
+    }
+
+    .position-name {
+      color: #211a4d;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      text-shadow: 3px 3px 0 rgba(255, 74, 166, 0.26);
+    }
+
+    button {
+      color: #211a4d;
+      background: #f0efff;
+      border: 2px solid #211a4d;
+      border-radius: 8px;
+      box-shadow: 3px 3px 0 rgba(33, 26, 77, 0.28);
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      text-decoration: none;
+      text-shadow: none;
+    }
+
+    button:active {
+      border-color: #211a4d;
+      box-shadow: none;
+    }
+
+    input,
+    select,
+    textarea,
+    .checkbox-row {
+      color: #211a4d;
+      background: #fffdf2;
+      border: 2px solid #c8c2ec;
+      border-radius: 6px;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+    }
+
+    .panel-title {
+      color: #fffdf2;
+      background: linear-gradient(90deg, #1c164c, #3d278e);
+      border: 0;
+      border-left: 5px solid #ff4aa6;
+      font-family: "Trebuchet MS", Arial, sans-serif;
+      text-shadow: none;
+    }
+
+    .roll {
+      background: conic-gradient(from 0deg, #f34a3d, #ff8a34, #ffe45c, #0e8f60, #18c9be, #1764d8, #6949d8, #ff4aa6, #f34a3d);
+      border: 4px solid #fffdf2;
+      outline: 3px solid #211a4d;
+      box-shadow: 0 0 0 5px #ff4aa6, 5px 5px 0 #211a4d;
+    }
+
+    .roll-label {
+      color: #fffdf2;
+      background: #211a4d;
+      border: 3px solid #fffdf2;
+      border-radius: 8px;
+      box-shadow: 3px 3px 0 rgba(33, 26, 77, 0.42);
+      -webkit-text-stroke: 0;
+      text-shadow: none;
     }
 
     .flash {
@@ -754,8 +844,6 @@
         grid-template-columns: 1fr 1fr;
       }
 
-      .game-bottom { grid-template-columns: 1fr; }
-
       .settings-grid.single {
         grid-template-columns: 1fr;
       }
@@ -768,7 +856,6 @@
         grid-column: 1 / -1;
       }
     }
-
   </style>
 </head>
 <body>
@@ -808,28 +895,16 @@
           </section>
 
           <section class="controls main-controls" aria-label="game controls">
-            <button class="next-challenge" id="nextChallengeButton" type="button">REROLL</button>
-            <button id="newColorButton" type="button">NEW COLOR</button>
-            <button id="newMoveButton" type="button">NEW MOVE</button>
+            <button class="roll" id="rollButton" type="button"><span class="roll-label">ROLL</span></button>
             <button id="openSettingsButton" type="button">SETTINGS</button>
-            <button id="openListsButton" type="button">COLORS &amp; LISTS</button>
-          </section>
-
-          <section class="team-panel" aria-labelledby="teamTitle">
-            <div class="panel-title" id="teamTitle">Team points</div>
-            <p style="margin: 0; color: #444466; font: 800 11px/1.3 'Courier New', monospace;">Double-tap a name to remove it.</p>
-            <div id="teamList" class="team-list"></div>
-            <form id="addKidForm" class="add-kid">
-              <input id="kidNameInput" type="text" autocomplete="off" placeholder="Add a kid">
-              <button type="submit">ADD</button>
-            </form>
+            <button id="openListsButton" type="button">CUSTOM LISTS</button>
           </section>
         </div>
       </section>
 
       <section class="screen" id="settingsScreen">
         <section class="panel">
-          <div class="panel-title">Class setup</div>
+          <div class="panel-title">Settings</div>
           <div class="settings-grid single">
             <div>
               <label for="difficulty">Position Range</label>
@@ -847,11 +922,6 @@
             Avoid immediate repeats
           </label>
 
-          <div style="margin-top: 10px;">
-            <label>Colors in this game</label>
-            <div id="quickColors" class="quick-colors"></div>
-          </div>
-
           <div class="controls" style="margin-top: 8px;">
             <button class="backButton" type="button">BACK TO GAME</button>
           </div>
@@ -860,14 +930,7 @@
 
       <section class="screen" id="listsScreen">
         <section class="panel">
-          <div class="panel-title">Customize colors &amp; lists</div>
-          <p style="margin: 0; font: 800 12px/1.35 'Courier New', monospace;">Check the colors that are available today. Frequency controls how often an active color comes up: 1 = usual, 2 = twice as likely, and so on.</p>
-          <div id="colorEditorList" class="color-editor-list"></div>
-          <div class="add-color">
-            <input id="newColorName" type="text" autocomplete="off" placeholder="New color name">
-            <input id="newColorHex" type="color" value="#1764d8" aria-label="New color shade">
-            <button id="addColorButton" type="button">ADD COLOR</button>
-          </div>
+          <div class="panel-title">Customize Lists</div>
           <div class="settings-grid">
             <div>
               <label for="listNameInput">List Name</label>
@@ -906,16 +969,16 @@
 
   <script>
     const defaultColors = [
-      { name: "Red", hex: "#f34a3d", text: "#ffffff", weight: 1 },
-      { name: "Orange", hex: "#ff8a34", text: "#101116", weight: 1 },
-      { name: "Yellow", hex: "#ffe45c", text: "#101116", weight: 1 },
-      { name: "Green", hex: "#0e8f60", text: "#ffffff", weight: 1 },
-      { name: "Blue", hex: "#1764d8", text: "#ffffff", weight: 1 },
-      { name: "Purple", hex: "#6949d8", text: "#ffffff", weight: 1 },
-      { name: "Pink", hex: "#ff4aa6", text: "#101116", weight: 1 },
-      { name: "White", hex: "#fffdf2", text: "#101116", weight: 1 },
-      { name: "Black", hex: "#101116", text: "#ffffff", weight: 1 },
-      { name: "Teal", hex: "#18c9be", text: "#101116", weight: 1 }
+      { name: "Red", hex: "#f34a3d", text: "#ffffff" },
+      { name: "Orange", hex: "#ff8a34", text: "#101116" },
+      { name: "Yellow", hex: "#ffe45c", text: "#101116" },
+      { name: "Green", hex: "#0e8f60", text: "#ffffff" },
+      { name: "Blue", hex: "#1764d8", text: "#ffffff" },
+      { name: "Purple", hex: "#6949d8", text: "#ffffff" },
+      { name: "Pink", hex: "#ff4aa6", text: "#101116" },
+      { name: "White", hex: "#fffdf2", text: "#101116" },
+      { name: "Black", hex: "#101116", text: "#ffffff" },
+      { name: "Teal", hex: "#18c9be", text: "#101116" }
     ];
 
     const defaultPositions = [
@@ -951,32 +1014,18 @@
     const avoidRepeats = document.getElementById("avoidRepeats");
     const colorInput = document.getElementById("colorInput");
     const positionInput = document.getElementById("positionInput");
-    const quickColors = document.getElementById("quickColors");
-    const colorEditorList = document.getElementById("colorEditorList");
-    const newColorName = document.getElementById("newColorName");
-    const newColorHex = document.getElementById("newColorHex");
-    const teamList = document.getElementById("teamList");
-    const addKidForm = document.getElementById("addKidForm");
-    const kidNameInput = document.getElementById("kidNameInput");
     const listNameInput = document.getElementById("listNameInput");
     const savedListSelect = document.getElementById("savedListSelect");
     const status = document.getElementById("status");
     const soundButton = document.getElementById("soundButton");
     const namedListsStorageKey = "colorPositionNamedLists";
     const soundStorageKey = "colorPositionSound";
-    const hiddenColorsStorageKey = "colorPositionHiddenColors";
-    const teamStorageKey = "colorPositionTeam";
     const soundEffects = {
       click: [{ frequency: 520, duration: 0.045, type: "square", gain: 0.024 }],
       roll: [
         { frequency: 330, duration: 0.05, type: "square", gain: 0.03 },
         { frequency: 495, delay: 0.045, duration: 0.055, type: "square", gain: 0.032 },
         { frequency: 740, delay: 0.095, duration: 0.09, type: "triangle", gain: 0.032 }
-      ],
-      tick: [{ frequency: 760, duration: 0.026, type: "square", gain: 0.019 }],
-      finish: [
-        { frequency: 660, duration: 0.07, type: "triangle", gain: 0.034 },
-        { frequency: 880, delay: 0.075, duration: 0.12, type: "sine", gain: 0.038 }
       ],
       open: [
         { frequency: 392, duration: 0.045, type: "triangle", gain: 0.026 },
@@ -1022,11 +1071,8 @@
 
     let colors = [...defaultColors];
     let positions = [...defaultPositions];
-    let hiddenColors = new Set(loadHiddenColors());
-    let team = loadTeam();
     let currentColor = colors[4];
     let currentPosition = positions[0];
-    let isRolling = false;
     let soundEnabled = loadSoundPreference();
     let audioContext = null;
     let audioUnlocked = false;
@@ -1046,18 +1092,6 @@
       return filtered[Math.floor(Math.random() * filtered.length)];
     }
 
-    function weightedColor(colorsToChoose, current) {
-      let pool = colorsToChoose;
-      if (avoidRepeats.checked && pool.length > 1) pool = pool.filter((color) => color.name !== current?.name);
-      const totalWeight = pool.reduce((total, color) => total + Math.max(1, Number(color.weight) || 1), 0);
-      let pick = Math.random() * totalWeight;
-      for (const color of pool) {
-        pick -= Math.max(1, Number(color.weight) || 1);
-        if (pick < 0) return color;
-      }
-      return pool[pool.length - 1] || null;
-    }
-
     function filteredPositions() {
       const mode = difficulty.value;
       if (mode === "all") {
@@ -1065,128 +1099,6 @@
       }
 
       return positions.filter((position) => position.tags.includes(mode));
-    }
-
-    function activeColors() {
-      return colors.filter((color) => !hiddenColors.has(color.name.toLowerCase()));
-    }
-
-    function saveHiddenColors() {
-      localStorage.setItem(hiddenColorsStorageKey, JSON.stringify([...hiddenColors]));
-    }
-
-    function loadHiddenColors() {
-      try {
-        return JSON.parse(localStorage.getItem(hiddenColorsStorageKey)) || [];
-      } catch (error) {
-        return [];
-      }
-    }
-
-    function renderColorControls() {
-      quickColors.innerHTML = "";
-      colorEditorList.innerHTML = "";
-      colors.forEach((color) => {
-        const isActive = !hiddenColors.has(color.name.toLowerCase());
-        const quick = document.createElement("label");
-        quick.className = "quick-color";
-        quick.innerHTML = `<input type="checkbox" ${isActive ? "checked" : ""} aria-label="Use ${color.name}"><span class="mini-swatch"></span><span></span>`;
-        quick.querySelector(".mini-swatch").style.background = color.hex;
-        quick.querySelector("span:last-child").textContent = `${color.name} ×${color.weight || 1}`;
-        quick.querySelector("input").addEventListener("change", (event) => setColorActive(color.name, event.target.checked));
-        quickColors.appendChild(quick);
-
-        const row = document.createElement("label");
-        row.className = "color-editor-row";
-        row.innerHTML = `<input type="checkbox" ${isActive ? "checked" : ""} aria-label="Use ${color.name}"><input type="color" value="${color.hex}" aria-label="${color.name} shade"><span></span><input type="number" min="1" max="20" step="1" value="${color.weight || 1}" aria-label="${color.name} frequency">`;
-        row.querySelector("span").textContent = color.name;
-        row.querySelector('input[type="checkbox"]').addEventListener("change", (event) => setColorActive(color.name, event.target.checked));
-        row.querySelector('input[type="color"]').addEventListener("change", (event) => {
-          color.hex = event.target.value;
-          color.text = readableTextColor(color.hex);
-          syncColorText();
-          saveLists("Color updated.");
-          renderColorControls();
-        });
-        row.querySelector('input[type="number"]').addEventListener("change", (event) => {
-          color.weight = Math.max(1, Math.min(20, Math.round(Number(event.target.value) || 1)));
-          syncColorText();
-          saveLists(`${color.name} frequency set to ${color.weight}.`);
-          renderColorControls();
-        });
-        colorEditorList.appendChild(row);
-      });
-    }
-
-    function readableTextColor(hex) {
-      return ["#ffe45c", "#fffdf2", "#ff8a34", "#ff4aa6", "#18c9be"].includes(hex.toLowerCase()) ? "#101116" : "#ffffff";
-    }
-
-    function setColorActive(name, isActive) {
-      const key = name.toLowerCase();
-      if (!isActive && activeColors().length === 1) {
-        setStatus("Keep at least one color active.");
-        renderColorControls();
-        return;
-      }
-      if (isActive) hiddenColors.delete(key); else hiddenColors.add(key);
-      saveHiddenColors();
-      if (hiddenColors.has(currentColor.name.toLowerCase())) currentColor = activeColors()[0];
-      renderPrompt();
-      renderColorControls();
-      setStatus(`${name} ${isActive ? "added to" : "hidden from"} this game.`);
-    }
-
-    function syncColorText() {
-      colorInput.value = colors.map((color) => `${color.name}: ${color.hex} | ${color.weight || 1}`).join("\n");
-    }
-
-    function loadTeam() {
-      try { return JSON.parse(localStorage.getItem(teamStorageKey)) || []; } catch (error) { return []; }
-    }
-
-    function saveTeam() { localStorage.setItem(teamStorageKey, JSON.stringify(team)); }
-
-    function renderTeam() {
-      teamList.innerHTML = "";
-      if (!team.length) {
-        teamList.innerHTML = '<div class="empty-team">Add your group once, then tap + or − as you play.</div>';
-        return;
-      }
-      team.forEach((kid) => {
-        const row = document.createElement("div");
-        row.className = "kid-row";
-        row.innerHTML = '<span class="kid-name"></span><button class="points-button" type="button" aria-label="Subtract a point">−</button><span class="kid-points"></span><button class="points-button" type="button" aria-label="Add a point">+</button><button class="remove-kid" type="button" aria-label="Remove kid">×</button>';
-        row.querySelector(".kid-name").textContent = kid.name;
-        row.querySelector(".kid-points").textContent = kid.points;
-        const buttons = row.querySelectorAll("button");
-        const nameLabel = row.querySelector(".kid-name");
-        let lastNameTap = 0;
-        let hideDeleteTimer = null;
-        const showDelete = () => {
-          row.classList.add("delete-ready");
-          window.clearTimeout(hideDeleteTimer);
-          hideDeleteTimer = window.setTimeout(() => row.classList.remove("delete-ready"), 3000);
-        };
-        nameLabel.addEventListener("dblclick", showDelete);
-        nameLabel.addEventListener("pointerup", (event) => {
-          if (event.pointerType !== "touch") return;
-          const now = Date.now();
-          if (now - lastNameTap < 350) showDelete();
-          lastNameTap = now;
-        });
-        buttons[0].addEventListener("click", () => changePoints(kid.id, -1));
-        buttons[1].addEventListener("click", () => changePoints(kid.id, 1));
-        buttons[2].addEventListener("click", () => { team = team.filter((item) => item.id !== kid.id); saveTeam(); renderTeam(); });
-        teamList.appendChild(row);
-      });
-    }
-
-    function changePoints(id, amount) {
-      const kid = team.find((item) => item.id === id);
-      if (!kid) return;
-      kid.points = Math.max(0, kid.points + amount);
-      saveTeam(); renderTeam();
     }
 
     function renderPrompt() {
@@ -1207,33 +1119,11 @@
     }
 
     function rollAll() {
-      if (isRolling) return;
-      isRolling = true;
-      const finalColor = weightedColor(activeColors(), currentColor) || currentColor;
-      const finalPosition = randomItem(filteredPositions(), currentPosition) || currentPosition;
-      let steps = 0;
-      prompt.classList.add("rolling");
-      setStatus("Rerolling…");
-      const showNextRoll = () => {
-        steps += 1;
-        currentColor = weightedColor(activeColors(), currentColor) || currentColor;
-        currentPosition = randomItem(filteredPositions(), currentPosition) || currentPosition;
-        renderPrompt();
-        playSound("tick");
-        if (steps >= 18) {
-          currentColor = finalColor;
-          currentPosition = finalPosition;
-          prompt.classList.remove("rolling");
-          renderPrompt();
-          isRolling = false;
-          setStatus("New prompt ready.");
-          playSound("finish");
-          return;
-        }
-        const slowDown = 68 + Math.round((steps / 17) ** 2 * 130);
-        window.setTimeout(showNextRoll, slowDown);
-      };
-      window.setTimeout(showNextRoll, 68);
+      currentColor = randomItem(colors, currentColor) || currentColor;
+      currentPosition = randomItem(filteredPositions(), currentPosition) || currentPosition;
+      renderPrompt();
+      setStatus("New prompt ready.");
+      playSound("roll");
     }
 
     function setStatus(message) {
@@ -1252,16 +1142,14 @@
         .map((line) => line.trim())
         .filter(Boolean)
         .map((line, index) => {
-          const [namePart, detailsPart = ""] = line.split(":").map((part) => part.trim());
-          const [hexPart, weightPart] = detailsPart.split("|").map((part) => part.trim());
+          const [namePart, hexPart] = line.split(":").map((part) => part.trim());
           const fallback = defaultColors[index % defaultColors.length];
           const hex = /^#[0-9a-f]{6}$/i.test(hexPart) ? hexPart : fallback.hex;
-          const textColor = readableTextColor(hex);
+          const textColor = ["#ffe45c", "#fffdf2", "#ff8a34", "#ff4aa6", "#18c9be"].includes(hex.toLowerCase()) ? "#101116" : "#ffffff";
           return {
             name: namePart,
             hex,
-            text: textColor,
-            weight: Math.max(1, Math.min(20, Math.round(Number(weightPart) || 1)))
+            text: textColor
           };
         });
     }
@@ -1288,16 +1176,12 @@
       }
 
       colors = parsedColors;
-      hiddenColors = new Set([...hiddenColors].filter((name) => colors.some((color) => color.name.toLowerCase() === name)));
-      if (!activeColors().length) hiddenColors.clear();
       positions = parsedPositions;
       currentColor = colors[0];
       currentPosition = positions[0];
       localStorage.setItem("colorPositionColors", colorInput.value);
       localStorage.setItem("colorPositionPositions", positionInput.value);
-      saveHiddenColors();
       renderPrompt();
-      renderColorControls();
       setStatus(message);
       playSound("save");
       return true;
@@ -1401,8 +1285,6 @@
       if (savedColors) {
         colors = parseColors(savedColors);
       }
-      hiddenColors = new Set(loadHiddenColors());
-      syncColorText();
 
       if (savedPositions) {
         positions = parsePositions(savedPositions);
@@ -1412,16 +1294,13 @@
     function resetDefaults() {
       colors = [...defaultColors];
       positions = [...defaultPositions];
-      hiddenColors.clear();
       colorInput.value = defaultColors.map((color) => `${color.name}: ${color.hex}`).join("\n");
       positionInput.value = defaultPositions.map((position) => position.name).join("\n");
       localStorage.removeItem("colorPositionColors");
       localStorage.removeItem("colorPositionPositions");
-      localStorage.removeItem(hiddenColorsStorageKey);
       currentColor = colors[4];
       currentPosition = positions[0];
       renderPrompt();
-      renderColorControls();
       setStatus("Default lists restored.");
       playSound("reset");
     }
@@ -1566,34 +1445,7 @@
       oscillator.stop(startAt + duration + 0.03);
     }
 
-    document.getElementById("nextChallengeButton").addEventListener("click", rollAll);
-    document.getElementById("newColorButton").addEventListener("click", () => {
-      currentColor = weightedColor(activeColors(), currentColor) || currentColor;
-      renderPrompt();
-      setStatus("New color ready.");
-      playSound("roll");
-    });
-    document.getElementById("newMoveButton").addEventListener("click", rollPosition);
-    document.getElementById("addColorButton").addEventListener("click", () => {
-      const name = newColorName.value.trim();
-      if (!name) { setStatus("Give the new color a name."); return; }
-      if (colors.some((color) => color.name.toLowerCase() === name.toLowerCase())) { setStatus("That color is already in the list."); return; }
-      colors.push({ name, hex: newColorHex.value, text: readableTextColor(newColorHex.value), weight: 1 });
-      syncColorText();
-      newColorName.value = "";
-      saveLists(`${name} added.`);
-      renderColorControls();
-    });
-    addKidForm.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const name = kidNameInput.value.trim();
-      if (!name) return;
-      team.push({ id: `${Date.now()}-${Math.random()}`, name, points: 0 });
-      kidNameInput.value = "";
-      saveTeam();
-      renderTeam();
-      setStatus(`${name} added to the team.`);
-    });
+    document.getElementById("rollButton").addEventListener("click", rollAll);
     document.getElementById("openSettingsButton").addEventListener("click", () => {
       showScreen(settingsScreen);
       setStatus("Settings open.");
@@ -1628,10 +1480,7 @@
 
     loadLists();
     renderSavedListSelect();
-    if (hiddenColors.has(currentColor.name.toLowerCase())) currentColor = activeColors()[0] || colors[0];
     renderPrompt();
-    renderColorControls();
-    renderTeam();
     syncSoundButton();
   </script>
 </body>
