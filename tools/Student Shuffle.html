@@ -819,6 +819,12 @@
       font-weight: 700;
     }
 
+    /* The title receives focus when a shuffled order opens; keep that
+       programmatic focus from drawing the browser's default blue outline. */
+    .queue-dialog-title:focus {
+      outline: none;
+    }
+
     .order-lock-strip {
       position: relative;
       z-index: 3;
